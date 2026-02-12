@@ -2,16 +2,20 @@ from tqdm import tqdm
 import csv, gzip
 from collections import defaultdict
 
-# pri - pierwsza osoba
-# sec - druga osoba
-# ter - trzecia osoba
+# pri - first person
+# sec - second person
+# ter - third person
+
+# sg - singular
+# pl - plural
 
 TAGS = [
     "fin:sg:pri:perf",
     "fin:sg:sec:perf",
     "fin:sg:ter:perf",
     "praet:sg:f:perf",
-    "praet:sg:m1.m2.m3:perf"
+    "praet:sg:m1.m2.m3:perf",
+    "fin:pl:pri:perf",
 ]
 
 acc = defaultdict(lambda: {})
