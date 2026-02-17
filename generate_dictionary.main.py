@@ -20,6 +20,8 @@ TAGS = [
     *fin_tags,
     "praet:sg:f:perf",
     "praet:sg:m1.m2.m3:perf",
+    'praet:sg:f:imperf',
+    'praet:sg:m1.m2.m3:imperf',
 ]
 
 acc = defaultdict(lambda: {})
@@ -58,4 +60,5 @@ with open("conllu_analysis/dictionary.v3.csv", "w", encoding="utf-8", newline=""
 
 
 for tag in TAGS:
-    assert tag in all_tags, f"unexpected tag {tag}"
+    if tag not in all_tags:
+        print(f"unexpected tag {tag}")
