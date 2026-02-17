@@ -9,13 +9,17 @@ from collections import defaultdict
 # sg - singular
 # pl - plural
 
+fin_tags = []
+
+for t1 in ["sg", "pl"]:
+    for t2 in ["pri", "sec", "ter"]:
+        for t3 in ["perf", "imperf"]:
+            fin_tags.append(f"fin:{t1}:{t2}:{t3}")
+
 TAGS = [
-    "fin:sg:pri:perf",
-    "fin:sg:sec:perf",
-    "fin:sg:ter:perf",
+    *fin_tags,
     "praet:sg:f:perf",
     "praet:sg:m1.m2.m3:perf",
-    "fin:pl:pri:perf",
 ]
 
 acc = defaultdict(lambda: {})
@@ -43,7 +47,7 @@ with tqdm(gzip.open(path, "rt", encoding="utf-8", errors="replace")) as f:
 
 print("All tags", all_tags)
 
-with open("dictionary.v2.csv", "w", encoding="utf-8", newline="") as out:
+with open("conllu_analysis/dictionary.v3.csv", "w", encoding="utf-8", newline="") as out:
     w = csv.writer(out)
     w.writerow(["lemma", *TAGS])
     for lemma, d in acc.items():
@@ -51,3 +55,7 @@ with open("dictionary.v2.csv", "w", encoding="utf-8", newline="") as out:
         has_at_least_on_tag = any([len(e) > 0 for e in row])
         if has_at_least_on_tag:
             w.writerow([lemma, *row])
+
+
+for tag in TAGS:
+    assert tag in all_tags, f"unexpected tag {tag}"
