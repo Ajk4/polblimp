@@ -343,9 +343,10 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--conllu-path",
+        nargs="+",
         type=Path,
-        default=Path("train_nlprepl-ud.conllu"),
-        help="Path to input .conllu file.",
+        default=[Path("train_nlprepl-ud.conllu")],
+        help="One or more input .conllu files.",
     )
     parser.add_argument(
         "--morph-dict-path",
@@ -356,7 +357,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("output_old"),
+        default=Path("output"),
         help="Directory for output CSV files.",
     )
     parser.add_argument(
@@ -383,14 +384,19 @@ def main() -> None:
     args = parse_args()
     show_progress = not args.no_progress
 
-    if not args.conllu_path.exists():
-        raise FileNotFoundError(f"Missing input file: {args.conllu_path}")
+    for conllu_path in args.conllu_path:
+        if not conllu_path.exists():
+            raise FileNotFoundError(f"Missing input file: {conllu_path}")
     if not args.morph_dict_path.exists():
         raise FileNotFoundError(f"Missing morphology CSV: {args.morph_dict_path}")
 
-    print(f"Loading sentences from {args.conllu_path} ...")
-    sentences = load_sentences(args.conllu_path)
-    print(f"Loaded {len(sentences)} sentences")
+    sentences: list[conllu.TokenList] = []
+    for conllu_path in args.conllu_path:
+        print(f"Loading sentences from {conllu_path} ...")
+        file_sentences = load_sentences(conllu_path)
+        print(f"Loaded {len(file_sentences)} sentences from {conllu_path}")
+        sentences.extend(file_sentences)
+    print(f"Loaded {len(sentences)} total sentences from {len(args.conllu_path)} file(s)")
 
     print(f"Loading morphology dictionary from {args.morph_dict_path} ...")
     morph_dict = load_morph_dict(args.morph_dict_path)
