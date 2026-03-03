@@ -419,19 +419,25 @@ def run_number_clause_changes(
     )
 
 
-def run_pp_attractor_changes(
+def run_subj_verb_number_pp_attractor(
         sentences: list[conllu.TokenList],
         morph_dict: pd.DataFrame,
         limit: Optional[int],
         show_progress: bool,
 ) -> pd.DataFrame:
-    transformation = partial(change_number, morph_dict=morph_dict)
+    # TODO transformation
+
+    def transformation(token: conllu.Token) -> Optional[conllu.Token]:
+        # TODO
+        return token
+    # transformation = partial(change_number, morph_dict=morph_dict)
+
     return run_filter_transform(
         sentences,
         match_subj_verb_number_pp_attractor,
         transformation,
         limit=limit,
-        progress_desc="pp_attractor sg<->pl",
+        progress_desc="subj_verb_number_pp_attractor",
         show_progress=show_progress,
     )
 
@@ -527,8 +533,8 @@ def main() -> None:
         clause_df = run_number_clause_changes(sentences, morph_dict, args.limit, show_progress)
         write_csv(clause_df, args.output_dir / "subj_verb_number_clause.csv")
 
-    if args.task in ("all", "pp_attractor"):
-        pp_df = run_pp_attractor_changes(sentences, morph_dict, args.limit, show_progress)
+    if args.task in ("all", "subj_verb_number_pp_attractor"):
+        pp_df = run_subj_verb_number_pp_attractor(sentences, morph_dict, args.limit, show_progress)
         write_csv(pp_df, args.output_dir / "subj_verb_number_pp_attractor.csv")
 
 
