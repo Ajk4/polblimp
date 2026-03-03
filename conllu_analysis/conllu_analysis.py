@@ -136,22 +136,53 @@ def match_subj_verb_number_clause(
 def match_subj_verb_number_pp_attractor(
         sentence: conllu.TokenList,
 ) -> Optional[conllu.Token]:
-    token_tree = sentence.to_tree()
-    token = token_tree.token
-    token_xpos = token["xpos"].split(":")
+    root = sentence.to_tree()
 
-    for number in ("sg", "pl"):
-        if token["upos"] == "VERB" and token["deprel"] == "root" and number in token_xpos:
-            for child in token_tree.children:
-                child_xpos = child.token["xpos"].split(":")
-                if child.token["upos"] == "NOUN" and child.token["deprel"] == "nsubj" and number in child_xpos:
-                    for attractor in child.children:
-                        attractor_xpos = attractor.token["xpos"].split(":")
-                        other_number = "pl" if number == "sg" else "sg"
-                        if other_number in attractor_xpos:
-                            for prep in attractor.children:
-                                if prep.token["upos"] == "ADP" and prep.token["deprel"] == "case":
-                                    return token
+    if root.token["upos"] != "VERB":
+        return None
+
+    root_number = root.token["feats"].get("Number")
+
+    for nsubj in root.children:
+        if nsubj.token["upos"] != "NOUN":
+            continue
+        if nsubj.token["deprel"] != "nsubj":
+            continue
+
+        child_feats = nsubj.token["feats"]
+        if child_feats.get("Number", "") != root_number:
+            continue
+
+        def match_attractor(token: conllu.Token) -> bool:
+            return token['deprel'] in {'nmod', "nmod:poss", "xcomp", "conj"}
+
+        attractors = match_descendants(nsubj, match_attractor)
+        if len(attractors) != 1:
+            continue
+
+        for attractor in nsubj.children:
+            if attractor.token["upos"] != "NOUN":
+                continue
+            if attractor.token["deprel"] != "nmod":
+                continue
+
+            attractor_feats = attractor.token["feats"]
+            if attractor_feats.get("Number", "") == root_number:
+                continue
+
+            for prep in attractor.children:
+                if prep.token["upos"] != "ADP":
+                    continue
+                if prep.token["deprel"] != "case":
+                    continue
+
+                prep_feats = prep.token["feats"]
+
+                if prep.token['lemma'] == 'z' and prep_feats.get("Case") != "Ins":
+                    return root.token
+                if prep.token['lemma'] != 'z':
+                    return root.token
+
 
     return None
 
@@ -473,7 +504,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--task",
-        choices=("all", "subj_verb_number_simple", "subj_verb_number_clause", "gender", "number_clause", "pp_attractor"),
+        # TODO remove gender, number_clause
+        choices=("all", "subj_verb_number_simple", "subj_verb_number_clause", "subj_verb_gender_infinitival", "subj_verb_number_pp_attractor"),
         default="all",
         help="Which task(s) to run.",
     )
@@ -489,6 +521,41 @@ def parse_args() -> argparse.Namespace:
         help="Disable tqdm progress bars.",
     )
     return parser.parse_args()
+
+
+def run_subj_verb_gender_infinitival(
+        sentences: list[conllu.TokenList],
+        morph_dict: pd.DataFrame,
+        limit: Optional[int],
+        show_progress: bool,
+) -> pd.DataFrame:
+    # TODO transformation
+    def transformation(token: conllu.Token) -> Optional[conllu.Token]:
+        # TODO
+        return token
+
+    return run_filter_transform(
+        sentences,
+        match_subj_verb_gender_infinitival,
+        transformation,
+        limit=limit,
+        progress_desc=f"subj_verb_number_clause",
+        show_progress=show_progress,
+    )
+
+def match_subj_verb_gender_infinitival(
+        sentence: conllu.TokenList,
+) -> Optional[conllu.Token]:
+    root = sentence.to_tree()
+    root_feats = root.token['feats']
+    if (root.token["upos"] == "VERB" and root.token["deprel"] == "root" and
+            root_feats.get("Number", "") == 'Sing' and root_feats.get("Gender", "") == "Neut"):
+        for infinitive in root.children:
+            infinitive_feats = infinitive.token['feats']
+            if infinitive.token["upos"] == "VERB" and infinitive.token["deprel"] == "csubj" and infinitive_feats.get('VerbForm', "") ==  "Inf":
+                return root.token
+    return None
+
 
 
 def main() -> None:
@@ -521,17 +588,9 @@ def main() -> None:
         person_df = run_subj_verb_number_clause(sentences, morph_dict, args.limit, show_progress)
         write_csv(person_df, args.output_dir / "subj_verb_number_clause.csv")
 
-    if args.task in ("all", "person"):
-        person_df = run_person_changes(sentences, morph_dict, args.limit, show_progress)
-        write_csv(person_df, args.output_dir / "person_changed.csv")
-
-    if args.task in ("all", "gender"):
-        gender_df = run_gender_changes(sentences, morph_dict, args.limit, show_progress)
-        write_csv(gender_df, args.output_dir / "gender_changed.csv")
-
-    if args.task in ("all", "number_clause"):
-        clause_df = run_number_clause_changes(sentences, morph_dict, args.limit, show_progress)
-        write_csv(clause_df, args.output_dir / "subj_verb_number_clause.csv")
+    if args.task in ("all", "subj_verb_gender_infinitival"):
+        person_df = run_subj_verb_gender_infinitival(sentences, morph_dict, args.limit, show_progress)
+        write_csv(person_df, args.output_dir / "subj_verb_gender_infinitival.csv")
 
     if args.task in ("all", "subj_verb_number_pp_attractor"):
         pp_df = run_subj_verb_number_pp_attractor(sentences, morph_dict, args.limit, show_progress)
