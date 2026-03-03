@@ -8,6 +8,7 @@ from typing import Callable, Optional
 
 import conllu
 import pandas as pd
+from conllu import TokenTree
 from tqdm import tqdm
 
 POLIFORM_TAG_BY_UD_TAG = {
@@ -21,11 +22,14 @@ POLIFORM_TAG_BY_UD_TAG = {
 }
 
 
-def load_sentences(conllu_path: Path) -> list[conllu.TokenList]:
+def load_sentences(conllu_path: Path, limit=None) -> list[conllu.TokenList]:
     sentences: list[conllu.TokenList] = []
     with conllu_path.open("r", encoding="utf-8") as handle:
         for sentence in conllu.parse_incr(handle):
             sentences.append(sentence)
+            if limit is not None:
+                if len(sentences) >= limit:
+                    break
     return sentences
 
 
@@ -74,7 +78,7 @@ def sentence_text(sentence: conllu.TokenList) -> str:
 
 
 def match_predicate_with_pron_nsubj(
-    sentence: conllu.TokenList,
+        sentence: conllu.TokenList,
 ) -> Optional[conllu.Token]:
     root = sentence.to_tree()
     token = root.token
@@ -90,10 +94,10 @@ def match_predicate_with_pron_nsubj(
 
 
 def change_morph(
-    token: conllu.Token,
-    morph_dict: pd.DataFrame,
-    source_tag: str,
-    target_tag: str,
+        token: conllu.Token,
+        morph_dict: pd.DataFrame,
+        source_tag: str,
+        target_tag: str,
 ) -> Optional[conllu.Token]:
     xpos = token.get("xpos")
     if xpos != source_tag:
@@ -117,7 +121,7 @@ def change_morph(
 
 
 def match_subj_verb_number_clause(
-    sentence: conllu.TokenList,
+        sentence: conllu.TokenList,
 ) -> Optional[conllu.Token]:
     token_tree = sentence.to_tree()
     token = token_tree.token
@@ -130,7 +134,7 @@ def match_subj_verb_number_clause(
 
 
 def match_subj_verb_number_pp_attractor(
-    sentence: conllu.TokenList,
+        sentence: conllu.TokenList,
 ) -> Optional[conllu.Token]:
     token_tree = sentence.to_tree()
     token = token_tree.token
@@ -165,7 +169,7 @@ def change_number(token: conllu.Token, morph_dict: pd.DataFrame) -> Optional[con
     for source_number, target_number in (("pl", "sg"), ("sg", "pl")):
         if source_number in xpos:
             source_idx = xpos.index(source_number)
-            target_xpos = xpos[:source_idx] + [target_number] + xpos[source_idx + 1 :]
+            target_xpos = xpos[:source_idx] + [target_number] + xpos[source_idx + 1:]
             target_xpos_str = ":".join(target_xpos)
             target_form = get_form(morph_dict, lemma, target_xpos_str)
             if target_form is None:
@@ -179,12 +183,12 @@ def change_number(token: conllu.Token, morph_dict: pd.DataFrame) -> Optional[con
 
 
 def run_filter_transform(
-    sentences: list[conllu.TokenList],
-    match_token_fn: Callable[[conllu.TokenList], Optional[conllu.Token]],
-    transform_inplace_fn: Callable[[conllu.Token], Optional[conllu.Token]],
-    limit: Optional[int] = None,
-    progress_desc: Optional[str] = None,
-    show_progress: bool = True,
+        sentences: list[conllu.TokenList],
+        match_token_fn: Callable[[conllu.TokenList], Optional[conllu.Token]],
+        transform_inplace_fn: Callable[[conllu.Token], Optional[conllu.Token]],
+        limit: Optional[int] = None,
+        progress_desc: Optional[str] = None,
+        show_progress: bool = True,
 ) -> pd.DataFrame:
     rows: list[tuple[int, str, str]] = []
 
@@ -223,11 +227,112 @@ def combine_outputs(frames: list[pd.DataFrame]) -> pd.DataFrame:
     return combined.sort_values("conllu_index").reset_index(drop=True)
 
 
+def run_subj_verb_number_simple(
+        sentences: list[conllu.TokenList],
+        morph_dict: pd.DataFrame,
+        limit: Optional[int],
+        show_progress: bool,
+) -> pd.DataFrame:
+
+    # TODO transformation
+    def transformation(token: conllu.Token) -> Optional[conllu.Token]:
+        return token
+
+    return run_filter_transform(
+        sentences,
+        match_subj_verb_number_simple,
+        transformation,
+        limit=limit,
+        progress_desc=f"run_subj_verb_number_simple",
+        show_progress=show_progress,
+    )
+
+def run_subj_verb_number_clause(
+        sentences: list[conllu.TokenList],
+        morph_dict: pd.DataFrame,
+        limit: Optional[int],
+        show_progress: bool,
+) -> pd.DataFrame:
+
+    # TODO transformation
+    def transformation(token: conllu.Token) -> Optional[conllu.Token]:
+        # TODO
+        return token
+
+    return run_filter_transform(
+        sentences,
+        match_subj_verb_number_clause,  # TODO CHECK
+        transformation,
+        limit=limit,
+        progress_desc=f"run_subj_verb_number_clause",
+        show_progress=show_progress,
+    )
+
+
+def match_subj_verb_number_clause2(
+        sentence: conllu.TokenList,
+) -> Optional[conllu.Token]:
+    root = sentence.to_tree()
+    if root.token["upos"] != "VERB":
+        return None
+
+    root_feats = root.token['feats']
+    if root_feats.get("Number", "") != 'Sing':
+        return None
+
+    for child in root.children:
+        child_feats = child.token['feats']
+        if child.token["upos"] == "VERB" and child.token["deprel"] == "csubj" and child_feats.get("VerbForm", "") != "Inf":
+            return root.token
+
+    return None
+
+
+
+def match_subj_verb_number_simple(
+        sentence: conllu.TokenList,
+) -> Optional[conllu.Token]:
+    root = sentence.to_tree()
+    if root.token["upos"] != "VERB":
+        return None
+
+    root_feats = root.token['feats']
+    if 'Number' not in root_feats:
+        return None
+
+    for child in root.children:
+        child_token = child.token
+        if child_token["upos"] == "NOUN" and child_token["deprel"] == "nsubj":
+            def descendant_predicate(token: conllu.Token) -> bool:
+                feats = token['feats']
+                if feats is None:
+                    return False
+
+                return (token['deprel'] in {"nmod", "nmod:poss", "xcomp", "conj", "nummod"} and
+                        feats.get('Number', "") == root_feats['Number'])
+
+            unwanted_descendants = match_descendants(child, descendant_predicate)
+            if len(unwanted_descendants) == 0:
+                return root.token
+
+    return None
+
+
+def match_descendants(tree: conllu.TokenTree, token_predicate):
+    matches = []
+    for child in tree.children:
+        if token_predicate(child.token):
+            matches.append(child.token)
+        matches.extend(match_descendants(child, token_predicate))
+    return matches
+    pass
+
+
 def run_person_changes(
-    sentences: list[conllu.TokenList],
-    morph_dict: pd.DataFrame,
-    limit: Optional[int],
-    show_progress: bool,
+        sentences: list[conllu.TokenList],
+        morph_dict: pd.DataFrame,
+        limit: Optional[int],
+        show_progress: bool,
 ) -> pd.DataFrame:
     results: list[pd.DataFrame] = []
 
@@ -260,10 +365,10 @@ def run_person_changes(
 
 
 def run_gender_changes(
-    sentences: list[conllu.TokenList],
-    morph_dict: pd.DataFrame,
-    limit: Optional[int],
-    show_progress: bool,
+        sentences: list[conllu.TokenList],
+        morph_dict: pd.DataFrame,
+        limit: Optional[int],
+        show_progress: bool,
 ) -> pd.DataFrame:
     results: list[pd.DataFrame] = []
 
@@ -298,10 +403,10 @@ def run_gender_changes(
 
 
 def run_number_clause_changes(
-    sentences: list[conllu.TokenList],
-    morph_dict: pd.DataFrame,
-    limit: Optional[int],
-    show_progress: bool,
+        sentences: list[conllu.TokenList],
+        morph_dict: pd.DataFrame,
+        limit: Optional[int],
+        show_progress: bool,
 ) -> pd.DataFrame:
     transformation = partial(change_number, morph_dict=morph_dict)
     return run_filter_transform(
@@ -315,10 +420,10 @@ def run_number_clause_changes(
 
 
 def run_pp_attractor_changes(
-    sentences: list[conllu.TokenList],
-    morph_dict: pd.DataFrame,
-    limit: Optional[int],
-    show_progress: bool,
+        sentences: list[conllu.TokenList],
+        morph_dict: pd.DataFrame,
+        limit: Optional[int],
+        show_progress: bool,
 ) -> pd.DataFrame:
     transformation = partial(change_number, morph_dict=morph_dict)
     return run_filter_transform(
@@ -362,7 +467,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--task",
-        choices=("all", "person", "gender", "number_clause", "pp_attractor"),
+        choices=("all", "subj_verb_number_simple", "subj_verb_number_clause", "gender", "number_clause", "pp_attractor"),
         default="all",
         help="Which task(s) to run.",
     )
@@ -401,6 +506,14 @@ def main() -> None:
     print(f"Loading morphology dictionary from {args.morph_dict_path} ...")
     morph_dict = load_morph_dict(args.morph_dict_path)
     print(f"Loaded morphology dictionary with {len(morph_dict)} lemmas")
+
+    if args.task in ("all", "subj_verb_number_simple"):
+        person_df = run_subj_verb_number_simple(sentences, morph_dict, args.limit, show_progress)
+        write_csv(person_df, args.output_dir / "subj_verb_number_simple.csv")
+
+    if args.task in ("all", "subj_verb_number_clause"):
+        person_df = run_subj_verb_number_clause(sentences, morph_dict, args.limit, show_progress)
+        write_csv(person_df, args.output_dir / "subj_verb_number_clause.csv")
 
     if args.task in ("all", "person"):
         person_df = run_person_changes(sentences, morph_dict, args.limit, show_progress)
