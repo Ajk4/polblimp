@@ -259,7 +259,6 @@ def run_subj_verb_number_simple(
         sentences: list[conllu.TokenList],
         morph_dict: pd.DataFrame,
         limit: Optional[int],
-        show_progress: bool,
 ) -> pd.DataFrame:
 
     # TODO transformation
@@ -272,14 +271,12 @@ def run_subj_verb_number_simple(
         transformation,
         limit=limit,
         progress_desc=f"run_subj_verb_number_simple",
-        show_progress=show_progress,
     )
 
 def run_subj_verb_number_clause(
         sentences: list[conllu.TokenList],
         morph_dict: pd.DataFrame,
         limit: Optional[int],
-        show_progress: bool,
 ) -> pd.DataFrame:
 
     # TODO transformation
@@ -293,7 +290,6 @@ def run_subj_verb_number_clause(
         transformation,
         limit=limit,
         progress_desc=f"run_subj_verb_number_clause",
-        show_progress=show_progress,
     )
 
 
@@ -460,7 +456,6 @@ def run_subj_verb_number_pp_attractor(
         sentences: list[conllu.TokenList],
         morph_dict: pd.DataFrame,
         limit: Optional[int],
-        show_progress: bool,
 ) -> pd.DataFrame:
     # TODO transformation
 
@@ -475,7 +470,6 @@ def run_subj_verb_number_pp_attractor(
         transformation,
         limit=limit,
         progress_desc="subj_verb_number_pp_attractor",
-        show_progress=show_progress,
     )
 
 
@@ -522,11 +516,6 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Maximum output rows per single filter/transform run.",
     )
-    parser.add_argument(
-        "--no-progress",
-        action="store_true",
-        help="Disable tqdm progress bars.",
-    )
     return parser.parse_args()
 
 
@@ -534,7 +523,6 @@ def run_subj_verb_gender_infinitival(
         sentences: list[conllu.TokenList],
         morph_dict: pd.DataFrame,
         limit: Optional[int],
-        show_progress: bool,
 ) -> pd.DataFrame:
     # TODO transformation
     def transformation(token: conllu.Token) -> Optional[conllu.Token]:
@@ -547,7 +535,6 @@ def run_subj_verb_gender_infinitival(
         transformation,
         limit=limit,
         progress_desc=f"subj_verb_number_clause",
-        show_progress=show_progress,
     )
 
 def match_subj_verb_gender_infinitival(
@@ -567,7 +554,6 @@ def match_subj_verb_gender_infinitival(
 
 def main() -> None:
     args = parse_args()
-    show_progress = not args.no_progress
 
     if not args.data_dir.exists():
         raise FileNotFoundError(f"Missing data directory: {args.data_dir}")
@@ -596,19 +582,19 @@ def main() -> None:
     print(f"Loaded morphology dictionary with {len(morph_dict)} lemmas")
 
     if args.task in ("all", "subj_verb_number_simple"):
-        person_df = run_subj_verb_number_simple(sentences, morph_dict, args.limit, show_progress)
+        person_df = run_subj_verb_number_simple(sentences, morph_dict, args.limit)
         write_csv(person_df, args.output_dir / "subj_verb_number_simple.csv")
 
     if args.task in ("all", "subj_verb_number_clause"):
-        person_df = run_subj_verb_number_clause(sentences, morph_dict, args.limit, show_progress)
+        person_df = run_subj_verb_number_clause(sentences, morph_dict, args.limit)
         write_csv(person_df, args.output_dir / "subj_verb_number_clause.csv")
 
     if args.task in ("all", "subj_verb_gender_infinitival"):
-        person_df = run_subj_verb_gender_infinitival(sentences, morph_dict, args.limit, show_progress)
+        person_df = run_subj_verb_gender_infinitival(sentences, morph_dict, args.limit)
         write_csv(person_df, args.output_dir / "subj_verb_gender_infinitival.csv")
 
     if args.task in ("all", "subj_verb_number_pp_attractor"):
-        pp_df = run_subj_verb_number_pp_attractor(sentences, morph_dict, args.limit, show_progress)
+        pp_df = run_subj_verb_number_pp_attractor(sentences, morph_dict, args.limit)
         write_csv(pp_df, args.output_dir / "subj_verb_number_pp_attractor.csv")
 
 if __name__ == "__main__":
