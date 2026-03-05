@@ -330,18 +330,27 @@ def match_subj_verb_number_simple(
 
     for child in root.children:
         child_token = child.token
-        if child_token["upos"] == "NOUN" and child_token["deprel"] == "nsubj":
-            def descendant_predicate(token: conllu.Token) -> bool:
-                feats = token['feats']
-                if feats is None:
-                    return False
 
-                return (token['deprel'] in {"nmod", "nmod:poss", "xcomp", "conj", "nummod"} and
-                        feats.get('Number', "") == root_feats['Number'])
+        if child_token["upos"] != "NOUN":
+            continue
 
-            unwanted_descendants = match_descendants(child, descendant_predicate)
-            if len(unwanted_descendants) == 0:
-                return root.token
+        if child_token["deprel"] != "nsubj":
+            continue
+
+        child_feats = child_token['feats']
+        if child_feats.get('Number', "") != root_feats['Number']:
+            continue
+
+        def descendant_predicate(token: conllu.Token) -> bool:
+            feats = token['feats']
+            if feats is None:
+                return False
+
+            return (token['deprel'] in {"nmod", "nmod:poss", "xcomp", "conj", "nummod"})
+
+        unwanted_descendants = match_descendants(child, descendant_predicate)
+        if len(unwanted_descendants) == 0:
+            return root.token
 
     return None
 
