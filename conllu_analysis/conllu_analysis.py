@@ -594,25 +594,22 @@ def main() -> None:
     print(f"Loading morphology dictionary from {args.morph_dict_path} ...")
     morph_dict = load_morph_dict(args.morph_dict_path)
     print(f"Loaded morphology dictionary with {len(morph_dict)} lemmas")
-    #
-    # if args.task in ("all", "subj_verb_number_simple"):
-    #     person_df = run_subj_verb_number_simple(sentences, morph_dict, args.limit, show_progress)
-    #     write_csv(person_df, args.output_dir / "subj_verb_number_simple.csv")
-    #
-    # if args.task in ("all", "subj_verb_number_clause"):
-    #     person_df = run_subj_verb_number_clause(sentences, morph_dict, args.limit, show_progress)
-    #     write_csv(person_df, args.output_dir / "subj_verb_number_clause.csv")
-    #
-    # if args.task in ("all", "subj_verb_gender_infinitival"):
-    #     person_df = run_subj_verb_gender_infinitival(sentences, morph_dict, args.limit, show_progress)
-    #     write_csv(person_df, args.output_dir / "subj_verb_gender_infinitival.csv")
+
+    if args.task in ("all", "subj_verb_number_simple"):
+        person_df = run_subj_verb_number_simple(sentences, morph_dict, args.limit, show_progress)
+        write_csv(person_df, args.output_dir / "subj_verb_number_simple.csv")
+
+    if args.task in ("all", "subj_verb_number_clause"):
+        person_df = run_subj_verb_number_clause(sentences, morph_dict, args.limit, show_progress)
+        write_csv(person_df, args.output_dir / "subj_verb_number_clause.csv")
+
+    if args.task in ("all", "subj_verb_gender_infinitival"):
+        person_df = run_subj_verb_gender_infinitival(sentences, morph_dict, args.limit, show_progress)
+        write_csv(person_df, args.output_dir / "subj_verb_gender_infinitival.csv")
 
     if args.task in ("all", "subj_verb_number_pp_attractor"):
         pp_df = run_subj_verb_number_pp_attractor(sentences, morph_dict, args.limit, show_progress)
         write_csv(pp_df, args.output_dir / "subj_verb_number_pp_attractor.csv")
-
-    # Zapytanie nie zwraca
-    # 153,Auto z czterema młodymi mężczyznami wpadło do Wisły.
 
 if __name__ == "__main__":
     main()
