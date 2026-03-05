@@ -149,8 +149,8 @@ def match_subj_verb_number_pp_attractor(
         if nsubj.token["deprel"] != "nsubj":
             continue
 
-        child_feats = nsubj.token["feats"]
-        if child_feats.get("Number", "") != root_number:
+        nsubj_feats = nsubj.token["feats"]
+        if nsubj_feats.get("Number", "") != root_number:
             continue
 
         def match_attractor(token: conllu.Token) -> bool:
@@ -176,13 +176,10 @@ def match_subj_verb_number_pp_attractor(
                 if prep.token["deprel"] != "case":
                     continue
 
-                prep_feats = prep.token["feats"]
-
-                if prep.token['lemma'] == 'z' and prep_feats.get("Case") != "Ins":
+                if prep.token['lemma'] == 'z' and attractor_feats.get("Case") != "Ins":
                     return root.token
                 if prep.token['lemma'] != 'z':
                     return root.token
-
 
     return None
 
@@ -484,11 +481,12 @@ def parse_args() -> argparse.Namespace:
         description="Run standalone CONLLU-based transformations extracted from notebooks."
     )
     parser.add_argument(
-        "--conllu-path",
-        nargs="+",
+        "--data-dir",
+        "--data_dir",
+        dest="data_dir",
         type=Path,
-        default=[Path("train_nlprepl-ud.conllu")],
-        help="One or more input .conllu files.",
+        default=Path("./data"),
+        help="Directory with input .conllu files. All .conllu files in this directory are loaded (default: ./data).",
     )
     parser.add_argument(
         "--morph-dict-path",
@@ -562,40 +560,50 @@ def main() -> None:
     args = parse_args()
     show_progress = not args.no_progress
 
-    for conllu_path in args.conllu_path:
+    if not args.data_dir.exists():
+        raise FileNotFoundError(f"Missing data directory: {args.data_dir}")
+    if not args.data_dir.is_dir():
+        raise NotADirectoryError(f"Expected directory for --data-dir: {args.data_dir}")
+    conllu_paths = sorted(args.data_dir.glob("*.conllu"))
+    if not conllu_paths:
+        raise FileNotFoundError(f"No .conllu files found in data directory: {args.data_dir}")
+
+    for conllu_path in conllu_paths:
         if not conllu_path.exists():
             raise FileNotFoundError(f"Missing input file: {conllu_path}")
     if not args.morph_dict_path.exists():
         raise FileNotFoundError(f"Missing morphology CSV: {args.morph_dict_path}")
 
     sentences: list[conllu.TokenList] = []
-    for conllu_path in args.conllu_path:
+    for conllu_path in conllu_paths:
         print(f"Loading sentences from {conllu_path} ...")
         file_sentences = load_sentences(conllu_path)
         print(f"Loaded {len(file_sentences)} sentences from {conllu_path}")
         sentences.extend(file_sentences)
-    print(f"Loaded {len(sentences)} total sentences from {len(args.conllu_path)} file(s)")
+    print(f"Loaded {len(sentences)} total sentences from {len(conllu_paths)} file(s)")
 
     print(f"Loading morphology dictionary from {args.morph_dict_path} ...")
     morph_dict = load_morph_dict(args.morph_dict_path)
     print(f"Loaded morphology dictionary with {len(morph_dict)} lemmas")
-
-    if args.task in ("all", "subj_verb_number_simple"):
-        person_df = run_subj_verb_number_simple(sentences, morph_dict, args.limit, show_progress)
-        write_csv(person_df, args.output_dir / "subj_verb_number_simple.csv")
-
-    if args.task in ("all", "subj_verb_number_clause"):
-        person_df = run_subj_verb_number_clause(sentences, morph_dict, args.limit, show_progress)
-        write_csv(person_df, args.output_dir / "subj_verb_number_clause.csv")
-
-    if args.task in ("all", "subj_verb_gender_infinitival"):
-        person_df = run_subj_verb_gender_infinitival(sentences, morph_dict, args.limit, show_progress)
-        write_csv(person_df, args.output_dir / "subj_verb_gender_infinitival.csv")
+    #
+    # if args.task in ("all", "subj_verb_number_simple"):
+    #     person_df = run_subj_verb_number_simple(sentences, morph_dict, args.limit, show_progress)
+    #     write_csv(person_df, args.output_dir / "subj_verb_number_simple.csv")
+    #
+    # if args.task in ("all", "subj_verb_number_clause"):
+    #     person_df = run_subj_verb_number_clause(sentences, morph_dict, args.limit, show_progress)
+    #     write_csv(person_df, args.output_dir / "subj_verb_number_clause.csv")
+    #
+    # if args.task in ("all", "subj_verb_gender_infinitival"):
+    #     person_df = run_subj_verb_gender_infinitival(sentences, morph_dict, args.limit, show_progress)
+    #     write_csv(person_df, args.output_dir / "subj_verb_gender_infinitival.csv")
 
     if args.task in ("all", "subj_verb_number_pp_attractor"):
         pp_df = run_subj_verb_number_pp_attractor(sentences, morph_dict, args.limit, show_progress)
         write_csv(pp_df, args.output_dir / "subj_verb_number_pp_attractor.csv")
 
+    # Zapytanie nie zwraca
+    # 153,Auto z czterema młodymi mężczyznami wpadło do Wisły.
 
 if __name__ == "__main__":
     main()
