@@ -11,19 +11,36 @@ import pandas as pd
 from conllu import TokenTree
 from tqdm import tqdm
 
-POLIFORM_TAG_BY_UD_TAG = {
-    'ppron3:sg:nom:m3:ter:akc:npraep': 'ppron3:sg:nom:m1.m2.m3:ter:_:_',
-    'praet:sg:m1:perf': 'praet:sg:m1.m2.m3:perf',
-    'praet:sg:m2:perf': 'praet:sg:m1.m2.m3:perf',
-    'praet:sg:m3:perf': 'praet:sg:m1.m2.m3:perf',
-    'praet:sg:m1:imperf': 'praet:sg:m1.m2.m3:imperf',
-    'praet:sg:m2:imperf': 'praet:sg:m1.m2.m3:imperf',
-    'praet:sg:m3:imperf': 'praet:sg:m1.m2.m3:imperf',
-    'praet:pl:n:perf': 'praet:pl:m2.m3.f.n1.n2.p2.p3:perf',
-    'praet:pl:n:imperf': 'praet:pl:m2.m3.f.n1.n2.p2.p3:imperf',
-    'praet:pl:f:perf': 'praet:pl:m2.m3.f.n1.n2.p2.p3:perf',
-}
+# POLIFORM_TAG_BY_UD_TAG = {
+#     'ppron3:sg:nom:m3:ter:akc:npraep': 'ppron3:sg:nom:m1.m2.m3:ter:_:_',
+#     'praet:sg:m1:perf': 'praet:sg:m1.m2.m3:perf',
+#     'praet:sg:m2:perf': 'praet:sg:m1.m2.m3:perf',
+#     'praet:sg:m3:perf': 'praet:sg:m1.m2.m3:perf',
+#     'praet:sg:m1:imperf': 'praet:sg:m1.m2.m3:imperf',
+#     'praet:sg:m2:imperf': 'praet:sg:m1.m2.m3:imperf',
+#     'praet:sg:m3:imperf': 'praet:sg:m1.m2.m3:imperf',
+#     'praet:pl:m1:perf': 'praet:pl:m1.p1:perf',
+#     'praet:pl:n:perf': 'praet:pl:m2.m3.f.n1.n2.p2.p3:perf',
+#     'praet:pl:n:imperf': 'praet:pl:m2.m3.f.n1.n2.p2.p3:imperf',
+#     'praet:pl:f:perf': 'praet:pl:m2.m3.f.n1.n2.p2.p3:imperf.perf',
+#     'praet:pl:f:imperf': 'praet:pl:m2.m3.f.n1.n2.p2.p3:imperf.perf',
+# }
 
+def is_subtag(tag: str, supertag:str) -> bool:
+    if tag == supertag:
+        return True
+
+    tag_parts = tag.split(":")
+    supertag_parts = supertag.split(":")
+
+    if len(tag_parts) != len(supertag_parts):
+        return False
+
+    for tag_part, supertag_part in zip(tag_parts, supertag_parts):
+        supertag_part_options = supertag_part.split(".")
+        if tag_part not in supertag_part_options:
+            return False
+    return True
 
 def load_sentences(conllu_path: Path, limit=None) -> list[conllu.TokenList]:
     sentences: list[conllu.TokenList] = []
@@ -50,20 +67,16 @@ def get_form(morph_dict: pd.DataFrame, lemma: str, tag: str) -> Optional[str]:
     if not has_lemma(morph_dict, lemma):
         return None
 
-    if tag in POLIFORM_TAG_BY_UD_TAG:
-        tag = POLIFORM_TAG_BY_UD_TAG[tag]
-
     row = morph_dict.loc[lemma]
-    if isinstance(row, pd.DataFrame):
-        row = row.iloc[0]
 
-    if tag not in row.index:
+    if ':n:' in tag:  # FIXME HACK
+        tag = tag.replace(":n:", ":n1:")
+
+    for col, val in row.items():
+        if pd.notna(val) and val != "" and is_subtag(tag, col):
+            return str(val)
+    else:
         return None
-
-    value = row[tag]
-    if pd.notna(value) and value != "":
-        return str(value)
-    return None
 
 
 def sentence_text(sentence: conllu.TokenList) -> str:
@@ -103,10 +116,13 @@ def change_morph(
 ) -> Optional[conllu.Token]:
     lemma = token.get("lemma")
     if not lemma or not has_lemma(morph_dict, lemma):
+        print("Missing lemma", lemma)
         return None
 
     target_form = get_form(morph_dict, lemma, target_tag)
     if target_form is None:
+        print(f"Missing form, lemma: {lemma}, form: {target_tag}")
+        # get_form(morph_dict, lemma, target_tag)  # debug
         return None
 
     form = token.get("form", "")
@@ -182,32 +198,6 @@ def match_subj_verb_number_pp_attractor(
     return None
 
 
-def change_number(token: conllu.Token, morph_dict: pd.DataFrame) -> Optional[conllu.Token]:
-    lemma = token.get("lemma")
-    if not lemma or not has_lemma(morph_dict, lemma):
-        return None
-
-    xpos_raw = token.get("xpos")
-    if not xpos_raw:
-        return None
-
-    xpos = xpos_raw.split(":")
-    for source_number, target_number in (("pl", "sg"), ("sg", "pl")):
-        if source_number in xpos:
-            source_idx = xpos.index(source_number)
-            target_xpos = xpos[:source_idx] + [target_number] + xpos[source_idx + 1:]
-            target_xpos_str = ":".join(target_xpos)
-            target_form = get_form(morph_dict, lemma, target_xpos_str)
-            if target_form is None:
-                return None
-
-            token["form"] = target_form
-            token["xpos"] = target_xpos_str
-            return token
-
-    return None
-
-
 def run_filter_transform(
         sentences: list[conllu.TokenList],
         match_token_fn: Callable[[conllu.TokenList], Optional[conllu.Token]],
@@ -258,10 +248,19 @@ def run_subj_verb_number_simple(
         morph_dict: pd.DataFrame,
         limit: Optional[int],
 ) -> pd.DataFrame:
-
     # TODO transformation
     def transformation(token: conllu.Token) -> Optional[conllu.Token]:
-        return token
+        # TODO DRY
+        source_xpos = token["xpos"]
+        if 'pl' in source_xpos:
+            target_xpos = source_xpos.replace('pl', 'sg')
+        elif 'sg' in source_xpos:
+            target_xpos = source_xpos.replace('sg', 'pl')
+        else:
+            print("Unknown tag", source_xpos)
+            return None
+
+        return change_morph(token, morph_dict, target_xpos)
 
     return run_filter_transform(
         sentences,
@@ -271,12 +270,12 @@ def run_subj_verb_number_simple(
         progress_desc=f"run_subj_verb_number_simple",
     )
 
+
 def run_subj_verb_number_clause(
         sentences: list[conllu.TokenList],
         morph_dict: pd.DataFrame,
         limit: Optional[int],
 ) -> pd.DataFrame:
-
     # TODO transformation
     def transformation(token: conllu.Token) -> Optional[conllu.Token]:
         source_xpos = token["xpos"]
@@ -313,11 +312,11 @@ def match_subj_verb_number_clause2(
 
     for child in root.children:
         child_feats = child.token['feats']
-        if child.token["upos"] == "VERB" and child.token["deprel"] == "csubj" and child_feats.get("VerbForm", "") != "Inf":
+        if child.token["upos"] == "VERB" and child.token["deprel"] == "csubj" and child_feats.get("VerbForm",
+                                                                                                  "") != "Inf":
             return root.token
 
     return None
-
 
 
 def match_subj_verb_number_simple(
@@ -377,6 +376,7 @@ def run_subj_verb_number_pp_attractor(
     def transformation(token: conllu.Token) -> Optional[conllu.Token]:
         # TODO
         return token
+
     # transformation = partial(change_number, morph_dict=morph_dict)
 
     return run_filter_transform(
@@ -421,7 +421,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--task",
         # TODO remove gender, number_clause
-        choices=("all", "subj_verb_number_simple", "subj_verb_number_clause", "subj_verb_gender_infinitival", "subj_verb_number_pp_attractor"),
+        choices=("all", "subj_verb_number_simple", "subj_verb_number_clause", "subj_verb_gender_infinitival",
+                 "subj_verb_number_pp_attractor"),
         default="all",
         help="Which task(s) to run.",
     )
@@ -452,6 +453,7 @@ def run_subj_verb_gender_infinitival(
         progress_desc=f"subj_verb_number_clause",
     )
 
+
 def match_subj_verb_gender_infinitival(
         sentence: conllu.TokenList,
 ) -> Optional[conllu.Token]:
@@ -461,10 +463,10 @@ def match_subj_verb_gender_infinitival(
             root_feats.get("Number", "") == 'Sing' and root_feats.get("Gender", "") == "Neut"):
         for infinitive in root.children:
             infinitive_feats = infinitive.token['feats']
-            if infinitive.token["upos"] == "VERB" and infinitive.token["deprel"] == "csubj" and infinitive_feats.get('VerbForm', "") ==  "Inf":
+            if infinitive.token["upos"] == "VERB" and infinitive.token["deprel"] == "csubj" and infinitive_feats.get(
+                    'VerbForm', "") == "Inf":
                 return root.token
     return None
-
 
 
 def main() -> None:
@@ -484,6 +486,10 @@ def main() -> None:
     if not args.morph_dict_path.exists():
         raise FileNotFoundError(f"Missing morphology CSV: {args.morph_dict_path}")
 
+    print(f"Loading morphology dictionary from {args.morph_dict_path} ...")
+    morph_dict = load_morph_dict(args.morph_dict_path)
+    print(f"Loaded morphology dictionary with {len(morph_dict)} lemmas")
+
     sentences: list[conllu.TokenList] = []
     for conllu_path in conllu_paths:
         print(f"Loading sentences from {conllu_path} ...")
@@ -491,10 +497,6 @@ def main() -> None:
         print(f"Loaded {len(file_sentences)} sentences from {conllu_path}")
         sentences.extend(file_sentences)
     print(f"Loaded {len(sentences)} total sentences from {len(conllu_paths)} file(s)")
-
-    print(f"Loading morphology dictionary from {args.morph_dict_path} ...")
-    morph_dict = load_morph_dict(args.morph_dict_path)
-    print(f"Loaded morphology dictionary with {len(morph_dict)} lemmas")
 
     if args.task in ("all", "subj_verb_number_simple"):
         person_df = run_subj_verb_number_simple(sentences, morph_dict, args.limit)
@@ -511,6 +513,7 @@ def main() -> None:
     if args.task in ("all", "subj_verb_number_pp_attractor"):
         pp_df = run_subj_verb_number_pp_attractor(sentences, morph_dict, args.limit)
         write_csv(pp_df, args.output_dir / "subj_verb_number_pp_attractor.csv")
+
 
 if __name__ == "__main__":
     main()
