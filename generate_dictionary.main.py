@@ -23,6 +23,7 @@ TAGS = [
     "praet:sg:m1.m2.m3:perf",
     'praet:sg:m1.m2.m3:imperf',
     'praet:pl:m2.m3.f.n1.n2.p2.p3:perf',
+    'praet:pl:m2.m3.f.n1.n2.p2.p3:imperf',
     'ppron3:sg:nom:m1.m2.m3:ter:_:_',
 ]
 

@@ -12,13 +12,16 @@ from conllu import TokenTree
 from tqdm import tqdm
 
 POLIFORM_TAG_BY_UD_TAG = {
-    "ppron3:sg:nom:m3:ter:akc:npraep": "ppron3:sg:nom:m1.m2.m3:ter:_:_",
-    "praet:sg:m1:perf": "praet:sg:m1.m2.m3:perf",
-    "praet:sg:m2:perf": "praet:sg:m1.m2.m3:perf",
-    "praet:sg:m3:perf": "praet:sg:m1.m2.m3:perf",
-    "praet:sg:m1:imperf": "praet:sg:m1.m2.m3:imperf",
-    "praet:sg:m2:imperf": "praet:sg:m1.m2.m3:imperf",
-    "praet:sg:m3:imperf": "praet:sg:m1.m2.m3:imperf",
+    'ppron3:sg:nom:m3:ter:akc:npraep': 'ppron3:sg:nom:m1.m2.m3:ter:_:_',
+    'praet:sg:m1:perf': 'praet:sg:m1.m2.m3:perf',
+    'praet:sg:m2:perf': 'praet:sg:m1.m2.m3:perf',
+    'praet:sg:m3:perf': 'praet:sg:m1.m2.m3:perf',
+    'praet:sg:m1:imperf': 'praet:sg:m1.m2.m3:imperf',
+    'praet:sg:m2:imperf': 'praet:sg:m1.m2.m3:imperf',
+    'praet:sg:m3:imperf': 'praet:sg:m1.m2.m3:imperf',
+    'praet:pl:n:perf': 'praet:pl:m2.m3.f.n1.n2.p2.p3:perf',
+    'praet:pl:n:imperf': 'praet:pl:m2.m3.f.n1.n2.p2.p3:imperf',
+    'praet:pl:f:perf': 'praet:pl:m2.m3.f.n1.n2.p2.p3:perf',
 }
 
 
@@ -96,13 +99,8 @@ def match_predicate_with_pron_nsubj(
 def change_morph(
         token: conllu.Token,
         morph_dict: pd.DataFrame,
-        source_tag: str,
         target_tag: str,
 ) -> Optional[conllu.Token]:
-    xpos = token.get("xpos")
-    if xpos != source_tag:
-        return None
-
     lemma = token.get("lemma")
     if not lemma or not has_lemma(morph_dict, lemma):
         return None
@@ -281,8 +279,17 @@ def run_subj_verb_number_clause(
 
     # TODO transformation
     def transformation(token: conllu.Token) -> Optional[conllu.Token]:
-        # TODO
-        return token
+        source_xpos = token["xpos"]
+
+        if 'pl' in source_xpos:
+            target_xpos = source_xpos.replace('pl', 'sg')
+        elif 'sg' in source_xpos:
+            target_xpos = source_xpos.replace('sg', 'pl')
+        else:
+            print("Unknown tag", source_xpos)
+            return None
+
+        return change_morph(token, morph_dict, target_xpos)
 
     return run_filter_transform(
         sentences,
