@@ -19,10 +19,14 @@ for t1 in ["sg", "pl"]:
 TAGS = [
     *fin_tags,
     "praet:sg:f:perf",
-    "praet:sg:m1.m2.m3:perf",
     'praet:sg:f:imperf',
+    "praet:sg:m1.m2.m3:perf",
     'praet:sg:m1.m2.m3:imperf',
+    'praet:pl:m2.m3.f.n1.n2.p2.p3:perf',
+    'ppron3:sg:nom:m1.m2.m3:ter:_:_',
 ]
+
+assert len(TAGS) == len(set(TAGS)), "No duplicate tags"
 
 acc = defaultdict(lambda: {})
 
