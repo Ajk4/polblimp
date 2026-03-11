@@ -204,17 +204,14 @@ def run_filter_transform(
         transform_inplace_fn: Callable[[conllu.Token], Optional[conllu.Token]],
         limit: Optional[int] = None,
         progress_desc: Optional[str] = None,
-        show_progress: bool = True,
 ) -> pd.DataFrame:
     rows: list[tuple[int, str, str]] = []
 
-    iterator = enumerate(sentences)
-    if show_progress:
-        iterator = tqdm(
-            iterator,
-            total=len(sentences),
-            desc=progress_desc or "processing",
-        )
+    iterator = tqdm(
+        enumerate(sentences),
+        total=len(sentences),
+        desc=progress_desc or "processing",
+    )
 
     for index, sentence in iterator:
         if limit is not None and len(rows) >= limit:
