@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import random
 from copy import deepcopy
 from functools import partial
 from pathlib import Path
@@ -69,8 +70,11 @@ def get_form(morph_dict: pd.DataFrame, lemma: str, tag: str) -> Optional[str]:
 
     row = morph_dict.loc[lemma]
 
-    if ':n:' in tag:  # FIXME HACK
+    # TODO Is that legitimate hack?
+    if ':n:' in tag:
         tag = tag.replace(":n:", ":n1:")
+    if ':m:' in tag:
+        tag = tag.replace(":m:", ":m1:")
 
     for col, val in row.items():
         if pd.notna(val) and val != "" and is_subtag(tag, col):
@@ -273,7 +277,6 @@ def run_subj_verb_number_clause(
         morph_dict: pd.DataFrame,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    # TODO transformation
     def transformation(token: conllu.Token) -> Optional[conllu.Token]:
         source_xpos = token["xpos"]
 
@@ -406,7 +409,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--morph-dict-path",
         type=Path,
-        default=Path("dictionary.v3.csv"),
+        default=Path("dictionary.v4.csv"),
         help="Path to morphology CSV dictionary.",
     )
     parser.add_argument(
@@ -437,10 +440,19 @@ def run_subj_verb_gender_infinitival(
         morph_dict: pd.DataFrame,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    # TODO transformation
     def transformation(token: conllu.Token) -> Optional[conllu.Token]:
-        # TODO
-        return token
+        source_xpos = token["xpos"]
+
+        if ':n:' in source_xpos:
+            if random.randint(0, 1) == 0:
+                target_xpos = source_xpos.replace(":n:", ":m1:")
+            else:
+                target_xpos = source_xpos.replace(":n:", ":f:")
+        else:
+            print("Unknown tag", source_xpos)
+            return None
+
+        return change_morph(token, morph_dict, target_xpos)
 
     return run_filter_transform(
         sentences,
