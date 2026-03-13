@@ -371,13 +371,19 @@ def run_subj_verb_number_pp_attractor(
         morph_dict: pd.DataFrame,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    # TODO transformation
-
+    # TODO DRY
     def transformation(token: conllu.Token) -> Optional[conllu.Token]:
-        # TODO
-        return token
+        source_xpos = token["xpos"]
 
-    # transformation = partial(change_number, morph_dict=morph_dict)
+        if 'pl' in source_xpos:
+            target_xpos = source_xpos.replace('pl', 'sg')
+        elif 'sg' in source_xpos:
+            target_xpos = source_xpos.replace('sg', 'pl')
+        else:
+            print("Unknown tag", source_xpos)
+            return None
+
+        return change_morph(token, morph_dict, target_xpos)
 
     return run_filter_transform(
         sentences,
@@ -522,7 +528,6 @@ def main() -> None:
     if args.task in ("all", "subj_verb_number_pp_attractor"):
         pp_df = run_subj_verb_number_pp_attractor(sentences, morph_dict, args.limit)
         write_csv(pp_df, args.output_dir / "subj_verb_number_pp_attractor.csv")
-
 
 if __name__ == "__main__":
     main()
