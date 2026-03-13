@@ -55,7 +55,7 @@ def load_sentences(conllu_path: Path, limit=None) -> list[conllu.TokenList]:
 
 
 def load_morph_dict(morph_dict_path: Path) -> pd.DataFrame:
-    morph_dict = pd.read_csv(morph_dict_path, dtype={"lemma": "string"})
+    morph_dict = pd.read_csv(morph_dict_path, dtype=str)
     morph_dict.set_index("lemma", inplace=True)
     return morph_dict
 
@@ -249,51 +249,36 @@ def run_subj_verb_number_simple(
         morph_dict: pd.DataFrame,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    # TODO transformation
-    def transformation(token: conllu.Token) -> Optional[conllu.Token]:
-        # TODO DRY
-        source_xpos = token["xpos"]
-        if 'pl' in source_xpos:
-            target_xpos = source_xpos.replace('pl', 'sg')
-        elif 'sg' in source_xpos:
-            target_xpos = source_xpos.replace('sg', 'pl')
-        else:
-            print("Unknown tag", source_xpos)
-            return None
-
-        return change_morph(token, morph_dict, target_xpos)
-
     return run_filter_transform(
         sentences,
         match_subj_verb_number_simple,
-        transformation,
+        partial(change_number, morph_dict=morph_dict),
         limit=limit,
         progress_desc=f"run_subj_verb_number_simple",
     )
 
+def change_number(token: conllu.Token, morph_dict) -> Optional[conllu.Token]:
+    # TODO DRY
+    source_xpos = token["xpos"]
+    if 'pl' in source_xpos:
+        target_xpos = source_xpos.replace('pl', 'sg')
+    elif 'sg' in source_xpos:
+        target_xpos = source_xpos.replace('sg', 'pl')
+    else:
+        print("Unknown tag", source_xpos)
+        return None
+
+    return change_morph(token, morph_dict, target_xpos)
 
 def run_subj_verb_number_clause(
         sentences: list[conllu.TokenList],
         morph_dict: pd.DataFrame,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    def transformation(token: conllu.Token) -> Optional[conllu.Token]:
-        source_xpos = token["xpos"]
-
-        if 'pl' in source_xpos:
-            target_xpos = source_xpos.replace('pl', 'sg')
-        elif 'sg' in source_xpos:
-            target_xpos = source_xpos.replace('sg', 'pl')
-        else:
-            print("Unknown tag", source_xpos)
-            return None
-
-        return change_morph(token, morph_dict, target_xpos)
-
     return run_filter_transform(
         sentences,
-        match_subj_verb_number_clause,  # TODO CHECK
-        transformation,
+        match_subj_verb_number_clause,
+        partial(change_number, morph_dict=morph_dict),
         limit=limit,
         progress_desc=f"run_subj_verb_number_clause",
     )
@@ -371,24 +356,10 @@ def run_subj_verb_number_pp_attractor(
         morph_dict: pd.DataFrame,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    # TODO DRY
-    def transformation(token: conllu.Token) -> Optional[conllu.Token]:
-        source_xpos = token["xpos"]
-
-        if 'pl' in source_xpos:
-            target_xpos = source_xpos.replace('pl', 'sg')
-        elif 'sg' in source_xpos:
-            target_xpos = source_xpos.replace('sg', 'pl')
-        else:
-            print("Unknown tag", source_xpos)
-            return None
-
-        return change_morph(token, morph_dict, target_xpos)
-
     return run_filter_transform(
         sentences,
         match_subj_verb_number_pp_attractor,
-        transformation,
+        partial(change_number, morph_dict=morph_dict),
         limit=limit,
         progress_desc="subj_verb_number_pp_attractor",
     )
