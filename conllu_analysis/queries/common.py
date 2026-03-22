@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import random
 from copy import deepcopy
 from pathlib import Path
 from typing import Callable, Optional
@@ -62,6 +63,28 @@ def change_number(token: conllu.Token, morph_dict: MorphDictionary) -> Optional[
         return None
 
     return change_morph(token, morph_dict, target_xpos)
+
+
+def change_gender_from_neuter(
+        token: conllu.Token,
+        morph_dict: MorphDictionary,
+) -> Optional[conllu.Token]:
+    source_xpos = token["xpos"]
+
+    if ":n:" in source_xpos:
+        if random.randint(0, 1) == 0:
+            target_xpos = source_xpos.replace(":n:", ":m1:")
+        else:
+            target_xpos = source_xpos.replace(":n:", ":f:")
+    else:
+        print("Unknown tag", source_xpos)
+        return None
+
+    return change_morph(token, morph_dict, target_xpos)
+
+
+def return_untransformed(token: conllu.Token) -> conllu.Token:
+    return token
 
 
 def match_descendants(tree: conllu.TokenTree, token_predicate):

@@ -9,10 +9,19 @@ import conllu
 
 from queries.common import load_sentences
 from queries.morph_dictionary import MorphDictionary
+from queries.subj_verb_gender_clause import run_subj_verb_gender_clause
+from queries.subj_verb_gender_simple import run_subj_verb_gender_simple
 from queries.subj_verb_gender_infinitival import run_subj_verb_gender_infinitival
 from queries.subj_verb_number_clause import run_subj_verb_number_clause
+from queries.subj_verb_number_infinitival import run_subj_verb_number_infinitival
 from queries.subj_verb_number_pp_attractor import run_subj_verb_number_pp_attractor
+from queries.subj_verb_number_relational_noun import run_subj_verb_number_relational_noun
 from queries.subj_verb_number_simple import run_subj_verb_number_simple
+from queries.subj_verb_numerals_1 import run_subj_verb_numerals_1
+from queries.subj_verb_numerals_2 import run_subj_verb_numerals_2
+from queries.subj_verb_person import run_subj_verb_person
+from queries.subj_verb_plural_masc import run_subj_verb_plural_masc
+from queries.subj_verb_plural_non_masc import run_subj_verb_plural_non_masc
 
 
 def match_predicate_with_pron_nsubj(
@@ -65,9 +74,22 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--task",
-        # TODO remove gender, number_clause
-        choices=("all", "subj_verb_number_simple", "subj_verb_number_clause", "subj_verb_gender_infinitival",
-                 "subj_verb_number_pp_attractor"),
+        choices=(
+            "all",
+            "subj_verb_person",
+            "subj_verb_number_infinitival",
+            "subj_verb_number_relational_noun",
+            "subj_verb_numerals_1",
+            "subj_verb_numerals_2",
+            "subj_verb_gender_simple",
+            "subj_verb_plural_non_masc",
+            "subj_verb_plural_masc",
+            "subj_verb_gender_clause",
+            "subj_verb_number_simple",
+            "subj_verb_number_clause",
+            "subj_verb_gender_infinitival",
+            "subj_verb_number_pp_attractor",
+        ),
         default="all",
         help="Which task(s) to run.",
     )
@@ -108,6 +130,42 @@ def main() -> None:
         print(f"Loaded {len(file_sentences)} sentences from {conllu_path}")
         sentences.extend(file_sentences)
     print(f"Loaded {len(sentences)} total sentences from {len(conllu_paths)} file(s)")
+
+    if args.task in ("all", "subj_verb_person"):
+        df = run_subj_verb_person(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / "subj_verb_person.csv")
+
+    if args.task in ("all", "subj_verb_number_infinitival"):
+        df = run_subj_verb_number_infinitival(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / "subj_verb_number_infinitival.csv")
+
+    if args.task in ("all", "subj_verb_number_relational_noun"):
+        df = run_subj_verb_number_relational_noun(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / "subj_verb_number_relational_noun.csv")
+
+    if args.task in ("all", "subj_verb_numerals_1"):
+        df = run_subj_verb_numerals_1(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / "subj_verb_numerals_1.csv")
+
+    if args.task in ("all", "subj_verb_numerals_2"):
+        df = run_subj_verb_numerals_2(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / "subj_verb_numerals_2.csv")
+
+    if args.task in ("all", "subj_verb_gender_simple"):
+        df = run_subj_verb_gender_simple(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / "subj_verb_gender_simple.csv")
+
+    if args.task in ("all", "subj_verb_plural_non_masc"):
+        df = run_subj_verb_plural_non_masc(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / "subj_verb_plural_non_masc.csv")
+
+    if args.task in ("all", "subj_verb_plural_masc"):
+        df = run_subj_verb_plural_masc(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / "subj_verb_plural_masc.csv")
+
+    if args.task in ("all", "subj_verb_gender_clause"):
+        df = run_subj_verb_gender_clause(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / "subj_verb_gender_clause.csv")
 
     if args.task in ("all", "subj_verb_number_simple"):
         df = run_subj_verb_number_simple(sentences, morph_dict, args.limit)
