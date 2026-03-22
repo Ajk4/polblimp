@@ -47,7 +47,7 @@ def match_subj_verb_number_relational_noun(
 
         descendants = match_descendants(
             child,
-            lambda token: token["deprel"] in {"nmod", "nmod:poss", "xcomp", "conj", "nummod"},
+            lambda token: token["deprel"] in {"nmod", "nmod:poss", "xcomp", "conj"},
         )
         if len(descendants) != 1:
             continue
