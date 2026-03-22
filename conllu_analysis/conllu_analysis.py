@@ -34,7 +34,9 @@ def match_predicate_with_pron_nsubj(
 def write_csv(df: pd.DataFrame, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(path, index=False)
-    print(f"Wrote {len(df)} rows to {path}")
+    matched_sentences = df.attrs.get("matched_sentences")
+    assert matched_sentences is not None
+    print(f"Wrote {len(df)}/{matched_sentences} rows to {path}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -108,20 +110,20 @@ def main() -> None:
     print(f"Loaded {len(sentences)} total sentences from {len(conllu_paths)} file(s)")
 
     if args.task in ("all", "subj_verb_number_simple"):
-        person_df = run_subj_verb_number_simple(sentences, morph_dict, args.limit)
-        write_csv(person_df, args.output_dir / "subj_verb_number_simple.csv")
+        df = run_subj_verb_number_simple(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / "subj_verb_number_simple.csv")
 
     if args.task in ("all", "subj_verb_number_clause"):
-        person_df = run_subj_verb_number_clause(sentences, morph_dict, args.limit)
-        write_csv(person_df, args.output_dir / "subj_verb_number_clause.csv")
+        df = run_subj_verb_number_clause(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / "subj_verb_number_clause.csv")
 
     if args.task in ("all", "subj_verb_gender_infinitival"):
-        person_df = run_subj_verb_gender_infinitival(sentences, morph_dict, args.limit)
-        write_csv(person_df, args.output_dir / "subj_verb_gender_infinitival.csv")
+        df = run_subj_verb_gender_infinitival(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / "subj_verb_gender_infinitival.csv")
 
     if args.task in ("all", "subj_verb_number_pp_attractor"):
-        pp_df = run_subj_verb_number_pp_attractor(sentences, morph_dict, args.limit)
-        write_csv(pp_df, args.output_dir / "subj_verb_number_pp_attractor.csv")
+        df = run_subj_verb_number_pp_attractor(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / "subj_verb_number_pp_attractor.csv")
 
 
 if __name__ == "__main__":

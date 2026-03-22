@@ -19,6 +19,7 @@ def run_filter_transform(
         progress_desc: Optional[str] = None,
 ) -> pd.DataFrame:
     rows: list[tuple[int, str, str]] = []
+    matched_sentences = 0
 
     iterator = tqdm(
         enumerate(sentences),
@@ -34,6 +35,7 @@ def run_filter_transform(
         token = match_token_fn(sentence_copy)
         if token is None:
             continue
+        matched_sentences += 1
 
         modified_token = transform_inplace_fn(token)
         if modified_token is None:
@@ -43,7 +45,9 @@ def run_filter_transform(
         incorrect_text = sentence_text(sentence_copy)
         rows.append((index, correct_text, incorrect_text))
 
-    return pd.DataFrame(rows, columns=["conllu_index", "correct", "incorrect"])
+    df = pd.DataFrame(rows, columns=["conllu_index", "correct", "incorrect"])
+    df.attrs["matched_sentences"] = matched_sentences
+    return df
 
 
 def change_number(token: conllu.Token, morph_dict: MorphDictionary) -> Optional[conllu.Token]:
