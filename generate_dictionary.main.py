@@ -25,12 +25,7 @@ with tqdm(gzip.open(path, "rt", encoding="utf-8", errors="replace")) as f:
         if tag in {'interj', 'burk', 'comp', 'conj', 'qub'} or any(tag.startswith(p) for p in unwanted_prefixes):
             continue
 
-        # HACK FIXME handle in second stage
-        if tag.endswith(":nagl"):
-            tag = tag[:-len(":nagl")]
-
         acc[lemma][tag] = form
-
         all_tags.add(tag)
 
 print("All tags", all_tags)

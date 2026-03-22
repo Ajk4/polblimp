@@ -4,6 +4,7 @@ import argparse
 import random
 from copy import deepcopy
 from functools import partial
+from itertools import zip_longest
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -34,11 +35,14 @@ def is_subtag(tag: str, supertag:str) -> bool:
     tag_parts = tag.split(":")
     supertag_parts = supertag.split(":")
 
-    if len(tag_parts) != len(supertag_parts):
-        return False
-
-    for tag_part, supertag_part in zip(tag_parts, supertag_parts):
+    for tag_part, supertag_part in zip_longest(tag_parts, supertag_parts):
+        if supertag_part is None:
+            # so praet:pl:m3:imperf:nagl matches praet:pl:m3:imperf
+            return tag_part == 'nagl'
         supertag_part_options = supertag_part.split(".")
+        if tag_part is None:
+            # so praet:sg:m1:imperf matches praet:sg:m1.m2.m3:imperf:nagl
+            return 'nagl' in supertag_part_options
         if tag_part not in supertag_part_options:
             return False
     return True
