@@ -5,7 +5,7 @@ from typing import Optional
 import conllu
 import pandas as pd
 
-from .common import run_filter_transform, change_gender
+from .common import run_filter_transform, change_gender, change_person
 from .morph_dictionary import MorphDictionary
 
 """
@@ -37,7 +37,7 @@ def run_subj_verb_person(sentences: list[conllu.TokenList], morph_dict: MorphDic
     return run_filter_transform(
         sentences,
         match_subj_verb_person,
-        lambda token: change_gender(token, morph_dict),
+        lambda token: change_person(token, morph_dict),
         limit=limit,
         progress_desc="subj_verb_person",
     )
@@ -47,12 +47,20 @@ def match_subj_verb_person(
         sentence: conllu.TokenList,
 ) -> Optional[conllu.Token]:
     root = sentence.to_tree()
-    if root.token["upos"] != "VERB":
+    if not (root.token["deprel"] == 'root' and root.token["upos"] == "VERB"):
         return None
 
-    for child in root.children:
-        child_token = child.token
-        if child_token["upos"] == "PRON" and child_token["deprel"] == "nsubj":
+    root_feats = root.token['feats']
+
+    for nsubj in root.children:
+        nsubj_token = nsubj.token
+        nsubj_feats = nsubj_token['feats']
+
+        if not (nsubj_token["upos"] == "PRON" and nsubj_token["deprel"] == "nsubj"):
+            continue
+
+        if (root_feats.get('Tense', '') in {"Pres", "Fut"} and root_feats.get('Person', '') in {'1', '2', '3'} and
+                nsubj_feats.get('Person', '') == root_feats.get('Person', '')):
             return root.token
 
     return None

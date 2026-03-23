@@ -52,12 +52,35 @@ def run_filter_transform(
 
 
 def change_number(token: conllu.Token, morph_dict: MorphDictionary) -> Optional[conllu.Token]:
-    # TODO DRY
     source_xpos = token["xpos"]
     if "pl" in source_xpos:
         target_xpos = source_xpos.replace("pl", "sg")
     elif "sg" in source_xpos:
         target_xpos = source_xpos.replace("sg", "pl")
+    else:
+        print("Unknown tag", source_xpos)
+        return None
+
+    return change_morph(token, morph_dict, target_xpos)
+
+
+def change_person(token: conllu.Token, morph_dict: MorphDictionary) -> Optional[conllu.Token]:
+    source_xpos = token["xpos"]
+    if ":pri:" in source_xpos:
+        if random.randint(0, 1) == 0:
+            target_xpos = source_xpos.replace(":pri:", ":sec:")
+        else:
+            target_xpos = source_xpos.replace(":pri:", ":ter:")
+    elif ":sec:" in source_xpos:
+        if random.randint(0, 1) == 0:
+            target_xpos = source_xpos.replace(":sec:", ":pri:")
+        else:
+            target_xpos = source_xpos.replace(":sec:", ":ter:")
+    elif ":ter:" in source_xpos:
+        if random.randint(0, 1) == 0:
+            target_xpos = source_xpos.replace(":ter:", ":pri:")
+        else:
+            target_xpos = source_xpos.replace(":ter:", ":sec:")
     else:
         print("Unknown tag", source_xpos)
         return None
