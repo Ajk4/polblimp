@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from functools import partial
 from typing import Optional
 
 import conllu
@@ -18,7 +17,7 @@ def run_subj_verb_numerals_2(
     return run_filter_transform(
         sentences,
         match_subj_verb_numerals_2,
-        partial(change_number, morph_dict=morph_dict),
+        lambda token: change_number(token, morph_dict),
         limit=limit,
         progress_desc="subj_verb_numerals_2",
     )

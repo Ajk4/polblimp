@@ -1,5 +1,3 @@
-
-from functools import partial
 from typing import Optional
 
 import conllu
@@ -17,7 +15,7 @@ def run_subj_verb_number_clause(
     return run_filter_transform(
         sentences,
         match_subj_verb_number_clause,
-        partial(change_number, morph_dict=morph_dict),
+        lambda token: change_number(token, morph_dict),
         limit=limit,
         progress_desc=f"run_subj_verb_number_clause",
     )
