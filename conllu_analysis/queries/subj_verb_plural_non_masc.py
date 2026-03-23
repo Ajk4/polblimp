@@ -14,7 +14,6 @@ def run_subj_verb_plural_non_masc(
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    _ = morph_dict
     return run_filter_transform(
         sentences,
         match_subj_verb_plural_non_masc,
