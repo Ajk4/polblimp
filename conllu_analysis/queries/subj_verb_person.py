@@ -64,3 +64,27 @@ def match_subj_verb_person(
             return root.token
 
     return None
+
+
+def match_subj_verb_person__2(
+        sentence: conllu.TokenList,
+) -> Optional[conllu.Token]:
+    root = sentence.to_tree()
+    if not (root.token["deprel"] == 'root' and root.token["upos"] == "VERB"):
+        return None
+
+    root_feats = root.token['feats']
+
+    for nsubj in root.children:
+        nsubj_token = nsubj.token
+        nsubj_feats = nsubj_token['feats']
+
+        if not (nsubj_token["upos"] == "PRON" and nsubj_token["deprel"] == "nsubj"):
+            continue
+
+        if root_feats.get('Tense', '') in {"Past", "Fut"} and nsubj_feats.get('Person', '') in {'1', '2'}:
+            for clitic in root.children:
+                if clitic.token["deprel"] == "aux:clitic":
+                    return root.token
+
+    return None
