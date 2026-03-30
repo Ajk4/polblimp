@@ -15,7 +15,7 @@ def run_subj_verb_number_clause(
     return run_filter_transform(
         sentences,
         match_subj_verb_number_clause,
-        lambda token: change_number(token, morph_dict),
+        lambda sentence: change_number(sentence, morph_dict),
         limit=limit,
         progress_desc=f"run_subj_verb_number_clause",
     )
@@ -23,32 +23,32 @@ def run_subj_verb_number_clause(
 # TODO use other
 def match_subj_verb_number_clause(
         sentence: conllu.TokenList,
-) -> Optional[conllu.Token]:
+) -> bool:
     token_tree = sentence.to_tree()
     token = token_tree.token
     if token["upos"] == "VERB" and token["deprel"] == "root" and "sg" in token["xpos"]:
         for child in token_tree.children:
             child_xpos = child.token["xpos"].split(":")
             if child.token["upos"] == "VERB" and child.token["deprel"] == "csubj" and "inf" not in child_xpos:
-                return token
-    return None
+                return True
+    return False
 
 
 def match_subj_verb_number_clause2(
         sentence: conllu.TokenList,
-) -> Optional[conllu.Token]:
+) -> bool:
     root = sentence.to_tree()
     if root.token["upos"] != "VERB":
-        return None
+        return False
 
     root_feats = root.token['feats']
     if root_feats.get("Number", "") != 'Sing':
-        return None
+        return False
 
     for child in root.children:
         child_feats = child.token['feats']
         if child.token["upos"] == "VERB" and child.token["deprel"] == "csubj" and child_feats.get("VerbForm",
                                                                                                   "") != "Inf":
-            return root.token
+            return True
 
-    return None
+    return False

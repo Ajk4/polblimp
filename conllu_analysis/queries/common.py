@@ -14,8 +14,8 @@ from .morph_dictionary import MorphDictionary
 
 def run_filter_transform(
         sentences: list[conllu.TokenList],
-        match_token_fn: Callable[[conllu.TokenList], Optional[conllu.Token]],
-        transform_inplace_fn: Callable[[conllu.Token], Optional[conllu.Token]],
+        match_sentence_fn: Callable[[conllu.TokenList], bool],
+        transform_inplace_fn: Callable[[conllu.TokenList], bool],
         limit: Optional[int] = None,
         progress_desc: Optional[str] = None,
 ) -> pd.DataFrame:
@@ -33,13 +33,11 @@ def run_filter_transform(
             break
 
         sentence_copy = deepcopy(sentence)
-        token = match_token_fn(sentence_copy)
-        if token is None:
+        if not match_sentence_fn(sentence_copy):
             continue
         matched_sentences += 1
 
-        modified_token = transform_inplace_fn(token)
-        if modified_token is None:
+        if not transform_inplace_fn(sentence_copy):
             continue
 
         correct_text = sentence.metadata.get("text") or sentence_text(sentence)
@@ -51,21 +49,23 @@ def run_filter_transform(
     return df
 
 
-def change_number(token: conllu.Token, morph_dict: MorphDictionary) -> Optional[conllu.Token]:
-    source_xpos = token["xpos"]
+def change_number(sentence: conllu.TokenList, morph_dict: MorphDictionary) -> bool:
+    root = sentence.to_tree().token
+    source_xpos = root["xpos"]
     if "pl" in source_xpos:
         target_xpos = source_xpos.replace("pl", "sg")
     elif "sg" in source_xpos:
         target_xpos = source_xpos.replace("sg", "pl")
     else:
         print("Unknown tag", source_xpos)
-        return None
+        return False
 
-    return change_morph(token, morph_dict, target_xpos)
+    return change_morph(sentence, morph_dict, target_xpos)
 
 
-def change_person(token: conllu.Token, morph_dict: MorphDictionary) -> Optional[conllu.Token]:
-    source_xpos = token["xpos"]
+def change_person(sentence: conllu.TokenList, morph_dict: MorphDictionary) -> bool:
+    root = sentence.to_tree().token
+    source_xpos = root["xpos"]
     if ":pri:" in source_xpos:
         if random.randint(0, 1) == 0:
             target_xpos = source_xpos.replace(":pri:", ":sec:")
@@ -83,16 +83,17 @@ def change_person(token: conllu.Token, morph_dict: MorphDictionary) -> Optional[
             target_xpos = source_xpos.replace(":ter:", ":sec:")
     else:
         print("Unknown tag", source_xpos)
-        return None
+        return False
 
-    return change_morph(token, morph_dict, target_xpos)
+    return change_morph(sentence, morph_dict, target_xpos)
 
 
 def change_gender(
-        token: conllu.Token,
+        sentence: conllu.TokenList,
         morph_dict: MorphDictionary,
-) -> Optional[conllu.Token]:
-    source_xpos = token["xpos"]
+) -> bool:
+    root = sentence.to_tree().token
+    source_xpos = root["xpos"]
 
     if ":n:" in source_xpos:
         if random.randint(0, 1) == 0:
@@ -109,9 +110,9 @@ def change_gender(
         target_xpos = source_xpos.replace(":m3:", ":m1:")
     else:
         print("Unknown tag", source_xpos)
-        return None
+        return False
 
-    return change_morph(token, morph_dict, target_xpos)
+    return change_morph(sentence, morph_dict, target_xpos)
 
 
 def match_descendants(tree: conllu.TokenTree, token_predicate):
@@ -149,19 +150,20 @@ def sentence_text(sentence: conllu.TokenList) -> str:
 
 
 def change_morph(
-        token: conllu.Token,
+        sentence: conllu.TokenList,
         morph_dict: MorphDictionary,
         target_tag: str,
-) -> Optional[conllu.Token]:
+) -> bool:
+    token = sentence.to_tree().token
     lemma = token.get("lemma")
     if not lemma or not morph_dict.has_lemma(lemma):
         print("Missing lemma", lemma)
-        return None
+        return False
 
     target_form = morph_dict.get_form(lemma, target_tag)
     if target_form is None:
         print(f"Missing form, lemma: {lemma}, form: {target_tag}")
-        return None
+        return False
 
     form = token.get("form", "")
     if form and form[0].isupper():
@@ -169,4 +171,4 @@ def change_morph(
 
     token["form"] = target_form
     token["xpos"] = target_tag
-    return token
+    return True

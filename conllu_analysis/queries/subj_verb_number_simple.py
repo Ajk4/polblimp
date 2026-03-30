@@ -17,7 +17,7 @@ def run_subj_verb_number_simple(
     return run_filter_transform(
         sentences,
         match_subj_verb_number_simple,
-        lambda token: change_number(token, morph_dict),
+        lambda sentence: change_number(sentence, morph_dict),
         limit=limit,
         progress_desc=f"run_subj_verb_number_simple",
     )
@@ -25,14 +25,14 @@ def run_subj_verb_number_simple(
 
 def match_subj_verb_number_simple(
         sentence: conllu.TokenList,
-) -> Optional[conllu.Token]:
+) -> bool:
     root = sentence.to_tree()
     if root.token["upos"] != "VERB":
-        return None
+        return False
 
     root_feats = root.token['feats']
     if 'Number' not in root_feats:
-        return None
+        return False
 
     for child in root.children:
         child_token = child.token
@@ -56,6 +56,6 @@ def match_subj_verb_number_simple(
 
         unwanted_descendants = match_descendants(child, descendant_predicate)
         if len(unwanted_descendants) == 0:
-            return root.token
+            return True
 
-    return None
+    return False

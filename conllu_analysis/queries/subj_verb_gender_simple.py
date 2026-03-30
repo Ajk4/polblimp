@@ -17,7 +17,7 @@ def run_subj_verb_gender_simple(
     return run_filter_transform(
         sentences,
         match_subj_verb_gender_simple,
-        lambda token: change_gender(token, morph_dict),
+        lambda sentence: change_gender(sentence, morph_dict),
         limit=limit,
         progress_desc="subj_verb_gender_simple",
     )
@@ -25,14 +25,14 @@ def run_subj_verb_gender_simple(
 
 def match_subj_verb_gender_simple(
         sentence: conllu.TokenList,
-) -> Optional[conllu.Token]:
+) -> bool:
     root = sentence.to_tree()
     root_feats = root.token["feats"] or {}
 
     if root.token["upos"] != "VERB":
-        return None
+        return False
     if root_feats.get("Number") != "Sing":
-        return None
+        return False
 
     root_gender = root_feats.get("Gender")
     for child in root.children:
@@ -53,6 +53,6 @@ def match_subj_verb_gender_simple(
             continue
         if child_feats.get("Number") != root_feats.get("Number"):
             continue
-        return root.token
+        return True
 
-    return None
+    return False

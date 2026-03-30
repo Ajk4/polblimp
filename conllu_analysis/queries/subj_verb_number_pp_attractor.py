@@ -11,11 +11,11 @@ from .morph_dictionary import MorphDictionary
 
 def match_subj_verb_number_pp_attractor(
         sentence: conllu.TokenList,
-) -> Optional[conllu.Token]:
+) -> bool:
     root = sentence.to_tree()
 
     if root.token["upos"] != "VERB":
-        return None
+        return False
 
     root_number = root.token["feats"].get("Number")
 
@@ -53,11 +53,11 @@ def match_subj_verb_number_pp_attractor(
                     continue
 
                 if prep.token['lemma'] == 'z' and attractor_feats.get("Case") != "Ins":
-                    return root.token
+                    return True
                 if prep.token['lemma'] != 'z':
-                    return root.token
+                    return True
 
-    return None
+    return False
 
 
 def run_subj_verb_number_pp_attractor(
@@ -68,7 +68,7 @@ def run_subj_verb_number_pp_attractor(
     return run_filter_transform(
         sentences,
         match_subj_verb_number_pp_attractor,
-        lambda token: change_number(token, morph_dict),
+        lambda sentence: change_number(sentence, morph_dict),
         limit=limit,
         progress_desc="subj_verb_number_pp_attractor",
     )

@@ -17,7 +17,7 @@ def run_subj_verb_gender_infinitival(
     return run_filter_transform(
         sentences,
         match_subj_verb_gender_infinitival,
-        lambda token: change_gender(token, morph_dict),
+        lambda sentence: change_gender(sentence, morph_dict),
         limit=limit,
         progress_desc="subj_verb_gender_infinitival",
     )
@@ -25,7 +25,7 @@ def run_subj_verb_gender_infinitival(
 
 def match_subj_verb_gender_infinitival(
         sentence: conllu.TokenList,
-) -> Optional[conllu.Token]:
+) -> bool:
     root = sentence.to_tree()
     root_feats = root.token['feats']
     if (root.token["upos"] == "VERB" and root.token["deprel"] == "root" and
@@ -34,5 +34,5 @@ def match_subj_verb_gender_infinitival(
             infinitive_feats = infinitive.token['feats']
             if infinitive.token["upos"] == "VERB" and infinitive.token["deprel"] == "csubj" and infinitive_feats.get(
                     'VerbForm', "") == "Inf":
-                return root.token
-    return None
+                return True
+    return False

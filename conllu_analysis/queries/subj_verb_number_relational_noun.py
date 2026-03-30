@@ -17,7 +17,7 @@ def run_subj_verb_number_relational_noun(
     return run_filter_transform(
         sentences,
         match_subj_verb_number_relational_noun,
-        lambda token: change_number(token, morph_dict),
+        lambda sentence: change_number(sentence, morph_dict),
         limit=limit,
         progress_desc="subj_verb_number_relational_noun",
     )
@@ -25,15 +25,15 @@ def run_subj_verb_number_relational_noun(
 
 def match_subj_verb_number_relational_noun(
         sentence: conllu.TokenList,
-) -> Optional[conllu.Token]:
+) -> bool:
     root = sentence.to_tree()
     if root.token["upos"] != "VERB":
-        return None
+        return False
 
     root_feats = root.token["feats"] or {}
     root_number = root_feats.get("Number")
     if root_number is None:
-        return None
+        return False
 
     for child in root.children:
         child_feats = child.token["feats"] or {}
@@ -62,6 +62,6 @@ def match_subj_verb_number_relational_noun(
                 continue
             if attractor_number == root_number:
                 continue
-            return root.token
+            return True
 
-    return None
+    return False

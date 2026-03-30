@@ -5,7 +5,7 @@ from typing import Optional
 import conllu
 import pandas as pd
 
-from .common import run_filter_transform, change_gender, change_person
+from .common import run_filter_transform, change_person
 from .morph_dictionary import MorphDictionary
 
 """
@@ -34,21 +34,61 @@ a-node $root := [
 
 def run_subj_verb_person(sentences: list[conllu.TokenList], morph_dict: MorphDictionary,
                          limit: Optional[int], ) -> pd.DataFrame:
-    return run_filter_transform(
+    variant_1 = run_filter_transform(
         sentences,
-        match_subj_verb_person,
+        match_subj_verb_person__1,
         lambda token: change_person(token, morph_dict),
         limit=limit,
-        progress_desc="subj_verb_person",
+        progress_desc="subj_verb_person__1",
     )
 
+    variant_2 = run_filter_transform(
+        sentences,
+        match_subj_verb_person__2,
+        remove_aux_clitic,
+        limit=limit,
+        progress_desc="subj_verb_person__2",
+    )
 
-def match_subj_verb_person(
+    df = pd.concat([variant_1, variant_2])
+    df.attrs["matched_sentences"] = len(variant_1) + len(variant_2)
+    return df
+
+def remove_aux_clitic(sentence: conllu.TokenList) -> bool:
+    root = sentence.to_tree().token
+    root_id = root["id"]
+    clitic_indexes = [
+        index
+        for index, token in enumerate(sentence)
+        if token.get("head") == root_id and token.get("deprel") == "aux:clitic"
+    ]
+    if not clitic_indexes:
+        return False
+
+    clitic_misc = sentence[clitic_indexes[-1]].get("misc") or {}
+    root_misc = {
+        key: value
+        for key, value in (root.get("misc") or {}).items()
+        if key != "SpaceAfter"
+    }
+    root_misc.update({
+        key: value
+        for key, value in clitic_misc.items()
+        if key == "SpaceAfter"
+    })
+    root["misc"] = root_misc or None
+
+    for index in reversed(clitic_indexes):
+        del sentence[index]
+
+    return True
+
+def match_subj_verb_person__1(
         sentence: conllu.TokenList,
-) -> Optional[conllu.Token]:
+) -> bool:
     root = sentence.to_tree()
     if not (root.token["deprel"] == 'root' and root.token["upos"] == "VERB"):
-        return None
+        return False
 
     root_feats = root.token['feats']
 
@@ -61,17 +101,17 @@ def match_subj_verb_person(
 
         if (root_feats.get('Tense', '') in {"Pres", "Fut"} and root_feats.get('Person', '') in {'1', '2', '3'} and
                 nsubj_feats.get('Person', '') == root_feats.get('Person', '')):
-            return root.token
+            return True
 
-    return None
+    return False
 
 
 def match_subj_verb_person__2(
         sentence: conllu.TokenList,
-) -> Optional[conllu.Token]:
+) -> bool:
     root = sentence.to_tree()
     if not (root.token["deprel"] == 'root' and root.token["upos"] == "VERB"):
-        return None
+        return False
 
     root_feats = root.token['feats']
 
@@ -85,6 +125,6 @@ def match_subj_verb_person__2(
         if root_feats.get('Tense', '') in {"Past", "Fut"} and nsubj_feats.get('Person', '') in {'1', '2'}:
             for clitic in root.children:
                 if clitic.token["deprel"] == "aux:clitic":
-                    return root.token
+                    return True
 
-    return None
+    return False

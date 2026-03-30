@@ -17,7 +17,7 @@ def run_subj_verb_numerals_1(
     return run_filter_transform(
         sentences,
         match_subj_verb_numerals_1,
-        lambda token: change_number(token, morph_dict),
+        lambda sentence: change_number(sentence, morph_dict),
         limit=limit,
         progress_desc="subj_verb_numerals_1",
     )
@@ -25,14 +25,14 @@ def run_subj_verb_numerals_1(
 
 def match_subj_verb_numerals_1(
         sentence: conllu.TokenList,
-) -> Optional[conllu.Token]:
+) -> bool:
     root = sentence.to_tree()
     root_feats = root.token["feats"] or {}
 
     if root.token["upos"] != "VERB":
-        return None
+        return False
     if root_feats.get("Number") != "Plur":
-        return None
+        return False
 
     for child in root.children:
         if child.token["upos"] != "NOUN":
@@ -48,6 +48,6 @@ def match_subj_verb_numerals_1(
 
             num_child_feats = num_child.token["feats"] or {}
             if not (nsubj_case == "Gen" and num_child_feats.get("Case") == "Acc"):
-                return root.token
+                return True
 
-    return None
+    return False
