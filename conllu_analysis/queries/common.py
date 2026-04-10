@@ -95,7 +95,10 @@ def change_gender(
     root = sentence.to_tree().token
     source_xpos = root["xpos"]
 
-    if ":n:" in source_xpos:
+    if source_xpos in {'praet:sg:m1:imperf', 'praet:sg:m2:imperf', 'praet:sg:m3:imperf'}:
+        # In this case all m1.m2.m3 are the same, so replace with n1.n2
+        target_xpos = 'praet:sg:n1.n2:imperf'
+    elif ":n:" in source_xpos:
         if random.randint(0, 1) == 0:
             target_xpos = source_xpos.replace(":n:", ":m1:")
         else:
