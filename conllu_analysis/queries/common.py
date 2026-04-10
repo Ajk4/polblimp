@@ -19,7 +19,7 @@ def run_filter_transform(
         limit: Optional[int] = None,
         progress_desc: Optional[str] = None,
 ) -> pd.DataFrame:
-    rows: list[tuple[int, str, str]] = []
+    rows: list[tuple[str, int, str, str]] = []
     matched_sentences = 0
 
     iterator = tqdm(
@@ -32,6 +32,7 @@ def run_filter_transform(
         if limit is not None and len(rows) >= limit:
             break
 
+        metadata = sentence.metadata or {}
         sentence_copy = deepcopy(sentence)
         if not match_sentence_fn(sentence_copy):
             continue
@@ -40,11 +41,12 @@ def run_filter_transform(
         if not transform_inplace_fn(sentence_copy):
             continue
 
-        correct_text = sentence.metadata.get("text") or sentence_text(sentence)
+        correct_text = metadata.get("text") or sentence_text(sentence)
         incorrect_text = sentence_text(sentence_copy)
-        rows.append((index, correct_text, incorrect_text))
+        dataset = metadata.get("dataset", "")
+        rows.append((dataset, index, correct_text, incorrect_text))
 
-    df = pd.DataFrame(rows, columns=["conllu_index", "correct", "incorrect"])
+    df = pd.DataFrame(rows, columns=["dataset", "conllu_index", "correct", "incorrect"])
     df.attrs["matched_sentences"] = matched_sentences
     return df
 
@@ -131,6 +133,9 @@ def load_sentences(conllu_path: Path, limit=None) -> list[conllu.TokenList]:
     sentences: list[conllu.TokenList] = []
     with conllu_path.open("r", encoding="utf-8") as handle:
         for sentence in conllu.parse_incr(handle):
+            metadata = sentence.metadata or {}
+            metadata["dataset"] = conllu_path.name
+            sentence.metadata = metadata
             sentences.append(sentence)
             if limit is not None:
                 if len(sentences) >= limit:
