@@ -11,6 +11,7 @@ from queries.common import load_sentences
 from queries.morph_dictionary import MorphDictionary
 from queries.subj_verb_gender_clause import run_subj_verb_gender_clause
 from queries.subj_verb_gender_obj_relative_clause_1 import run_subj_verb_gender_obj_relative_clause_1
+from queries.subj_verb_gender_obj_relative_clause_2 import run_subj_verb_gender_obj_relative_clause_2
 from queries.subj_verb_gender_pp_attractor import run_subj_verb_gender_pp_attractor
 from queries.subj_verb_gender_simple import run_subj_verb_gender_simple
 from queries.subj_verb_subj_gender_relative_clause import run_subj_verb_subj_gender_relative_clause
@@ -95,6 +96,7 @@ def parse_args() -> argparse.Namespace:
             "subj_verb_gender_pp_attractor",
             "subj_verb_subj_gender_relative_clause",
             "subj_verb_gender_obj_relative_clause_1",
+            "subj_verb_gender_obj_relative_clause_2",
         ),
         default="all",
         help="Which task(s) to run.",
@@ -200,6 +202,10 @@ def main() -> None:
     if args.task in ("all", "subj_verb_gender_obj_relative_clause_1"):
         df = run_subj_verb_gender_obj_relative_clause_1(sentences, morph_dict, args.limit)
         write_csv(df, args.output_dir / "subj_verb_gender_obj_relative_clause_1.csv")
+
+    if args.task in ("all", "subj_verb_gender_obj_relative_clause_2"):
+            df = run_subj_verb_gender_obj_relative_clause_2(sentences, morph_dict, args.limit)
+            write_csv(df, args.output_dir / "subj_verb_gender_obj_relative_clause_2.csv")
 
 
 if __name__ == "__main__":

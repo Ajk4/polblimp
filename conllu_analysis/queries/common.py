@@ -62,7 +62,7 @@ def change_number(sentence: conllu.TokenList, morph_dict: MorphDictionary) -> bo
         print("Unknown tag", source_xpos)
         return False
 
-    return change_morph(sentence, morph_dict, target_xpos)
+    return change_morph(sentence.to_tree().token, morph_dict, target_xpos)
 
 
 def change_person(sentence: conllu.TokenList, morph_dict: MorphDictionary) -> bool:
@@ -87,7 +87,7 @@ def change_person(sentence: conllu.TokenList, morph_dict: MorphDictionary) -> bo
         print("Unknown tag", source_xpos)
         return False
 
-    return change_morph(sentence, morph_dict, target_xpos)
+    return change_morph(sentence.to_tree().token, morph_dict, target_xpos)
 
 
 def change_gender(
@@ -117,7 +117,7 @@ def change_gender(
         print("Unknown tag", source_xpos)
         return False
 
-    return change_morph(sentence, morph_dict, target_xpos)
+    return change_morph(sentence.to_tree().token, morph_dict, target_xpos)
 
 
 def match_descendants(tree: conllu.TokenTree, token_predicate):
@@ -158,11 +158,10 @@ def sentence_text(sentence: conllu.TokenList) -> str:
 
 
 def change_morph(
-        sentence: conllu.TokenList,
+        token: conllu.Token,
         morph_dict: MorphDictionary,
         target_tag: str,
 ) -> bool:
-    token = sentence.to_tree().token
     lemma = token.get("lemma")
     if not lemma or not morph_dict.has_lemma(lemma):
         print("Missing lemma", lemma)
