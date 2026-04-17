@@ -10,6 +10,7 @@ import conllu
 from queries.common import load_sentences
 from queries.morph_dictionary import MorphDictionary
 from queries.subj_verb_gender_clause import run_subj_verb_gender_clause
+from queries.subj_verb_gender_genitive import run_subj_verb_gender_genitive
 from queries.subj_verb_gender_obj_relative_clause_1 import run_subj_verb_gender_obj_relative_clause_1
 from queries.subj_verb_gender_obj_relative_clause_2 import run_subj_verb_gender_obj_relative_clause_2
 from queries.subj_verb_gender_pp_attractor import run_subj_verb_gender_pp_attractor
@@ -88,6 +89,7 @@ def parse_args() -> argparse.Namespace:
             "subj_verb_numerals_1",
             "subj_verb_numerals_2",
             "subj_verb_gender_simple",
+            "subj_verb_gender_genitive",
             "subj_verb_plural_non_masc",
             "subj_verb_plural_masc",
             "subj_verb_gender_clause",
@@ -168,6 +170,10 @@ def main() -> None:
     if args.task in ("all", "subj_verb_gender_simple"):
         df = run_subj_verb_gender_simple(sentences, morph_dict, args.limit)
         write_csv(df, args.output_dir / "subj_verb_gender_simple.csv")
+
+    if args.task in ("all", "subj_verb_gender_genitive"):
+        df = run_subj_verb_gender_genitive(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / "subj_verb_gender_genitive.csv")
 
     if args.task in ("all", "subj_verb_plural_non_masc"):
         df = run_subj_verb_plural_non_masc(sentences, morph_dict, args.limit)
