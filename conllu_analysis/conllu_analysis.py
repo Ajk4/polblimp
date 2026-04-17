@@ -24,6 +24,7 @@ from queries.subj_verb_number_simple import run_subj_verb_number_simple
 from queries.subj_verb_numerals_1 import run_subj_verb_numerals_1
 from queries.subj_verb_numerals_2 import run_subj_verb_numerals_2
 from queries.subj_verb_person import run_subj_verb_person
+from queries.subj_verb_person_genitive import run_subj_verb_person_genitive
 from queries.subj_verb_plural_masc import run_subj_verb_plural_masc
 from queries.subj_verb_plural_non_masc import run_subj_verb_plural_non_masc
 
@@ -81,6 +82,7 @@ def parse_args() -> argparse.Namespace:
         choices=(
             "all",
             "subj_verb_person",
+            "subj_verb_person_genitive",
             "subj_verb_number_infinitival",
             "subj_verb_number_relational_noun",
             "subj_verb_numerals_1",
@@ -142,6 +144,10 @@ def main() -> None:
     if args.task in ("all", "subj_verb_person"):
         df = run_subj_verb_person(sentences, morph_dict, args.limit)
         write_csv(df, args.output_dir / "subj_verb_person.csv")
+
+    if args.task in ("all", "subj_verb_person_genitive"):
+        df = run_subj_verb_person_genitive(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / "subj_verb_person_genitive.csv")
 
     if args.task in ("all", "subj_verb_number_infinitival"):
         df = run_subj_verb_number_infinitival(sentences, morph_dict, args.limit)
