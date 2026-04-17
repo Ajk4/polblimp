@@ -45,17 +45,19 @@ def change_gender_to(token: conllu.Token, morph_dict: MorphDictionary, target_ge
         elif is_subtag(source_xpos, "praet:sg:f.m1.m2.m3:perf"):
             target_xpos = "praet:sg:n1:perf"
         elif is_subtag(source_xpos, "praet:pl:f.m1.m2.m3:imperf"):
+            target_xpos = "praet:pl:n:imperf"
+        elif is_subtag(source_xpos, "praet:pl:f.m1.m2.m3:perf"):
             target_xpos = "praet:pl:n:perf"
         else:
             assert False, f"source_xpos: {source_xpos}"
     elif target_gender == "Fem":
-        if is_subtag(source_xpos, "praet:sg:n1.n2.m1.m2.m3:imperf"):
+        if is_subtag(source_xpos, "praet:sg:n.n1.n2.m1.m2.m3:imperf"):
             target_xpos = "praet:sg:f:imperf"
         elif is_subtag(source_xpos, "praet:pl:m1.n:imperf"):
             target_xpos = "praet:pl:f:imperf"
-        elif is_subtag(source_xpos, "praet:sg:n1.n2.m1.m2.m3:perf"):
+        elif is_subtag(source_xpos, "praet:sg:n.n1.n2.m1.m2.m3:perf"):
             target_xpos = "praet:sg:f:perf"
-        elif is_subtag(source_xpos, "praet:pl:n1.n2.m1.m2.m3:perf"):
+        elif is_subtag(source_xpos, "praet:pl:n.n1.n2.m1.m2.m3:perf"):
             target_xpos = "praet:pl:f:perf"
         else:
             assert False, f"source_xpos: {source_xpos}"
@@ -66,6 +68,8 @@ def change_gender_to(token: conllu.Token, morph_dict: MorphDictionary, target_ge
             target_xpos = "praet:pl:m1:imperf"
         elif is_subtag(source_xpos, "praet:sg:n:perf"):
             target_xpos = "praet:sg:m1:perf"
+        elif is_subtag(source_xpos, "praet:sg:n:imperf"):
+            target_xpos = "praet:sg:m1:imperf"
         else:
             assert False, f"form: {token['form']}, source_xpos: {source_xpos}"
     else:
