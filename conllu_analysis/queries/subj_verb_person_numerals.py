@@ -37,12 +37,10 @@ def run_subj_verb_person_numerals(
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    print("TODO implement pair generation")
     return run_filter_transform(
         sentences,
         match_subj_verb_person_numerals,
-        lambda sentence: True,
-        # lambda sentence: change_person(sentence, morph_dict),
+        lambda sentence: change_person(sentence, morph_dict),
         limit=limit,
         progress_desc="subj_verb_person_numerals",
     )
