@@ -5,7 +5,7 @@ from typing import Optional
 import conllu
 import pandas as pd
 
-from .common import match_descendants, run_filter_transform, change_number
+from .common import match_descendants, run_filter_transform, change_number_root
 from .morph_dictionary import MorphDictionary
 
 
@@ -68,7 +68,7 @@ def run_subj_verb_number_pp_attractor(
     return run_filter_transform(
         sentences,
         match_subj_verb_number_pp_attractor,
-        lambda sentence: change_number(sentence, morph_dict),
+        lambda sentence: change_number_root(sentence, morph_dict),
         limit=limit,
         progress_desc="subj_verb_number_pp_attractor",
     )

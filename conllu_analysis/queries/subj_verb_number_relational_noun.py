@@ -5,7 +5,7 @@ from typing import Optional
 import conllu
 import pandas as pd
 
-from .common import change_number, match_descendants, run_filter_transform
+from .common import change_number_root, match_descendants, run_filter_transform
 from .morph_dictionary import MorphDictionary
 
 
@@ -17,7 +17,7 @@ def run_subj_verb_number_relational_noun(
     return run_filter_transform(
         sentences,
         match_subj_verb_number_relational_noun,
-        lambda sentence: change_number(sentence, morph_dict),
+        lambda sentence: change_number_root(sentence, morph_dict),
         limit=limit,
         progress_desc="subj_verb_number_relational_noun",
     )
