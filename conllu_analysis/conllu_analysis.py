@@ -9,6 +9,7 @@ import conllu
 
 from queries.common import load_sentences
 from queries.morph_dictionary import MorphDictionary
+from queries.subj_pred_gender_simple import run_subj_pred_gender_simple
 from queries.subj_pred_number_simple import run_subj_pred_number_simple
 from queries.subj_pred_person_simple import run_subj_pred_person_simple
 from queries.subj_verb_gender_clause import run_subj_verb_gender_clause
@@ -88,6 +89,7 @@ def parse_args() -> argparse.Namespace:
         "--task",
         choices=(
             "all",
+            "subj_pred_gender_simple",
             "subj_pred_person_simple",
             "subj_pred_number_simple",
             "subj_verb_person",
@@ -158,6 +160,10 @@ def main() -> None:
     if args.task in ("all", "subj_pred_person_simple"):
         df = run_subj_pred_person_simple(sentences, morph_dict, args.limit)
         write_csv(df, args.output_dir / "subj_pred_person_simple.csv")
+
+    if args.task in ("all", "subj_pred_gender_simple"):
+        df = run_subj_pred_gender_simple(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / "subj_pred_gender_simple.csv")
 
     if args.task in ("all", "subj_pred_number_simple"):
         df = run_subj_pred_number_simple(sentences, morph_dict, args.limit)

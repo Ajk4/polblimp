@@ -128,10 +128,10 @@ def change_gender(root: Token, morph_dict: MorphDictionary) -> bool:
     elif ":m3" in source_xpos:
         target_xpos = source_xpos.replace(":m3:", ":m1:")
     else:
-        print("Unknown tag", source_xpos)
+        print(f"Unknown tag for gender change, tag={source_xpos}, form={root['form']}")
         return False
 
-    return change_morph(sentence.to_tree().token, morph_dict, target_xpos)
+    return change_morph(root, morph_dict, target_xpos)
 
 
 def match_descendants(tree: conllu.TokenTree, token_predicate):

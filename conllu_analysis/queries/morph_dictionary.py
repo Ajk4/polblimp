@@ -19,6 +19,10 @@ def is_subtag(tag: str, supertag: str) -> bool:
             # so praet:pl:m3:imperf:nagl matches praet:pl:m3:imperf
             return tag_part == "nagl"
         supertag_part_options = supertag_part.split(".")
+
+        if "_" in supertag_part_options:
+            return True
+
         if tag_part is None:
             # so praet:sg:m1:imperf matches praet:sg:m1.m2.m3:imperf:nagl
             return "nagl" in supertag_part_options
