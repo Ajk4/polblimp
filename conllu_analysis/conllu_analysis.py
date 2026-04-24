@@ -9,8 +9,11 @@ import conllu
 
 from queries.common import load_sentences
 from queries.morph_dictionary import MorphDictionary
+from queries.subj_pred_gender_genitive import run_subj_pred_gender_genitive
 from queries.subj_pred_gender_simple import run_subj_pred_gender_simple
+from queries.subj_pred_number_genitive import run_subj_pred_number_genitive
 from queries.subj_pred_number_simple import run_subj_pred_number_simple
+from queries.subj_pred_person_genitive import run_subj_pred_person_genitive
 from queries.subj_pred_person_simple import run_subj_pred_person_simple
 from queries.subj_verb_gender_clause import run_subj_verb_gender_clause
 from queries.subj_verb_gender_genitive import run_subj_verb_gender_genitive
@@ -140,6 +143,10 @@ def main() -> None:
         df = run_subj_pred_number_simple(sentences, morph_dict, args.limit)
         write_csv(df, args.output_dir / "subj_pred_number_simple.csv")
 
+    if args.task in ("all", "subj_pred_person_genitive"):
+        df = run_subj_pred_person_genitive(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / "subj_pred_person_genitive.csv")
+
     if args.task in ("all", "subj_verb_person"):
         df = run_subj_verb_person(sentences, morph_dict, args.limit)
         write_csv(df, args.output_dir / "subj_verb_person.csv")
@@ -159,6 +166,14 @@ def main() -> None:
     if args.task in ("all", "subj_verb_number_genitive"):
         df = run_subj_verb_number_genitive(sentences, morph_dict, args.limit)
         write_csv(df, args.output_dir / "subj_verb_number_genitive.csv")
+
+    if args.task in ("all", "subj_pred_number_genitive"):
+        df = run_subj_pred_number_genitive(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / "subj_pred_number_genitive.csv")
+
+    if args.task in ("all", "subj_pred_gender_genitive"):
+        df = run_subj_pred_gender_genitive(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / "subj_pred_gender_genitive.csv")
 
     if args.task in ("all", "subj_verb_number_numerals"):
         df = run_subj_verb_number_numerals(sentences, morph_dict, args.limit)

@@ -8,6 +8,7 @@ from typing import Callable, Optional
 import conllu
 import pandas as pd
 from conllu import Token, TokenList
+from requests.packages import target
 from tqdm import tqdm
 
 from . import MorphDictionary
@@ -93,8 +94,10 @@ def change_person(token: conllu.Token, morph_dict: MorphDictionary) -> bool:
             target_xpos = source_xpos.replace(":ter:", ":pri:")
         else:
             target_xpos = source_xpos.replace(":ter:", ":sec:")
+    elif token['lemma'] == "być" and source_xpos == "praet:sg:n1.n2:imperf":
+        target_xpos = "bedzie:sg:pri:imperf"
     else:
-        print("Unknown tag", source_xpos)
+        print(f"Unknown tag={source_xpos}, form={token['form']}")
         return False
 
     return change_morph(token, morph_dict, target_xpos)
