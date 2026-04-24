@@ -7,8 +7,10 @@ from typing import Callable, Optional
 
 import conllu
 import pandas as pd
+from conllu import Token, TokenList
 from tqdm import tqdm
 
+from . import MorphDictionary
 from .morph_dictionary import MorphDictionary
 
 
@@ -65,9 +67,13 @@ def change_number(sentence: conllu.TokenList, morph_dict: MorphDictionary) -> bo
     return change_morph(sentence.to_tree().token, morph_dict, target_xpos)
 
 
-def change_person(sentence: conllu.TokenList, morph_dict: MorphDictionary) -> bool:
+def change_person_root(sentence: conllu.TokenList, morph_dict: MorphDictionary) -> bool:
     root = sentence.to_tree().token
-    source_xpos = root["xpos"]
+    return change_person(root, morph_dict)
+
+
+def change_person(token: conllu.Token, morph_dict: MorphDictionary) -> bool:
+    source_xpos = token["xpos"]
     if ":pri:" in source_xpos:
         if random.randint(0, 1) == 0:
             target_xpos = source_xpos.replace(":pri:", ":sec:")
@@ -87,7 +93,7 @@ def change_person(sentence: conllu.TokenList, morph_dict: MorphDictionary) -> bo
         print("Unknown tag", source_xpos)
         return False
 
-    return change_morph(sentence.to_tree().token, morph_dict, target_xpos)
+    return change_morph(token, morph_dict, target_xpos)
 
 
 def change_gender(

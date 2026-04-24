@@ -6,7 +6,7 @@ from typing import Optional
 import conllu
 import pandas as pd
 
-from .common import run_filter_transform, change_person
+from .common import run_filter_transform, change_person_root
 from .morph_dictionary import MorphDictionary
 
 """
@@ -38,7 +38,7 @@ def run_subj_verb_person(sentences: list[conllu.TokenList], morph_dict: MorphDic
     variant_1 = run_filter_transform(
         sentences,
         match_subj_verb_person__1,
-        lambda token: change_person(token, morph_dict),
+        lambda sentence: change_person_root(sentence, morph_dict),
         limit=limit,
         progress_desc="subj_verb_person__1",
     )
@@ -58,9 +58,9 @@ def run_subj_verb_person(sentences: list[conllu.TokenList], morph_dict: MorphDic
         limit=limit,
         progress_desc="subj_verb_person__3",
     )
+    # TODO variant 3
 
-    df = pd.concat([variant_1, variant_2, variant_3])
-    df = variant_3
+    df = pd.concat([variant_1, variant_2])
     df.attrs["matched_sentences"] = len(variant_1) + len(variant_2)
     return df
 

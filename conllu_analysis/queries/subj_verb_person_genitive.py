@@ -5,7 +5,7 @@ from typing import Optional
 import conllu
 import pandas as pd
 
-from .common import change_person, run_filter_transform
+from .common import change_person_root, run_filter_transform
 from .morph_dictionary import MorphDictionary
 
 """
