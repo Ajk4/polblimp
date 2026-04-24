@@ -100,11 +100,15 @@ def change_person(token: conllu.Token, morph_dict: MorphDictionary) -> bool:
     return change_morph(token, morph_dict, target_xpos)
 
 
-def change_gender(
+def change_gender_root(
         sentence: conllu.TokenList,
         morph_dict: MorphDictionary,
 ) -> bool:
     root = sentence.to_tree().token
+    return change_gender(root, morph_dict)
+
+
+def change_gender(root: Token, morph_dict: MorphDictionary) -> bool:
     source_xpos = root["xpos"]
 
     if source_xpos in {'praet:sg:m1:imperf', 'praet:sg:m2:imperf', 'praet:sg:m3:imperf'}:
@@ -179,7 +183,7 @@ def change_morph(
 
     target_form = morph_dict.get_form(lemma, target_tag)
     if target_form is None:
-        print(f"Missing form, lemma: {lemma}, form: {target_tag}")
+        print(f"Missing form, lemma: {lemma}, target_tag: {target_tag}")
         return False
 
     form = token.get("form", "")

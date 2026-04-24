@@ -5,7 +5,7 @@ from typing import Optional
 import conllu
 import pandas as pd
 
-from .common import match_descendants, run_filter_transform, change_gender
+from .common import match_descendants, run_filter_transform, change_gender_root
 from .morph_dictionary import MorphDictionary
 
 
@@ -17,7 +17,7 @@ def run_subj_verb_gender_simple(
     return run_filter_transform(
         sentences,
         match_subj_verb_gender_simple,
-        lambda sentence: change_gender(sentence, morph_dict),
+        lambda sentence: change_gender_root(sentence, morph_dict),
         limit=limit,
         progress_desc="subj_verb_gender_simple",
     )

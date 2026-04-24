@@ -5,7 +5,7 @@ from typing import Optional
 import conllu
 import pandas as pd
 
-from .common import change_gender, run_filter_transform
+from .common import change_gender_root, run_filter_transform
 from .morph_dictionary import MorphDictionary
 
 
@@ -17,7 +17,7 @@ def run_subj_verb_subj_gender_relative_clause(
     return run_filter_transform(
         sentences,
         match_subj_verb_subj_gender_relative_clause,
-        lambda sentence: change_gender(sentence, morph_dict),
+        lambda sentence: change_gender_root(sentence, morph_dict),
         limit=limit,
         progress_desc="subj_verb_subj_gender_relative_clause",
     )
