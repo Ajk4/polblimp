@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Callable
 from pathlib import Path
 from typing import Optional
+
 import pandas as pd
 
 import conllu
@@ -43,21 +45,46 @@ from queries.subj_verb_person_numerals import run_subj_verb_person_numerals
 from queries.subj_verb_plural_masc import run_subj_verb_plural_masc
 from queries.subj_verb_plural_non_masc import run_subj_verb_plural_non_masc
 
+QueryRunner = Callable[
+    [list[conllu.TokenList], MorphDictionary, Optional[int]],
+    pd.DataFrame,
+]
 
-def match_predicate_with_pron_nsubj(
-        sentence: conllu.TokenList,
-) -> Optional[conllu.Token]:
-    root = sentence.to_tree()
-    token = root.token
-    if token["upos"] != "VERB":
-        return None
-
-    for child in root.children:
-        child_token = child.token
-        if child_token["deprel"] == "nsubj" and child_token["upos"] == "PRON":
-            return token
-
-    return None
+TASK_RUNNERS: dict[str, QueryRunner] = {
+    "subj_pred_person_simple": run_subj_pred_person_simple,
+    "subj_pred_person_csubj": run_subj_pred_person_csubj,
+    "subj_pred_gender_simple": run_subj_pred_gender_simple,
+    "subj_pred_gender_csubj": run_subj_pred_gender_csubj,
+    "subj_pred_number_simple": run_subj_pred_number_simple,
+    "subj_pred_number_csubj": run_subj_pred_number_csubj,
+    "subj_pred_person_genitive": run_subj_pred_person_genitive,
+    "subj_pred_person_numerals": run_subj_pred_person_numerals,
+    "subj_verb_person": run_subj_verb_person,
+    "subj_verb_person_genitive": run_subj_verb_person_genitive,
+    "subj_verb_person_numerals": run_subj_verb_person_numerals,
+    "subj_verb_number_infinitival": run_subj_verb_number_infinitival,
+    "subj_verb_number_genitive": run_subj_verb_number_genitive,
+    "subj_pred_number_genitive": run_subj_pred_number_genitive,
+    "subj_pred_gender_genitive": run_subj_pred_gender_genitive,
+    "subj_verb_number_numerals": run_subj_verb_number_numerals,
+    "subj_verb_number_relational_noun": run_subj_verb_number_relational_noun,
+    "subj_verb_numerals_1": run_subj_verb_numerals_1,
+    "subj_verb_numerals_2": run_subj_verb_numerals_2,
+    "subj_verb_gender_simple": run_subj_verb_gender_simple,
+    "subj_verb_gender_genitive": run_subj_verb_gender_genitive,
+    "subj_verb_gender_numerals": run_subj_verb_gender_numerals,
+    "subj_verb_plural_non_masc": run_subj_verb_plural_non_masc,
+    "subj_verb_plural_masc": run_subj_verb_plural_masc,
+    "subj_verb_gender_clause": run_subj_verb_gender_clause,
+    "subj_verb_number_simple": run_subj_verb_number_simple,
+    "subj_verb_number_clause": run_subj_verb_number_clause,
+    "subj_verb_gender_infinitival": run_subj_verb_gender_infinitival,
+    "subj_verb_number_pp_attractor": run_subj_verb_number_pp_attractor,
+    "subj_verb_gender_pp_attractor": run_subj_verb_gender_pp_attractor,
+    "subj_verb_subj_gender_relative_clause": run_subj_verb_subj_gender_relative_clause,
+    "subj_verb_gender_obj_relative_clause_1": run_subj_verb_gender_obj_relative_clause_1,
+    "subj_verb_gender_obj_relative_clause_2": run_subj_verb_gender_obj_relative_clause_2,
+}
 
 
 def write_csv(df: pd.DataFrame, path: Path) -> None:
@@ -95,6 +122,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--task",
         default="all",
+        choices=["all", *TASK_RUNNERS.keys()],
         help="Which task(s) to run.",
     )
     parser.add_argument(
@@ -135,137 +163,18 @@ def main() -> None:
         sentences.extend(file_sentences)
     print(f"Loaded {len(sentences)} total sentences from {len(conllu_paths)} file(s)")
 
-    if args.task in ("all", "subj_pred_person_simple"):
-        df = run_subj_pred_person_simple(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_pred_person_simple.csv")
+    if args.task == "all":
+        task_names = TASK_RUNNERS.keys()
+    else:
+        if args.task not in TASK_RUNNERS:
+            available = ", ".join(["all", *TASK_RUNNERS.keys()])
+            raise ValueError(f"Unknown task: {args.task}. Available tasks: {available}")
+        task_names = [args.task]
 
-    if args.task in ("all", "subj_pred_person_csubj"):
-        df = run_subj_pred_person_csubj(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_pred_person_csubj.csv")
-
-    if args.task in ("all", "subj_pred_gender_simple"):
-        df = run_subj_pred_gender_simple(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_pred_gender_simple.csv")
-
-    if args.task in ("all", "subj_pred_gender_csubj"):
-        df = run_subj_pred_gender_csubj(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_pred_gender_csubj.csv")
-
-    if args.task in ("all", "subj_pred_number_simple"):
-        df = run_subj_pred_number_simple(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_pred_number_simple.csv")
-
-    if args.task in ("all", "subj_pred_number_csubj"):
-        df = run_subj_pred_number_csubj(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_pred_number_csubj.csv")
-
-    if args.task in ("all", "subj_pred_person_genitive"):
-        df = run_subj_pred_person_genitive(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_pred_person_genitive.csv")
-
-    if args.task in ("all", "subj_pred_person_numerals"):
-        df = run_subj_pred_person_numerals(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_pred_person_numerals.csv")
-
-    if args.task in ("all", "subj_verb_person"):
-        df = run_subj_verb_person(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_person.csv")
-
-    if args.task in ("all", "subj_verb_person_genitive"):
-        df = run_subj_verb_person_genitive(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_person_genitive.csv")
-
-    if args.task in ("all", "subj_verb_person_numerals"):
-        df = run_subj_verb_person_numerals(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_person_numerals.csv")
-
-    if args.task in ("all", "subj_verb_number_infinitival"):
-        df = run_subj_verb_number_infinitival(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_number_infinitival.csv")
-
-    if args.task in ("all", "subj_verb_number_genitive"):
-        df = run_subj_verb_number_genitive(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_number_genitive.csv")
-
-    if args.task in ("all", "subj_pred_number_genitive"):
-        df = run_subj_pred_number_genitive(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_pred_number_genitive.csv")
-
-    if args.task in ("all", "subj_pred_gender_genitive"):
-        df = run_subj_pred_gender_genitive(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_pred_gender_genitive.csv")
-
-    if args.task in ("all", "subj_verb_number_numerals"):
-        df = run_subj_verb_number_numerals(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_number_numerals.csv")
-
-    if args.task in ("all", "subj_verb_number_relational_noun"):
-        df = run_subj_verb_number_relational_noun(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_number_relational_noun.csv")
-
-    if args.task in ("all", "subj_verb_numerals_1"):
-        df = run_subj_verb_numerals_1(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_numerals_1.csv")
-
-    if args.task in ("all", "subj_verb_numerals_2"):
-        df = run_subj_verb_numerals_2(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_numerals_2.csv")
-
-    if args.task in ("all", "subj_verb_gender_simple"):
-        df = run_subj_verb_gender_simple(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_gender_simple.csv")
-
-    if args.task in ("all", "subj_verb_gender_genitive"):
-        df = run_subj_verb_gender_genitive(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_gender_genitive.csv")
-
-    if args.task in ("all", "subj_verb_gender_numerals"):
-        df = run_subj_verb_gender_numerals(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_gender_numerals.csv")
-
-    if args.task in ("all", "subj_verb_plural_non_masc"):
-        df = run_subj_verb_plural_non_masc(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_plural_non_masc.csv")
-
-    if args.task in ("all", "subj_verb_plural_masc"):
-        df = run_subj_verb_plural_masc(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_plural_masc.csv")
-
-    if args.task in ("all", "subj_verb_gender_clause"):
-        df = run_subj_verb_gender_clause(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_gender_clause.csv")
-
-    if args.task in ("all", "subj_verb_number_simple"):
-        df = run_subj_verb_number_simple(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_number_simple.csv")
-
-    if args.task in ("all", "subj_verb_number_clause"):
-        df = run_subj_verb_number_clause(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_number_clause.csv")
-
-    if args.task in ("all", "subj_verb_gender_infinitival"):
-        df = run_subj_verb_gender_infinitival(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_gender_infinitival.csv")
-
-    if args.task in ("all", "subj_verb_number_pp_attractor"):
-        df = run_subj_verb_number_pp_attractor(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_number_pp_attractor.csv")
-
-    if args.task in ("all", "subj_verb_gender_pp_attractor"):
-        df = run_subj_verb_gender_pp_attractor(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_gender_pp_attractor.csv")
-
-    if args.task in ("all", "subj_verb_subj_gender_relative_clause"):
-        df = run_subj_verb_subj_gender_relative_clause(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_subj_gender_relative_clause.csv")
-
-    if args.task in ("all", "subj_verb_gender_obj_relative_clause_1"):
-        df = run_subj_verb_gender_obj_relative_clause_1(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / "subj_verb_gender_obj_relative_clause_1.csv")
-
-    if args.task in ("all", "subj_verb_gender_obj_relative_clause_2"):
-            df = run_subj_verb_gender_obj_relative_clause_2(sentences, morph_dict, args.limit)
-            write_csv(df, args.output_dir / "subj_verb_gender_obj_relative_clause_2.csv")
+    for task_name in task_names:
+        runner = TASK_RUNNERS[task_name]
+        df = runner(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / f"{task_name}.csv")
 
 
 if __name__ == "__main__":
