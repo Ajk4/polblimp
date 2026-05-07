@@ -16,6 +16,7 @@ from queries.subj_pred_gender_csubj import run_subj_pred_gender_csubj
 from queries.subj_pred_gender_simple import run_subj_pred_gender_simple
 from queries.subj_pred_number_csubj import run_subj_pred_number_csubj
 from queries.subj_pred_number_genitive import run_subj_pred_number_genitive
+from queries.subj_pred_number_numerals import run_subj_pred_number_numerals
 from queries.subj_pred_number_simple import run_subj_pred_number_simple
 from queries.subj_pred_person_csubj import run_subj_pred_person_csubj
 from queries.subj_pred_person_genitive import run_subj_pred_person_genitive
@@ -57,6 +58,7 @@ TASK_RUNNERS: dict[str, QueryRunner] = {
     "subj_pred_gender_csubj": run_subj_pred_gender_csubj,
     "subj_pred_number_simple": run_subj_pred_number_simple,
     "subj_pred_number_csubj": run_subj_pred_number_csubj,
+    "subj_pred_number_numerals": run_subj_pred_number_numerals,
     "subj_pred_person_genitive": run_subj_pred_person_genitive,
     "subj_pred_person_numerals": run_subj_pred_person_numerals,
     "subj_verb_person": run_subj_verb_person,

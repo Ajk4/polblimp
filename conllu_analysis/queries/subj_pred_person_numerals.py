@@ -77,17 +77,17 @@ def extract_subj_pred_person_numerals(
         return None
 
     nsubj = None
+    num = None
     for child in root.children:
         if child.token["deprel"] not in {"nsubj", "nsubj:pass"}:
             continue
 
-        has_num_child = False
         for subj_child in child.children:
             if subj_child.token["upos"] == "NUM":
-                has_num_child = True
+                num = subj_child
                 break
 
-        if not has_num_child:
+        if num is None:
             continue
 
         nsubj = child
@@ -95,6 +95,7 @@ def extract_subj_pred_person_numerals(
 
     if nsubj is None:
         return None
+    assert num is not None
 
     cop = None
     for child in root.children:
@@ -111,5 +112,6 @@ def extract_subj_pred_person_numerals(
     return {
         "root": root.token,
         "nsubj": nsubj.token,
+        "num": num.token,
         "cop": cop.token,
     }
