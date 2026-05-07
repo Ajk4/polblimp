@@ -94,14 +94,21 @@ def change_person(token: conllu.Token, morph_dict: MorphDictionary) -> bool:
             target_xpos = source_xpos.replace(":ter:", ":pri:")
         else:
             target_xpos = source_xpos.replace(":ter:", ":sec:")
-    elif token['lemma'] == "być" and source_xpos == "praet:sg:n1.n2:imperf":
-        target_xpos = "bedzie:sg:pri:imperf"
+    elif token["lemma"] in "być" and source_xpos.startswith("praet"):
+        person = random.choice(["pri", "sec", "ter"])
+        number = "sg" if ":sg:" in source_xpos else "pl"
+        tense = "imperf" if "imperf" in source_xpos else "perf"
+        target_xpos = f"bedzie:{number}:{person}:{tense}"
+    elif source_xpos.startswith("praet"):
+        person = random.choice(["pri", "sec", "ter"])
+        number = "sg" if ":sg:" in source_xpos else "pl"
+        tense = "imperf" if "imperf" in source_xpos else "perf"
+        target_xpos = f"fin:{number}:{person}:{tense}"
     else:
         print(f"Unknown tag={source_xpos}, form={token['form']}")
         return False
 
     return change_morph(token, morph_dict, target_xpos)
-
 
 def change_gender_root(
         sentence: conllu.TokenList,

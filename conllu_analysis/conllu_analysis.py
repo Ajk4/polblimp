@@ -17,6 +17,7 @@ from queries.subj_pred_number_genitive import run_subj_pred_number_genitive
 from queries.subj_pred_number_simple import run_subj_pred_number_simple
 from queries.subj_pred_person_csubj import run_subj_pred_person_csubj
 from queries.subj_pred_person_genitive import run_subj_pred_person_genitive
+from queries.subj_pred_person_numerals import run_subj_pred_person_numerals
 from queries.subj_pred_person_simple import run_subj_pred_person_simple
 from queries.subj_verb_gender_clause import run_subj_verb_gender_clause
 from queries.subj_verb_gender_genitive import run_subj_verb_gender_genitive
@@ -161,6 +162,10 @@ def main() -> None:
     if args.task in ("all", "subj_pred_person_genitive"):
         df = run_subj_pred_person_genitive(sentences, morph_dict, args.limit)
         write_csv(df, args.output_dir / "subj_pred_person_genitive.csv")
+
+    if args.task in ("all", "subj_pred_person_numerals"):
+        df = run_subj_pred_person_numerals(sentences, morph_dict, args.limit)
+        write_csv(df, args.output_dir / "subj_pred_person_numerals.csv")
 
     if args.task in ("all", "subj_verb_person"):
         df = run_subj_verb_person(sentences, morph_dict, args.limit)
