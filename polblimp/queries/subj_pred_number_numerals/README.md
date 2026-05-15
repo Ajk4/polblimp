@@ -1,11 +1,14 @@
-subj_pred_number_numerals
+# subj_pred_number_numerals
+
 With numerals <5, the copula agrees with the noun (plural and verb’s gender).
 With numerals ≥5 (and for masculine <5 – in case of the numeral in accusative and noun in genitive), the default agreement is 3 singular neuter.
 
 For small numerals (nsubj in nominative): Change the number of $cop and if $root is an adjective –  the number of $root.
 For large numerals (nsubj in genitive): Change the number of $cop. or more?
 
-Examples:
+## Examples
+
+```
  Ci dwaj byli na siebie specjalnie uczuleni.
 *Ci dwaj był na siebie specjalnie uczulony.
 
@@ -13,9 +16,11 @@ Examples:
 *są na niej 250 szopek nigdy dotąd poza Betlejem niepokazywanych.
 * jest na niej 250 szopek nigdy dotąd poza Betlejem niepokazywanej. ?
 * jest na niej 250 szopek nigdy dotąd poza Betlejem niepokazywana. ?
+```
 
+## Query
 
-Query:
+```
 a-node $root := [
   !tag = 'VERB',
   deprel = 'root',
@@ -34,4 +39,4 @@ a-node $root := [
     !lemma = 'by'
   ]
 ]
-
+```

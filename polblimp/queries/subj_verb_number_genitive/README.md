@@ -1,6 +1,10 @@
+# subj_verb_number_genitive
+
 Change the number of $root.
 
-Query:
+## Query
+
+```
 a-node $root :=  [
   deprel = 'root',
   tag = 'VERB',
@@ -14,4 +18,4 @@ a-node $root :=  [
   0x child [tag = 'NUM'] # if we dont want numerals
   ],
 ]
-
+```

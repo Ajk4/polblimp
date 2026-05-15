@@ -1,9 +1,12 @@
-subj_verb_gender_numerals
+# subj_verb_gender_numerals
+
 Change the gender of $root:
 from neut to the gender of $nsubj,
 from any other to neut.
 
-Query:
+## Query
+
+```
 a-node $root := [
   tag = 'VERB',
   deprel = 'root',
@@ -24,3 +27,4 @@ a-node $root := [
 
   ]
 ]
+```

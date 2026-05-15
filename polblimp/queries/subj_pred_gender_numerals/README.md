@@ -1,3 +1,8 @@
+# subj_pred_gender_numerals
+
+## Query
+
+```
 a-node $root := [
   tag != 'VERB',
   deprel = 'root',
@@ -19,3 +24,4 @@ a-node $root := [
 
 
 ]
+```

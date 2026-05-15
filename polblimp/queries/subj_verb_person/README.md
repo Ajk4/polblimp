@@ -1,3 +1,8 @@
+# subj_verb_person
+
+## Query
+
+```
 a-node $root := [
   tag = 'VERB',
   deprel = 'root',
@@ -18,3 +23,4 @@ a-node $root := [
     ($root.iset/tense = 'past' and $nsubj.iset/person = '3')
   )
 ]
+```

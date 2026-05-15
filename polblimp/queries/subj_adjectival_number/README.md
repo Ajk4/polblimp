@@ -1,14 +1,20 @@
-subj_adjectival_number
+# subj_adjectival_number
+
 Change the number of $root.
 
-Example:
+## Examples
+
+```
 Aż w końcu podział ten został przezwyciężony.
 *Aż w końcu podział ten został przezwyciężone.
 
 W powiecie puławskim kilka wiosek będzie kompleksowo zadrzewianych.
 *W powiecie puławskim kilka wiosek będzie kompleksowo zadrzewianej.
+```
 
-Query:
+## Query
+
+```
 a-node $root := [
   tag = 'ADJ',
   deprel = 'root',
@@ -24,3 +30,4 @@ a-node $root := [
     !lemma = 'by'
   ]
 ]
+```

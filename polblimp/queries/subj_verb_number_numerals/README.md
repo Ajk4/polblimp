@@ -1,7 +1,10 @@
-subj_verb_number_numerals
+# subj_verb_number_numerals
+
 Change the number of $root.
 
-Query:
+## Query
+
+```
 a-node $root := [
   tag = 'VERB',
   deprel = 'root',
@@ -22,3 +25,4 @@ a-node $root := [
 
   ]
 ]
+```

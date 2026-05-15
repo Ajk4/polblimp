@@ -1,3 +1,8 @@
+# subj_pred_person_genitive
+
+## Query
+
+```
 a-node $root := [
   !tag = 'VERB',
   deprel = 'root',
@@ -14,4 +19,4 @@ a-node $root := [
     !lemma = 'by'
   ]
 ]
-
+```

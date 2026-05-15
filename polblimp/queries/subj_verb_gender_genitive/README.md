@@ -1,6 +1,10 @@
+# subj_verb_gender_genitive
+
 Change the gender of $root.
 
-Query:
+## Query
+
+```
 a-node $root :=  [
   #lemma = 'być',
   deprel = 'root',
@@ -16,3 +20,4 @@ a-node $root :=  [
   0x child [tag = 'NUM'] # if we dont want numerals
   ],
 ]
+```

@@ -1,3 +1,8 @@
+# subj_pred_person_simple
+
+## Query
+
+```
 a-node $root := [
   !tag = 'VERB',
   deprel = 'root',
@@ -13,4 +18,4 @@ a-node $root := [
     !lemma = 'by' # aby nie wyszukiwać podwójnie zdań zawierających np. ‘byłby’
   ]
 ]
-
+```

@@ -1,3 +1,8 @@
+# subj_pred_gender_genitive
+
+## Query
+
+```
 a-node $root := [
   !tag = 'VERB',
   deprel = 'root',
@@ -15,3 +20,4 @@ a-node $root := [
     member iset [gender = 'neut']
   ]`
 ]
+```

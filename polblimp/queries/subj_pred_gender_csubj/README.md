@@ -1,11 +1,18 @@
+# subj_pred_gender_csubj
+
 The default for csubj is 3 singular neuter.
 Change the gender of $cop.
 
-Examples:
+## Examples
+
+```
 Chociaż faktem jest, że Hubal okropnie przeżył te zdarzenia.
 *Chociaż faktem są, że Hubal okropnie przeżył te zdarzenia.
+```
 
-Query:
+## Query
+
+```
 a-node $root := [
   !tag = 'VERB',
   deprel = 'root',
@@ -22,3 +29,4 @@ a-node $root := [
     member iset [gender = 'neut']
   ]
 ]
+```

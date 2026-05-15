@@ -1,4 +1,8 @@
-Query for ADJ:
+# subj_pred_gender_simple
+
+## Query for ADJ
+
+```
 a-node $root := [
   tag = 'ADJ',
   deprel = 'root',
@@ -14,9 +18,13 @@ a-node $root := [
     !lemma = 'by'
   ]
 ]
+```
 
-Query for the rest (so we don’t exclude present and future from adjectival):
+## Query for the rest
 
+So we don’t exclude present and future from adjectival.
+
+```
 a-node $root := [
   tag != 'VERB',
   tag != 'ADJ',
@@ -33,5 +41,4 @@ a-node $root := [
     member iset [tense = 'past']
   ]
 ]
-
-
+```

@@ -1,13 +1,20 @@
+# subj_pred_person_numerals
+
 Change the person of $cop.
 
-Examples:
+## Examples
+
+```
  Ci dwaj byli na siebie specjalnie uczuleni.
 *Ci dwaj byliśmy na siebie specjalnie uczuleni.
 
  jest na niej 250 szopek nigdy dotąd poza Betlejem niepokazywanych.
 *jestem na niej 250 szopek nigdy dotąd poza Betlejem niepokazywanych.
+```
 
-Query:
+## Query
+
+```
 a-node $root := [
   !tag = 'VERB',
   deprel = 'root',
@@ -26,3 +33,4 @@ a-node $root := [
     !lemma = 'by'
   ]
 ]
+```

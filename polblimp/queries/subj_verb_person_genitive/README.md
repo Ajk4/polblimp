@@ -1,3 +1,8 @@
+# subj_verb_person_genitive
+
+## Query
+
+```
 a-node $root := [
   #lemma = 'być',
   deprel = 'root',
@@ -11,3 +16,4 @@ a-node $root := [
     member iset [ case = 'gen' ],
   ],
 ]
+```
