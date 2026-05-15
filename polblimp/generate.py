@@ -9,51 +9,51 @@ import pandas as pd
 
 import conllu
 
-from queries.common import load_sentences
-from queries.morph_dictionary import MorphDictionary
-from queries.subj_adjectival_number.generator import run_subj_adjectival_number
-from queries.subj_pred_gender_genitive.generator import run_subj_pred_gender_genitive
-from queries.subj_pred_gender_numerals.generator import run_subj_pred_gender_numerals
-from queries.subj_pred_gender_csubj.generator import run_subj_pred_gender_csubj
-from queries.subj_pred_gender_simple.generator import run_subj_pred_gender_simple
-from queries.subj_pred_number_csubj.generator import run_subj_pred_number_csubj
-from queries.subj_pred_number_genitive.generator import run_subj_pred_number_genitive
-from queries.subj_pred_number_numerals.generator import run_subj_pred_number_numerals
-from queries.subj_pred_number_simple.generator import run_subj_pred_number_simple
-from queries.subj_pred_person_csubj.generator import run_subj_pred_person_csubj
-from queries.subj_pred_person_genitive.generator import run_subj_pred_person_genitive
-from queries.subj_pred_person_numerals.generator import run_subj_pred_person_numerals
-from queries.subj_pred_person_simple.generator import run_subj_pred_person_simple
-from queries.subj_verb_gender_clause.generator import run_subj_verb_gender_clause
-from queries.subj_verb_gender_genitive.generator import run_subj_verb_gender_genitive
-from queries.subj_verb_gender_numerals.generator import run_subj_verb_gender_numerals
-from queries.subj_verb_gender_obj_relative_clause_1.generator import run_subj_verb_gender_obj_relative_clause_1
-from queries.subj_verb_gender_obj_relative_clause_2.generator import run_subj_verb_gender_obj_relative_clause_2
-from queries.subj_verb_gender_pp_attractor.generator import run_subj_verb_gender_pp_attractor
-from queries.subj_verb_gender_simple.generator import run_subj_verb_gender_simple
-from queries.subj_verb_subj_gender_relative_clause.generator import run_subj_verb_subj_gender_relative_clause
-from queries.subj_verb_gender_infinitival.generator import run_subj_verb_gender_infinitival
-from queries.subj_verb_number_clause.generator import run_subj_verb_number_clause
-from queries.subj_verb_number_infinitival.generator import run_subj_verb_number_infinitival
-from queries.subj_verb_number_genitive.generator import run_subj_verb_number_genitive
-from queries.subj_verb_number_numerals.generator import run_subj_verb_number_numerals
-from queries.subj_verb_number_pp_attractor.generator import run_subj_verb_number_pp_attractor
-from queries.subj_verb_number_relational_noun.generator import run_subj_verb_number_relational_noun
-from queries.subj_verb_number_simple.generator import run_subj_verb_number_simple
-from queries.subj_verb_numerals_1.generator import run_subj_verb_numerals_1
-from queries.subj_verb_numerals_2.generator import run_subj_verb_numerals_2
-from queries.subj_verb_person.generator import run_subj_verb_person
-from queries.subj_verb_person_genitive.generator import run_subj_verb_person_genitive
-from queries.subj_verb_person_numerals.generator import run_subj_verb_person_numerals
-from queries.subj_verb_plural_masc.generator import run_subj_verb_plural_masc
-from queries.subj_verb_plural_non_masc.generator import run_subj_verb_plural_non_masc
+from paradigm.common import load_sentences
+from paradigm.morph_dictionary import MorphDictionary
+from paradigm.subj_adjectival_number.generator import run_subj_adjectival_number
+from paradigm.subj_pred_gender_genitive.generator import run_subj_pred_gender_genitive
+from paradigm.subj_pred_gender_numerals.generator import run_subj_pred_gender_numerals
+from paradigm.subj_pred_gender_csubj.generator import run_subj_pred_gender_csubj
+from paradigm.subj_pred_gender_simple.generator import run_subj_pred_gender_simple
+from paradigm.subj_pred_number_csubj.generator import run_subj_pred_number_csubj
+from paradigm.subj_pred_number_genitive.generator import run_subj_pred_number_genitive
+from paradigm.subj_pred_number_numerals.generator import run_subj_pred_number_numerals
+from paradigm.subj_pred_number_simple.generator import run_subj_pred_number_simple
+from paradigm.subj_pred_person_csubj.generator import run_subj_pred_person_csubj
+from paradigm.subj_pred_person_genitive.generator import run_subj_pred_person_genitive
+from paradigm.subj_pred_person_numerals.generator import run_subj_pred_person_numerals
+from paradigm.subj_pred_person_simple.generator import run_subj_pred_person_simple
+from paradigm.subj_verb_gender_clause.generator import run_subj_verb_gender_clause
+from paradigm.subj_verb_gender_genitive.generator import run_subj_verb_gender_genitive
+from paradigm.subj_verb_gender_numerals.generator import run_subj_verb_gender_numerals
+from paradigm.subj_verb_gender_obj_relative_clause_1.generator import run_subj_verb_gender_obj_relative_clause_1
+from paradigm.subj_verb_gender_obj_relative_clause_2.generator import run_subj_verb_gender_obj_relative_clause_2
+from paradigm.subj_verb_gender_pp_attractor.generator import run_subj_verb_gender_pp_attractor
+from paradigm.subj_verb_gender_simple.generator import run_subj_verb_gender_simple
+from paradigm.subj_verb_subj_gender_relative_clause.generator import run_subj_verb_subj_gender_relative_clause
+from paradigm.subj_verb_gender_infinitival.generator import run_subj_verb_gender_infinitival
+from paradigm.subj_verb_number_clause.generator import run_subj_verb_number_clause
+from paradigm.subj_verb_number_infinitival.generator import run_subj_verb_number_infinitival
+from paradigm.subj_verb_number_genitive.generator import run_subj_verb_number_genitive
+from paradigm.subj_verb_number_numerals.generator import run_subj_verb_number_numerals
+from paradigm.subj_verb_number_pp_attractor.generator import run_subj_verb_number_pp_attractor
+from paradigm.subj_verb_number_relational_noun.generator import run_subj_verb_number_relational_noun
+from paradigm.subj_verb_number_simple.generator import run_subj_verb_number_simple
+from paradigm.subj_verb_numerals_1.generator import run_subj_verb_numerals_1
+from paradigm.subj_verb_numerals_2.generator import run_subj_verb_numerals_2
+from paradigm.subj_verb_person.generator import run_subj_verb_person
+from paradigm.subj_verb_person_genitive.generator import run_subj_verb_person_genitive
+from paradigm.subj_verb_person_numerals.generator import run_subj_verb_person_numerals
+from paradigm.subj_verb_plural_masc.generator import run_subj_verb_plural_masc
+from paradigm.subj_verb_plural_non_masc.generator import run_subj_verb_plural_non_masc
 
 QueryRunner = Callable[
     [list[conllu.TokenList], MorphDictionary, Optional[int]],
     pd.DataFrame,
 ]
 
-TASK_RUNNERS: dict[str, QueryRunner] = {
+PARADIGM_RUNNERS: dict[str, QueryRunner] = {
     "subj_pred_person_simple": run_subj_pred_person_simple,
     "subj_pred_person_csubj": run_subj_pred_person_csubj,
     "subj_pred_gender_simple": run_subj_pred_gender_simple,
@@ -126,10 +126,10 @@ def parse_args() -> argparse.Namespace:
         help="Directory for output CSV files.",
     )
     parser.add_argument(
-        "--task",
+        "--paradigm",
         default="all",
-        choices=["all", *TASK_RUNNERS.keys()],
-        help="Which task(s) to run.",
+        choices=["all", *PARADIGM_RUNNERS.keys()],
+        help="Which paradigms(s) to run.",
     )
     parser.add_argument(
         "--limit",
@@ -169,18 +169,18 @@ def main() -> None:
         sentences.extend(file_sentences)
     print(f"Loaded {len(sentences)} total sentences from {len(conllu_paths)} file(s)")
 
-    if args.task == "all":
-        task_names = TASK_RUNNERS.keys()
+    if args.paradigm == "all":
+        paradigm_names = PARADIGM_RUNNERS.keys()
     else:
-        if args.task not in TASK_RUNNERS:
-            available = ", ".join(["all", *TASK_RUNNERS.keys()])
-            raise ValueError(f"Unknown task: {args.task}. Available tasks: {available}")
-        task_names = [args.task]
+        if args.paradigm not in PARADIGM_RUNNERS:
+            available = ", ".join(["all", *PARADIGM_RUNNERS.keys()])
+            raise ValueError(f"Unknown: {args.paradigm}. Available: {available}")
+        paradigm_names = [args.paradigm]
 
-    for task_name in task_names:
-        runner = TASK_RUNNERS[task_name]
+    for paradigm in paradigm_names:
+        runner = PARADIGM_RUNNERS[paradigm]
         df = runner(sentences, morph_dict, args.limit)
-        write_csv(df, args.output_dir / f"{task_name}.csv")
+        write_csv(df, args.output_dir / f"{paradigm}.csv")
 
 
 if __name__ == "__main__":
