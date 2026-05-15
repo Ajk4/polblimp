@@ -66,7 +66,7 @@ TASK_RUNNERS: dict[str, QueryRunner] = {
     "subj_pred_person_genitive": run_subj_pred_person_genitive,
     "subj_pred_person_numerals": run_subj_pred_person_numerals,
     "subj_verb_person": run_subj_verb_person,
-    "subj_verb_person_genitive": run_subj_verb_person_genitive,
+    # "subj_verb_person_genitive": run_subj_verb_person_genitive,
     "subj_verb_person_numerals": run_subj_verb_person_numerals,
     "subj_verb_number_infinitival": run_subj_verb_number_infinitival,
     "subj_verb_number_genitive": run_subj_verb_number_genitive,
