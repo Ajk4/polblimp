@@ -11,6 +11,7 @@ import conllu
 
 from paradigm.common import load_sentences
 from paradigm.morph_dictionary import MorphDictionary
+from paradigm.subj_adjectival_case.generator import run_subj_adjectival_case
 from paradigm.subj_adjectival_gender.generator import run_subj_adjectival_gender
 from paradigm.subj_adjectival_number.generator import run_subj_adjectival_number
 from paradigm.subj_pred_gender_genitive.generator import run_subj_pred_gender_genitive
@@ -60,6 +61,7 @@ PARADIGM_RUNNERS: dict[str, QueryRunner] = {
     "subj_pred_gender_simple": run_subj_pred_gender_simple,
     "subj_pred_gender_csubj": run_subj_pred_gender_csubj,
     "subj_pred_gender_numerals": run_subj_pred_gender_numerals,
+    "subj_adjectival_case": run_subj_adjectival_case,
     "subj_adjectival_gender": run_subj_adjectival_gender,
     "subj_adjectival_number": run_subj_adjectival_number,
     "subj_pred_number_simple": run_subj_pred_number_simple,
