@@ -24,6 +24,7 @@ def run_filter_transform(
 ) -> pd.DataFrame:
     rows: list[tuple[str, int, str, str]] = []
     matched_sentences = 0
+    seed_namespace = progress_desc or "processing"
 
     iterator = tqdm(
         enumerate(sentences),
@@ -41,6 +42,7 @@ def run_filter_transform(
             continue
         matched_sentences += 1
 
+        random.seed(f"{seed_namespace}:{metadata.get('text') or sentence_text(sentence)}")
         if not transform_inplace_fn(sentence_copy):
             continue
 
