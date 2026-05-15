@@ -12,6 +12,7 @@ import conllu
 from queries.common import load_sentences
 from queries.morph_dictionary import MorphDictionary
 from queries.subj_pred_gender_genitive import run_subj_pred_gender_genitive
+from queries.subj_pred_gender_numerals import run_subj_pred_gender_numerals
 from queries.subj_pred_gender_csubj import run_subj_pred_gender_csubj
 from queries.subj_pred_gender_simple import run_subj_pred_gender_simple
 from queries.subj_pred_number_csubj import run_subj_pred_number_csubj
@@ -56,6 +57,7 @@ TASK_RUNNERS: dict[str, QueryRunner] = {
     "subj_pred_person_csubj": run_subj_pred_person_csubj,
     "subj_pred_gender_simple": run_subj_pred_gender_simple,
     "subj_pred_gender_csubj": run_subj_pred_gender_csubj,
+    "subj_pred_gender_numerals": run_subj_pred_gender_numerals,
     "subj_pred_number_simple": run_subj_pred_number_simple,
     "subj_pred_number_csubj": run_subj_pred_number_csubj,
     "subj_pred_number_numerals": run_subj_pred_number_numerals,

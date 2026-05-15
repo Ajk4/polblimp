@@ -15,19 +15,31 @@ def is_subtag(tag: str, supertag: str) -> bool:
     supertag_parts = supertag.split(":")
 
     for tag_part, supertag_part in zip_longest(tag_parts, supertag_parts):
-        if supertag_part is None:
-            # so praet:pl:m3:imperf:nagl matches praet:pl:m3:imperf
-            return tag_part == "nagl"
-        supertag_part_options = supertag_part.split(".")
-
-        if "_" in supertag_part_options:
-            return True
-
         if tag_part is None:
-            # so praet:sg:m1:imperf matches praet:sg:m1.m2.m3:imperf:nagl
-            return "nagl" in supertag_part_options
-        if tag_part not in supertag_part_options:
-            return False
+            tag_part_options = [None]
+        else:
+            tag_part_options = tag_part.split(".")
+
+        for tag_part_option in tag_part_options:
+            if supertag_part is None:
+                # so praet:pl:m3:imperf:nagl matches praet:pl:m3:imperf
+                if tag_part_option == "nagl":
+                    continue
+                else:
+                    return False
+            supertag_part_options = supertag_part.split(".")
+
+            if "_" in supertag_part_options:
+                continue
+
+            if tag_part_option is None:
+                # so praet:sg:m1:imperf matches praet:sg:m1.m2.m3:imperf:nagl
+                if "nagl" in supertag_part_options:
+                    continue
+                else:
+                    return False
+            if tag_part_option not in supertag_part_options:
+                return False
     return True
 
 
