@@ -12,7 +12,7 @@ from phenomena.morph_dictionary import MorphDictionary
 
 
 def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: MorphDictionary,
-                                limit: Optional[int], ) -> pd.DataFrame:
+                                limit: Optional[int]) -> pd.DataFrame:
     variant_1 = run_filter_transform(
         sentences,
         match_subj_verb_person__1,
@@ -65,6 +65,7 @@ def append_aux_clitic(sentence: conllu.TokenList) -> bool:
         root["form"] = root_form + "eś"
     return True
 
+
 def remove_aux_clitic(sentence: conllu.TokenList) -> bool:
     root = sentence.to_tree().token
     root_id = root["id"]
@@ -94,9 +95,8 @@ def remove_aux_clitic(sentence: conllu.TokenList) -> bool:
 
     return True
 
-def match_subj_verb_person__1(
-        sentence: conllu.TokenList,
-) -> bool:
+
+def match_subj_verb_person__1(sentence: conllu.TokenList) -> bool:
     root = sentence.to_tree()
 
     if not (root.token["upos"] == "VERB"):
@@ -123,9 +123,7 @@ def match_subj_verb_person__1(
     return False
 
 
-def match_subj_verb_person__2(
-        sentence: conllu.TokenList,
-) -> bool:
+def match_subj_verb_person__2(sentence: conllu.TokenList) -> bool:
     root = sentence.to_tree()
 
     if not (root.token["upos"] == "VERB"):
@@ -192,7 +190,6 @@ def match_subj_verb_person__3(sentence: conllu.TokenList) -> bool:
         return True
 
     return False
-
 
 
 def extract_subj_verb_person__4(sentence: conllu.TokenList) -> dict[str, Token] | None:
