@@ -19,7 +19,7 @@ a-node $root :=  [
   deprel = 'root',
   member iset [number = 'sing'],
 
-  child a-node $subj :=[
+  child a-node $nsubj :=[
     deprel = 'nsubj',
     member iset [ case = 'gen' ],
     # exclude numerals and quantifiers

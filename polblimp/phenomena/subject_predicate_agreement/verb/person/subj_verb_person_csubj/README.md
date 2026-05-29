@@ -1,23 +1,24 @@
-# subj_verb_number_csubj
+# subj_verb_person_csubj
 With clausal and infinitival subjects (csubj) the default for the verb is 3rd person singular neuter.
 
 This paradigm covers both:
 
-- verbal predicates, where number is expressed directly on the finite verb,
-- non-verbal predicates with a copular construction, where number is expressed on the copula.
+- verbal predicates, where person is expressed directly on the finite verb,
+- non-verbal predicates with a copular construction, where person is expressed on the copula.
 
 To create the ungrammatical sentence:
-- change the number of the main verb (\$root) or
-- change the number of the copular verb (\$cop).
+- change the person of the main verb (\$root) or
+- change the person of the copular verb (\$cop).
 
 ## Examples
 
 ```
  I okazało się, że doniósł.
-*I okazały się, że doniósł.
+*I okazałeś się, że doniósł.
 
  Chociaż faktem jest, że Hubal okropnie przeżył te zdarzenia.
-*Chociaż faktem są, że Hubal okropnie przeżył te zdarzenia.
+*Chociaż faktem jestem, że Hubal okropnie przeżył te zdarzenia.
+
 ```
 
 ## Queries
@@ -54,7 +55,7 @@ a-node $root := [
 ]
 ```
 ## Notes
-Queries are identical to those used for subj_verb_person_csubj.
+Queries are identical to those used for subj_verb_number_csubj.
 
 UD 2.18 results:  
 1:  
