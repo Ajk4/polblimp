@@ -11,44 +11,8 @@ import conllu
 
 from phenomena.common import load_sentences
 from phenomena.morph_dictionary import MorphDictionary
-from phenomena.subject_predicate_agreement.adjective.adjective_only.subj_adjectival_case.generator import run_subj_adjectival_case
-from phenomena.subject_predicate_agreement.adjective.adjective_only.subj_adjectival_gender.generator import run_subj_adjectival_gender
-from phenomena.subject_predicate_agreement.adjective.adjective_only.subj_adjectival_number.generator import run_subj_adjectival_number
-from phenomena.subject_predicate_agreement.unmatched.subj_pred_gender_genitive.generator import run_subj_pred_gender_genitive
-from phenomena.subject_predicate_agreement.unmatched.subj_pred_gender_numerals.generator import run_subj_pred_gender_numerals
-from phenomena.subject_predicate_agreement.unmatched.subj_pred_gender_csubj.generator import run_subj_pred_gender_csubj
-from phenomena.subject_predicate_agreement.unmatched.subj_pred_gender_simple.generator import run_subj_pred_gender_simple
-from phenomena.subject_predicate_agreement.verb.number.subj_pred_number_csubj.generator import run_subj_pred_number_csubj
-from phenomena.subject_predicate_agreement.verb.number.subj_pred_number_genitive.generator import run_subj_pred_number_genitive
-from phenomena.subject_predicate_agreement.verb.number.subj_pred_number_numerals.generator import run_subj_pred_number_numerals
-from phenomena.subject_predicate_agreement.verb.number.subj_pred_number_simple.generator import run_subj_pred_number_simple
-from phenomena.subject_predicate_agreement.unmatched.subj_pred_person_csubj.generator import run_subj_pred_person_csubj
-from phenomena.subject_predicate_agreement.unmatched.subj_pred_person_genitive.generator import run_subj_pred_person_genitive
-from phenomena.subject_predicate_agreement.unmatched.subj_pred_person_numerals.generator import run_subj_pred_person_numerals
-from phenomena.subject_predicate_agreement.unmatched.subj_pred_person_simple.generator import run_subj_pred_person_simple
-from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_clause.generator import run_subj_verb_gender_clause
-from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_genitive.generator import run_subj_verb_gender_genitive
-from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_numerals.generator import run_subj_verb_gender_numerals
-from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_obj_relative_clause_1.generator import run_subj_verb_gender_obj_relative_clause_1
-from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_obj_relative_clause_2.generator import run_subj_verb_gender_obj_relative_clause_2
-from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_pp_attractor.generator import run_subj_verb_gender_pp_attractor
-from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_simple.generator import run_subj_verb_gender_simple
-from phenomena.subject_predicate_agreement.unmatched.subj_verb_subj_gender_relative_clause.generator import run_subj_verb_subj_gender_relative_clause
-from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_infinitival.generator import run_subj_verb_gender_infinitival
-from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_clause.generator import run_subj_verb_number_clause
-from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_infinitival.generator import run_subj_verb_number_infinitival
-from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_genitive.generator import run_subj_verb_number_genitive
-from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_numerals.generator import run_subj_verb_number_numerals
-from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_pp_attractor.generator import run_subj_verb_number_pp_attractor
-from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_relational_noun.generator import run_subj_verb_number_relational_noun
-from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_simple.generator import run_subj_verb_number_simple
-from phenomena.subject_predicate_agreement.unmatched.subj_verb_numerals_1.generator import run_subj_verb_numerals_1
-from phenomena.subject_predicate_agreement.unmatched.subj_verb_numerals_2.generator import run_subj_verb_numerals_2
-from phenomena.subject_predicate_agreement.verb.person.subj_verb_person.generator import run_subj_verb_person
-from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_genitive.generator import run_subj_verb_person_genitive
-from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_numerals.generator import run_subj_verb_person_numerals
-from phenomena.subject_predicate_agreement.unmatched.subj_verb_plural_masc.generator import run_subj_verb_plural_masc
-from phenomena.subject_predicate_agreement.unmatched.subj_verb_plural_non_masc.generator import run_subj_verb_plural_non_masc
+from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_simple.generator import \
+    run_subj_verb_person_simple
 
 QueryRunner = Callable[
     [list[conllu.TokenList], MorphDictionary, Optional[int]],
@@ -56,44 +20,7 @@ QueryRunner = Callable[
 ]
 
 PARADIGM_RUNNERS: dict[str, QueryRunner] = {
-    "subj_pred_person_simple": run_subj_pred_person_simple,
-    "subj_pred_person_csubj": run_subj_pred_person_csubj,
-    "subj_pred_gender_simple": run_subj_pred_gender_simple,
-    "subj_pred_gender_csubj": run_subj_pred_gender_csubj,
-    "subj_pred_gender_numerals": run_subj_pred_gender_numerals,
-    "subj_adjectival_case": run_subj_adjectival_case,
-    "subj_adjectival_gender": run_subj_adjectival_gender,
-    "subj_adjectival_number": run_subj_adjectival_number,
-    "subj_pred_number_simple": run_subj_pred_number_simple,
-    "subj_pred_number_csubj": run_subj_pred_number_csubj,
-    "subj_pred_number_numerals": run_subj_pred_number_numerals,
-    "subj_pred_person_genitive": run_subj_pred_person_genitive,
-    "subj_pred_person_numerals": run_subj_pred_person_numerals,
-    "subj_verb_person": run_subj_verb_person,
-    # "subj_verb_person_genitive": run_subj_verb_person_genitive,
-    "subj_verb_person_numerals": run_subj_verb_person_numerals,
-    "subj_verb_number_infinitival": run_subj_verb_number_infinitival,
-    "subj_verb_number_genitive": run_subj_verb_number_genitive,
-    "subj_pred_number_genitive": run_subj_pred_number_genitive,
-    "subj_pred_gender_genitive": run_subj_pred_gender_genitive,
-    "subj_verb_number_numerals": run_subj_verb_number_numerals,
-    "subj_verb_number_relational_noun": run_subj_verb_number_relational_noun,
-    "subj_verb_numerals_1": run_subj_verb_numerals_1,
-    "subj_verb_numerals_2": run_subj_verb_numerals_2,
-    "subj_verb_gender_simple": run_subj_verb_gender_simple,
-    "subj_verb_gender_genitive": run_subj_verb_gender_genitive,
-    "subj_verb_gender_numerals": run_subj_verb_gender_numerals,
-    "subj_verb_plural_non_masc": run_subj_verb_plural_non_masc,
-    "subj_verb_plural_masc": run_subj_verb_plural_masc,
-    "subj_verb_gender_clause": run_subj_verb_gender_clause,
-    "subj_verb_number_simple": run_subj_verb_number_simple,
-    "subj_verb_number_clause": run_subj_verb_number_clause,
-    "subj_verb_gender_infinitival": run_subj_verb_gender_infinitival,
-    "subj_verb_number_pp_attractor": run_subj_verb_number_pp_attractor,
-    "subj_verb_gender_pp_attractor": run_subj_verb_gender_pp_attractor,
-    "subj_verb_subj_gender_relative_clause": run_subj_verb_subj_gender_relative_clause,
-    "subj_verb_gender_obj_relative_clause_1": run_subj_verb_gender_obj_relative_clause_1,
-    "subj_verb_gender_obj_relative_clause_2": run_subj_verb_gender_obj_relative_clause_2,
+    "subj_verb_person_simple": run_subj_verb_person_simple,
 }
 
 

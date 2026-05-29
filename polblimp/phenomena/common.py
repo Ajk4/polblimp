@@ -145,6 +145,12 @@ def change_gender(root: Token, morph_dict: MorphDictionary) -> bool:
 
     return change_morph(root, morph_dict, target_xpos)
 
+def match_children(tree: conllu.TokenTree, token_predicate):
+    matches = []
+    for child in tree.children:
+        if token_predicate(child.token):
+            matches.append(child.token)
+    return matches
 
 def match_descendants(tree: conllu.TokenTree, token_predicate):
     matches = []

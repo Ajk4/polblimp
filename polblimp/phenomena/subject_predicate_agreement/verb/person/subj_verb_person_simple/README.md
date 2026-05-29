@@ -41,7 +41,7 @@ a-node $root := [
     (($root.iset/tense = 'past' or $root.lemma = 'powinien') and child a-node $auxclitic := [deprel = 'aux:clitic'] and $nsubj.iset/person in{'1', '2'})
     or
     # iii) In past tense (or lemma 'powinien'), 3rd person, a suffix must be added to $root
-    (($root.iset/tense = 'past' or $root.lemma = 'powinien') and $nsubj.iset/person !in{'1', '2'} and 0x child [deprel = 'aux'])
+    (($root.iset/tense = 'past' or $root.lemma = 'powinien') and $nsubj.iset/person !in {'1', '2'} and 0x child [deprel = 'aux'])
     or
     # iv) In future compound, change the person of $aux
     (child a-node $aux := [deprel = 'aux'] and $root.lemma != 'to')
