@@ -10,7 +10,6 @@ To create the ungrammatical sentence change the person of the main verb (\$root)
 *Ale króla kruków już nie byłam.
 ```
 
-
 ## Query
 
 ```
@@ -23,16 +22,16 @@ a-node $root :=  [
     member iset [ case = 'gen' ],
     
     # exclude numerals and quantifiers
-    0x child [tag = 'NUM' or (lemma in {'kilka', 'kilkaset', 'kilkanaście', 'kilkadziesiąt', 'sporo', 'mnóstwo', 'dużo', 'wiele', 'więcej', 'najwięcej', 'większość', 'mało', 'mniej', 'najmniej', 'trochę', 'parę', 'niewiele', 'ile', 'tyle'} and deprel = 'det')
+    0x child [tag = 'NUM' or (lemma in {'kilka', 'kilkaset', 'kilkanaście', 'kilkadziesiąt', 'sporo', 'mnóstwo', 'dużo', 'wiele', 'więcej', 'najwięcej', 'większość', 'mało', 'mniej', 'najmniej', 'trochę', 'parę', 'niewiele', 'ile', 'tyle'} and deprel ~ 'det')
     ]
   ],
 
 # For generating pairs
   ( 
-   # i) In present and future tense, change the person of $root
-    ($root.iset/tense in{'pres', 'fut'} and $root.iset/person in{'1', '2', '3'})
+   # i. In present and future tense, change the person of $root
+    ($root.iset/tense in{'pres', 'fut'} and $root.iset/person ='3')
     or
-   # ii) In past tense (or lemma 'powinien'), 3rd person, a suffix must be added to $root
+   # ii. In past tense (or lemma 'powinien'), a suffix must be added to $root
     ($root.iset/tense = 'past' or $root.lemma = 'powinien')
   )
 ]
@@ -42,6 +41,6 @@ a-node $root :=  [
 UD 2.18 results:  
 
  LFG: 78 + 15,  
- PDB: 243 + 197
+ PDB: 103 + 111
 
 (deprel = root + deprel != root)  

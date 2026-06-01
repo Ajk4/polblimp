@@ -128,7 +128,7 @@ a-node $root := [
   
   child a-node $cop :=[ 
     tag = 'AUX',
-    lemma !in {'to', 'by'} # avoid searching sentences with only 'to' as copula and double searching sentences with e.g. ‘byłby’
+    lemma !in {'to', 'by'} # exclude bare copular 'to' and avoid duplicate matches with forms such as 'byłby'
     ],
   
   child a-node $nsubj := [

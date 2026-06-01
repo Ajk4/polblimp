@@ -6,9 +6,9 @@ This paradigm covers both:
 - verbal predicates, where gender is expressed directly on the finite verb,
 - non-verbal predicates with a copular construction, where gender is expressed on the copula.
 
-To create the ungrammatical sentence:
-- change the gender of the main verb (\$root) or
-- change the gender of the copular verb (\$cop).
+To create the ungrammatical sentence change the gender of:
+- the main verb (\$root) or
+- the copular verb (\$cop).
 
 ## Examples
 
@@ -63,6 +63,7 @@ a-node $root := [
 ```
 ## Notes
 UD 2.18 results:  
+
 1:  
  LFG: 40 + 8,  
  PDB: 32 + 17

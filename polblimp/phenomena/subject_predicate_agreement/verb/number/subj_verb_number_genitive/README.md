@@ -23,7 +23,7 @@ a-node $root :=  [
     deprel = 'nsubj',
     member iset [ case = 'gen' ],
     # exclude numerals and quantifiers
-    0x child [tag = 'NUM' or (lemma in {'kilka', 'kilkaset', 'kilkanaście', 'kilkadziesiąt', 'sporo', 'mnóstwo', 'dużo', 'wiele', 'więcej', 'najwięcej', 'większość', 'mało', 'mniej', 'najmniej', 'trochę', 'parę', 'niewiele', 'ile', 'tyle'} and deprel = 'det')
+    0x child [tag = 'NUM' or (lemma in {'kilka', 'kilkaset', 'kilkanaście', 'kilkadziesiąt', 'sporo', 'mnóstwo', 'dużo', 'wiele', 'więcej', 'najwięcej', 'większość', 'mało', 'mniej', 'najmniej', 'trochę', 'parę', 'niewiele', 'ile', 'tyle'} and deprel ~ 'det')
     ]
   ],
 ]
@@ -33,7 +33,7 @@ a-node $root :=  [
 UD 2.18 results:  
 
  LFG: 78 + 15,  
- PDB: 241 + 197
+ PDB: 103 + 111
 
  
 (deprel = root + deprel != root)  
