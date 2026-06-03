@@ -30,10 +30,14 @@ def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: M
         progress_desc="subj_verb_person__1b",
     )
 
+    def transform_1c(sentence) -> bool:
+        matches = match_subj_verb_person_1c(sentence)
+        return change_person(matches['root'], morph_dict)
+
     variant_1c = run_filter_transform(
         sentences,
-        match_subj_verb_person_1c,
-        append_aux_clitic,
+        lambda s: match_subj_verb_person_1c(s) is not None,
+        transform_1c,
         limit=limit,
         progress_desc="subj_verb_person__1c",
     )
@@ -50,23 +54,43 @@ def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: M
         progress_desc="subj_verb_person__1d",
     )
 
+    # Copular auxiliary verb
+    def transform_2a(sentence) -> bool:
+        matches = match_subj_verb_person_2a(sentence)
+        return change_person(matches['cop'], morph_dict)
+    variant_2a = run_filter_transform(
+        sentences,
+        lambda s: match_subj_verb_person_2a(s) is not None,
+        transform_2a,
+        limit=limit,
+        progress_desc="subj_verb_person__2a",
     )
 
-    variants = [variant_1a, variant_1b, variant_1c, variant_1d]
+    variant_2b = run_filter_transform(
+        sentences,
+        lambda s: match_subj_verb_person_2b(s) is not None,
+        remove_aux_clitic,
+        limit=limit,
+        progress_desc="subj_verb_person__2a",
+    )
+
+    def transform_2c(sentence) -> bool:
+        matches = match_subj_verb_person_2c(sentence)
+        return change_person(matches['cop'], morph_dict)
+
+    variant_2c = run_filter_transform(
+        sentences,
+        lambda s: match_subj_verb_person_2c(s) is not None,
+        transform_2c,
+        limit=limit,
+        progress_desc="subj_verb_person__2a",
+    )
+
+    variants = [variant_1a, variant_1b, variant_1c, variant_1d, variant_2a, variant_2b, variant_2c]
     df = pd.concat(variants)
     df.attrs["matched_sentences"] = sum(len(df) for df in variants)
 
     return df
-
-
-def append_aux_clitic(sentence: conllu.TokenList) -> bool:
-    root = sentence.to_tree().token
-    root_form = root["form"]
-    if random.randint(0, 1) == 0:
-        root["form"] = root_form + "em"
-    else:
-        root["form"] = root_form + "eś"
-    return True
 
 
 def remove_aux_clitic(sentence: conllu.TokenList) -> bool:
@@ -160,19 +184,19 @@ def match_subj_verb_person_1b(sentence: conllu.TokenList) -> bool:
     return False
 
 
-def match_subj_verb_person_1c(sentence: conllu.TokenList) -> bool:
+def match_subj_verb_person_1c(sentence: conllu.TokenList) -> dict[str, Token] | None:
     root = sentence.to_tree()
 
     if not (root.token["upos"] == "VERB"):
-        return False
+        return None
 
     if not (root.token["deprel"] == "root"):
-        return False
+        return None
 
     root_feats = root.token["feats"]
 
     if not (root_feats.get("Tense", "") == "Past" or root.token['lemma'] == 'powinien'):
-        return False
+        return None
 
     for nsubj in root.children:
         nsubj_token = nsubj.token
@@ -190,9 +214,12 @@ def match_subj_verb_person_1c(sentence: conllu.TokenList) -> bool:
         if not (len(match_children(root, lambda ch: ch["deprel"] == "aux")) == 0):
             continue
 
-        return True
+        return {
+            "root": root.token,
+            "nsubj": nsubj_token,
+        }
 
-    return False
+    return None
 
 
 def extract_subj_verb_person_1d(sentence: conllu.TokenList) -> dict[str, Token] | None:
@@ -223,5 +250,127 @@ def extract_subj_verb_person_1d(sentence: conllu.TokenList) -> dict[str, Token] 
                     "root": root.token,
                     "aux": aux.token,
                 }
+
+    return None
+
+
+def match_subj_verb_person_2a(sentence: conllu.TokenList) -> dict[str, Token] | None:
+    root = sentence.to_tree()
+    root_token = root.token
+
+    if root_token["deprel"] != "root":
+        return None
+    if root_token["upos"] == "VERB" and root_token.get("lemma") != "to":
+        return None
+
+    for nsubj in root.children:
+        nsubj_token = nsubj.token
+        nsubj_feats = nsubj_token["feats"] or {}
+        if nsubj_token["deprel"] not in {"nsubj", "nsubj:pass"}:
+            continue
+        if nsubj_feats.get("Case") == "Gen":
+            continue
+
+        for cop in root.children:
+            cop_token = cop.token
+            cop_feats = cop_token["feats"] or {}
+            if cop_token["upos"] != "AUX":
+                continue
+            if cop_token.get("lemma") in {"to", "by"}:
+                continue
+            if cop_feats.get("Tense") in {"Pres", "Fut"}:
+                return {
+                    "root": root_token,
+                    "nsubj": nsubj_token,
+                    "cop": cop_token,
+                }
+
+    return None
+
+def match_subj_verb_person_2b(sentence: conllu.TokenList) -> dict[str, Token] | None:
+    root = sentence.to_tree()
+    root_token = root.token
+
+    if root_token["deprel"] != "root":
+        return None
+    if root_token["upos"] == "VERB" and root_token.get("lemma") != "to":
+        return None
+
+    for nsubj in root.children:
+        nsubj_token = nsubj.token
+        nsubj_feats = nsubj_token["feats"] or {}
+        if nsubj_token["deprel"] not in {"nsubj", "nsubj:pass"}:
+            continue
+        if nsubj_feats.get("Case") == "Gen":
+            continue
+        if nsubj_feats.get("Person") not in {"1", "2"}:
+            continue
+
+        cop = None
+        for child in root.children:
+            child_token = child.token
+            child_feats = child_token["feats"] or {}
+            if child_token["upos"] != "AUX":
+                continue
+            if child_token.get("lemma") in {"to", "by"}:
+                continue
+            if child_feats.get("Tense") != "Past":
+                continue
+            cop = child
+            break
+
+        if cop is None:
+            continue
+
+        for child in root.children:
+            if child.token["deprel"] == "aux:clitic":
+                return {
+                    "root": root_token,
+                    "nsubj": nsubj_token,
+                    "cop": cop.token,
+                    "auxclitic": child.token,
+                }
+
+    return None
+
+def match_subj_verb_person_2c(sentence: conllu.TokenList) -> dict[str, Token] | None:
+    root = sentence.to_tree()
+    root_token = root.token
+
+    if root_token["deprel"] != "root":
+        return None
+    if root_token["upos"] == "VERB" and root_token.get("lemma") != "to":
+        return None
+
+    cop = None
+    for child in root.children:
+        child_token = child.token
+        child_feats = child_token["feats"] or {}
+        if child_token["upos"] != "AUX":
+            continue
+        if child_token.get("lemma") in {"to", "by"}:
+            continue
+        if child_feats.get("Tense") != "Past":
+            continue
+        cop = child
+        break
+
+    if cop is None:
+        return None
+
+    for nsubj in root.children:
+        nsubj_token = nsubj.token
+        nsubj_feats = nsubj_token["feats"] or {}
+        if nsubj_token["deprel"] not in {"nsubj", "nsubj:pass"}:
+            continue
+        if nsubj_feats.get("Case") == "Gen":
+            continue
+        if nsubj_feats.get("Person") in {"1", "2"}:
+            continue
+        return {
+            "root": root_token,
+            "nsubj": nsubj_token,
+            "cop": cop.token,
+        }
 
     return None

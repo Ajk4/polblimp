@@ -51,8 +51,7 @@ a-node $root := [
 2. Copular auxiliary verb
 ```
 a-node $root := [
-  tag != 'VERB' or 
-  lemma = 'to',
+  tag != 'VERB' or lemma = 'to',
   deprel = 'root',
 
   child a-node $nsubj := [
