@@ -21,18 +21,28 @@ def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: M
         progress_desc="subj_verb_person__1a",
     )
 
-    # TODO simplify remove_aux_clitic
+    def transform_1b(sentence) -> bool:
+        matches = match_subj_verb_person_1b(sentence)
+        return remove_aux_clitic(sentence, matches["auxclitic"])
+
     variant_1b = run_filter_transform(
         sentences,
-        match_subj_verb_person_1b,
-        remove_aux_clitic,
+        lambda s: match_subj_verb_person_1b(s) is not None,
+        transform_1b,
         limit=limit,
         progress_desc="subj_verb_person__1b",
     )
 
     def transform_1c(sentence) -> bool:
         matches = match_subj_verb_person_1c(sentence)
-        return change_person(matches['root'], morph_dict)
+        if matches["root"]["lemma"] == "powinien":
+            root_form = matches["root"]["form"]
+            if random.randint(0, 1) == 0:
+                matches["root"]["form"] = root_form + "em"
+            else:
+                matches["root"]["form"] = root_form + "eś"
+            return True
+        return change_person(matches["root"], morph_dict)
 
     variant_1c = run_filter_transform(
         sentences,
@@ -66,10 +76,14 @@ def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: M
         progress_desc="subj_verb_person__2a",
     )
 
+    def transform_2b(sentence) -> bool:
+        matches = match_subj_verb_person_2b(sentence)
+        return remove_aux_clitic(sentence, matches["auxclitic"])
+
     variant_2b = run_filter_transform(
         sentences,
         lambda s: match_subj_verb_person_2b(s) is not None,
-        remove_aux_clitic,
+        transform_2b,
         limit=limit,
         progress_desc="subj_verb_person__2a",
     )
@@ -92,33 +106,35 @@ def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: M
 
     return df
 
+def remove_aux_clitic(sentence: conllu.TokenList, auxclitic: Token) -> bool:
+    clitic_index = None
+    for index, token in enumerate(sentence):
+        if token is auxclitic:
+            clitic_index = index
+            break
 
-def remove_aux_clitic(sentence: conllu.TokenList) -> bool:
-    root = sentence.to_tree().token
-    root_id = root["id"]
-    clitic_indexes = [
-        index
-        for index, token in enumerate(sentence)
-        if token.get("head") == root_id and token.get("deprel") == "aux:clitic"
-    ]
-    if not clitic_indexes:
+    if clitic_index is None:
         return False
 
-    clitic_misc = sentence[clitic_indexes[-1]].get("misc") or {}
-    root_misc = {
-        key: value
-        for key, value in (root.get("misc") or {}).items()
-        if key != "SpaceAfter"
-    }
-    root_misc.update({
-        key: value
-        for key, value in clitic_misc.items()
-        if key == "SpaceAfter"
-    })
-    root["misc"] = root_misc or None
+    clitic_misc = auxclitic.get("misc") or {}
 
-    for index in reversed(clitic_indexes):
-        del sentence[index]
+    previous_token = None
+    for token in reversed(sentence[:clitic_index]):
+        if isinstance(token["id"], int):
+            previous_token = token
+            break
+
+    if previous_token is not None:
+        previous_misc = {
+            key: value
+            for key, value in (previous_token.get("misc") or {}).items()
+            if key != "SpaceAfter"
+        }
+        if clitic_misc.get("SpaceAfter") == "No":
+            previous_misc["SpaceAfter"] = "No"
+        previous_token["misc"] = previous_misc or None
+
+    del sentence[clitic_index]
 
     return True
 
@@ -150,14 +166,14 @@ def match_subj_verb_person_1a(sentence: conllu.TokenList) -> bool:
     return False
 
 
-def match_subj_verb_person_1b(sentence: conllu.TokenList) -> bool:
+def match_subj_verb_person_1b(sentence: conllu.TokenList) -> dict[str, Token] | None:
     root = sentence.to_tree()
 
     if not (root.token["upos"] == "VERB"):
-        return False
+        return None
 
     if not (root.token["deprel"] == "root"):
-        return False
+        return None
 
     root_feats = root.token["feats"]
 
@@ -179,9 +195,13 @@ def match_subj_verb_person_1b(sentence: conllu.TokenList) -> bool:
 
         for auxclitic in root.children:
             if auxclitic.token["deprel"] == "aux:clitic":
-                return True
+                return {
+                    "root": root.token,
+                    "nsubj": nsubj_token,
+                    "auxclitic": auxclitic.token,
+                }
 
-    return False
+    return None
 
 
 def match_subj_verb_person_1c(sentence: conllu.TokenList) -> dict[str, Token] | None:

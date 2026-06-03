@@ -96,7 +96,7 @@ def change_person(token: conllu.Token, morph_dict: MorphDictionary) -> bool:
             target_xpos = source_xpos.replace(":ter:", ":pri:")
         else:
             target_xpos = source_xpos.replace(":ter:", ":sec:")
-    elif token["lemma"] in "być" and source_xpos.startswith("praet"):
+    elif token["lemma"] == "być" and source_xpos.startswith("praet"):
         person = random.choice(["pri", "sec", "ter"])
         number = "sg" if ":sg:" in source_xpos else "pl"
         tense = "imperf" if "imperf" in source_xpos else "perf"
