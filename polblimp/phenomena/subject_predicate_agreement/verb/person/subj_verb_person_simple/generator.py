@@ -10,48 +10,51 @@ from conllu import Token
 from phenomena.common import run_filter_transform, change_person_root, match_children, change_person
 from phenomena.morph_dictionary import MorphDictionary
 
-
 def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: MorphDictionary,
                                 limit: Optional[int]) -> pd.DataFrame:
-    variant_1 = run_filter_transform(
+    # Main verb
+    variant_1a = run_filter_transform(
         sentences,
-        match_subj_verb_person__1,
+        match_subj_verb_person_1a,
         lambda sentence: change_person_root(sentence, morph_dict),
         limit=limit,
-        progress_desc="subj_verb_person__1",
+        progress_desc="subj_verb_person__1a",
     )
 
     # TODO simplify remove_aux_clitic
-    variant_2 = run_filter_transform(
+    variant_1b = run_filter_transform(
         sentences,
-        match_subj_verb_person__2,
+        match_subj_verb_person_1b,
         remove_aux_clitic,
         limit=limit,
-        progress_desc="subj_verb_person__2",
+        progress_desc="subj_verb_person__1b",
     )
 
-    variant_3 = run_filter_transform(
+    variant_1c = run_filter_transform(
         sentences,
-        match_subj_verb_person__3,
+        match_subj_verb_person_1c,
         append_aux_clitic,
         limit=limit,
-        progress_desc="subj_verb_person__3",
+        progress_desc="subj_verb_person__1c",
     )
 
-    def variant_4_transform(sentence) -> bool:
-        matches = extract_subj_verb_person__4(sentence)
+    def transform_1d(sentence) -> bool:
+        matches = extract_subj_verb_person_1d(sentence)
         return change_person(matches['aux'], morph_dict)
 
-    variant_4 = run_filter_transform(
+    variant_1d = run_filter_transform(
         sentences,
-        lambda s: extract_subj_verb_person__4(s) is not None,
-        variant_4_transform,
+        lambda s: extract_subj_verb_person_1d(s) is not None,
+        transform_1d,
         limit=limit,
-        progress_desc="subj_verb_person__4",
+        progress_desc="subj_verb_person__1d",
     )
 
-    df = pd.concat([variant_1, variant_2, variant_3, variant_4])
-    df.attrs["matched_sentences"] = len(variant_1) + len(variant_2) + len(variant_3) + len(variant_4)
+    )
+
+    variants = [variant_1a, variant_1b, variant_1c, variant_1d]
+    df = pd.concat(variants)
+    df.attrs["matched_sentences"] = sum(len(df) for df in variants)
 
     return df
 
@@ -96,7 +99,7 @@ def remove_aux_clitic(sentence: conllu.TokenList) -> bool:
     return True
 
 
-def match_subj_verb_person__1(sentence: conllu.TokenList) -> bool:
+def match_subj_verb_person_1a(sentence: conllu.TokenList) -> bool:
     root = sentence.to_tree()
 
     if not (root.token["upos"] == "VERB"):
@@ -123,7 +126,7 @@ def match_subj_verb_person__1(sentence: conllu.TokenList) -> bool:
     return False
 
 
-def match_subj_verb_person__2(sentence: conllu.TokenList) -> bool:
+def match_subj_verb_person_1b(sentence: conllu.TokenList) -> bool:
     root = sentence.to_tree()
 
     if not (root.token["upos"] == "VERB"):
@@ -157,7 +160,7 @@ def match_subj_verb_person__2(sentence: conllu.TokenList) -> bool:
     return False
 
 
-def match_subj_verb_person__3(sentence: conllu.TokenList) -> bool:
+def match_subj_verb_person_1c(sentence: conllu.TokenList) -> bool:
     root = sentence.to_tree()
 
     if not (root.token["upos"] == "VERB"):
@@ -192,7 +195,7 @@ def match_subj_verb_person__3(sentence: conllu.TokenList) -> bool:
     return False
 
 
-def extract_subj_verb_person__4(sentence: conllu.TokenList) -> dict[str, Token] | None:
+def extract_subj_verb_person_1d(sentence: conllu.TokenList) -> dict[str, Token] | None:
     root = sentence.to_tree()
 
     if not (root.token["upos"] == "VERB"):
