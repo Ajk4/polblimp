@@ -1,13 +1,11 @@
 from __future__ import annotations
-
-import random
 from typing import Optional
 
 import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import run_filter_transform, change_person_root, match_children, change_person
+from phenomena.common import run_filter_transform, change_person_root, match_children, change_person, append_aux_clitic
 from phenomena.morph_dictionary import MorphDictionary
 
 def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: MorphDictionary,
@@ -36,12 +34,7 @@ def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: M
     def transform_1c(sentence) -> bool:
         matches = match_subj_verb_person_1c(sentence)
         if matches["root"]["lemma"] == "powinien":
-            root_form = matches["root"]["form"]
-            if random.randint(0, 1) == 0:
-                matches["root"]["form"] = root_form + "em"
-            else:
-                matches["root"]["form"] = root_form + "eś"
-            return True
+            return append_aux_clitic(matches["root"], morph_dict)
         return change_person(matches["root"], morph_dict)
 
     variant_1c = run_filter_transform(

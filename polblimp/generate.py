@@ -13,6 +13,8 @@ from phenomena.common import load_sentences
 from phenomena.morph_dictionary import MorphDictionary
 from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_simple.generator import \
     run_subj_verb_person_simple
+from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_numerals.generator import \
+    run_subj_verb_person_numerals
 
 QueryRunner = Callable[
     [list[conllu.TokenList], MorphDictionary, Optional[int]],
@@ -20,6 +22,7 @@ QueryRunner = Callable[
 ]
 
 PARADIGM_RUNNERS: dict[str, QueryRunner] = {
+    "subj_verb_person_numerals": run_subj_verb_person_numerals,
     "subj_verb_person_simple": run_subj_verb_person_simple,
 }
 

@@ -79,6 +79,29 @@ def change_person_root(sentence: conllu.TokenList, morph_dict: MorphDictionary) 
     return change_person(root, morph_dict)
 
 
+def append_aux_clitic(token: Token, morph_dict: MorphDictionary) -> bool:
+    token_form = token["form"]
+    source_xpos = token["xpos"]
+    if source_xpos.startswith("praet") and not source_xpos.endswith(":agl"):
+        agl_xpos = source_xpos + ":agl"
+        agl_form = morph_dict.get_form(token["lemma"], agl_xpos)
+        if agl_form is not None:
+            if token_form and token_form[0].isupper():
+                agl_form = agl_form[:1].upper() + agl_form[1:]
+            token_form = agl_form
+
+    if random.randint(0, 1) == 0:
+        suffix = "śmy" if (token.get("feats") or {}).get("Number") == "Plur" else "m"
+    else:
+        suffix = "ście" if (token.get("feats") or {}).get("Number") == "Plur" else "ś"
+
+    if suffix in {"m", "ś"} and not token_form.endswith(("a", "o")):
+        suffix = "e" + suffix
+
+    token["form"] = token_form + suffix
+    return True
+
+
 def change_person(token: conllu.Token, morph_dict: MorphDictionary) -> bool:
     source_xpos = token["xpos"]
     if ":pri:" in source_xpos:
