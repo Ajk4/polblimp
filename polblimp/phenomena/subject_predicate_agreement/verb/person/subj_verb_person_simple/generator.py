@@ -102,7 +102,7 @@ def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: M
 
     variants = [variant_1a, variant_1b, variant_1c, variant_1d, variant_2a, variant_2b, variant_2c]
     df = pd.concat(variants)
-    df.attrs["matched_sentences"] = sum(len(df) for df in variants)
+    df.attrs["matched_sentences"] = sum(df.attrs["matched_sentences"] for df in variants)
 
     return df
 
