@@ -7,6 +7,10 @@ from pathlib import Path
 import conllu
 
 from phenomena.common import load_sentences
+from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_genitive.generator import (
+    match_subj_verb_person_genitive_1a,
+    match_subj_verb_person_genitive_1b,
+)
 from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_numerals.generator import (
     match_subj_verb_person_numerals_1a,
     match_subj_verb_person_numerals_1b,
@@ -27,6 +31,9 @@ class TestDatasetResultCounts(unittest.TestCase):
             match_subj_verb_person_numerals_1c: 3,
             match_subj_verb_person_numerals_2a: 12,
             match_subj_verb_person_numerals_2b: 13 - 1, # IN connlu one matched sentence is duplicated
+            ##
+            match_subj_verb_person_genitive_1a: 54,
+            match_subj_verb_person_genitive_1b: 24,
         },
     }
 
