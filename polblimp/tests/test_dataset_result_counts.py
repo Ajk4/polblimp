@@ -7,6 +7,10 @@ from pathlib import Path
 import conllu
 
 from phenomena.common import load_sentences
+from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_csubj.generator import (
+    match_subj_verb_person_csubj_1a,
+    match_subj_verb_person_csubj_2a,
+)
 from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_genitive.generator import (
     match_subj_verb_person_genitive_1a,
     match_subj_verb_person_genitive_1b,
@@ -26,6 +30,9 @@ MatchFunction = Callable[[conllu.TokenList], object | None]
 class TestDatasetResultCounts(unittest.TestCase):
     EXPECTED_RESULTS: dict[str, dict[MatchFunction, int]] = {
         "lfg": {
+            match_subj_verb_person_csubj_1a: 93,
+            match_subj_verb_person_csubj_2a: 6,
+            ##
             match_subj_verb_person_numerals_1a: 69,
             match_subj_verb_person_numerals_1b: 137,
             match_subj_verb_person_numerals_1c: 3,
