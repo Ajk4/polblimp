@@ -78,7 +78,7 @@ def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: M
         lambda s: match_subj_verb_person_2b(s) is not None,
         transform_2b,
         limit=limit,
-        progress_desc="subj_verb_person__2a",
+        progress_desc="subj_verb_person__2b",
     )
 
     def transform_2c(sentence) -> bool:
@@ -90,7 +90,7 @@ def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: M
         lambda s: match_subj_verb_person_2c(s) is not None,
         transform_2c,
         limit=limit,
-        progress_desc="subj_verb_person__2a",
+        progress_desc="subj_verb_person__2c",
     )
 
     variants = [variant_1a, variant_1b, variant_1c, variant_1d, variant_2a, variant_2b, variant_2c]
