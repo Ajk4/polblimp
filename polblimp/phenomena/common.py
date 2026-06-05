@@ -48,6 +48,9 @@ def run_filter_transform(
 
         correct_text = metadata.get("text") or sentence_text(sentence)
         incorrect_text = sentence_text(sentence_copy)
+
+        assert correct_text != incorrect_text
+
         dataset = metadata.get("dataset", "")
         rows.append((dataset, index, correct_text, incorrect_text))
 
