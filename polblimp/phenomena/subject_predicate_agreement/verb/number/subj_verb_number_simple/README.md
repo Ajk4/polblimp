@@ -137,7 +137,7 @@ a-node $root := [
     
     # no attractors (of different number) between subject and verb
     0x descendant [
-      deprel in {'nmod', 'nmod:poss', 'xcomp', 'nummod'},
+      deprel in {'nmod', 'nmod:poss', 'nmod:arg', 'xcomp', 'nummod', 'conj'},
       member iset [number != $cop.iset/number],
       (
         ($nsubj.ord < ord and ord < $cop.ord)
