@@ -45,7 +45,7 @@ a-node $root := [
     
     # no attractors between subject and verb
     0x descendant $att := [
-      deprel in {'nmod', 'nmod:poss', 'xcomp', 'conj', 'nummod'},
+      deprel in {'nmod', 'nmod:poss', 'nmod:arg', 'xcomp', 'conj', 'nummod'},
       (
         ($root.iset/number = 'sing' and $att.iset/gender != $root.iset/gender)
         or
@@ -87,7 +87,7 @@ UD 2.18 results:
 
 1:  
  LFG: 2264 + 347,  
- PDB: 2674 + 1445
+ PDB: 2550 + 1404
 
 2:  
  LFG:  
