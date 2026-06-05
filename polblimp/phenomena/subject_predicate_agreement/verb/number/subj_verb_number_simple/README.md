@@ -176,8 +176,8 @@ UD 2.18 results:
  PDB: 154 + 139
 
 2:  
- LFG: 1026 + 153,  
- PDB: 1357 + 1156
+ LFG: 1025 + 153,  
+ PDB: 1278 + 1118
 
  
 (deprel = root + deprel != root)  
