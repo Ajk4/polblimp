@@ -7,6 +7,14 @@ from pathlib import Path
 import conllu
 
 from phenomena.common import load_sentences
+from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_simple.generator import (
+    match_subj_verb_number_simple_1a,
+    match_subj_verb_number_simple_1b,
+    match_subj_verb_number_simple_2a,
+    match_subj_verb_number_simple_2b,
+    match_subj_verb_number_simple_3a,
+    match_subj_verb_number_simple_3b,
+)
 from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_csubj.generator import (
     match_subj_verb_person_csubj_1a,
     match_subj_verb_person_csubj_2a,
@@ -30,6 +38,13 @@ MatchFunction = Callable[[conllu.TokenList], object | None]
 class TestDatasetResultCounts(unittest.TestCase):
     EXPECTED_RESULTS: dict[str, dict[MatchFunction, int]] = {
         "lfg": {
+            match_subj_verb_number_simple_1a: 6267,
+            match_subj_verb_number_simple_1b: 217,
+            match_subj_verb_number_simple_2a: 32,
+            match_subj_verb_number_simple_2b: 37,
+            match_subj_verb_number_simple_3a: 1021,
+            match_subj_verb_number_simple_3b: 4,
+            ##
             match_subj_verb_person_csubj_1a: 93,
             match_subj_verb_person_csubj_2a: 6,
             ##

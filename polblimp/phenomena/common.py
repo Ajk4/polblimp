@@ -8,10 +8,8 @@ from typing import Callable, Optional
 import conllu
 import pandas as pd
 from conllu import Token, TokenList
-from requests.packages import target
 from tqdm import tqdm
 
-from . import MorphDictionary
 from phenomena.morph_dictionary import MorphDictionary
 
 
@@ -64,12 +62,39 @@ def change_number_root(sentence: conllu.TokenList, morph_dict: MorphDictionary) 
     return change_number(root, morph_dict)
 
 
+def change_aux_clitic_number(host: Token, token: Token, morph_dict: MorphDictionary) -> bool:
+    feats = token["feats"] or {}
+    target_number = {"Sing": "pl", "Plur": "sg"}.get(feats.get("Number"))
+    target_person = {"1": "pri", "2": "sec"}.get(feats.get("Person"))
+    if target_number is None or target_person is None:
+        print(f"Unknown aux clitic tag={token['xpos']}, form={token['form']}")
+        return False
+
+    target_variant = "nwok"
+    if target_number == "sg":
+        host_xpos = host["xpos"]
+        # Singular aglt has long/short variants: masculine past hosts take vocalic
+        # forms (był + em/eś), while feminine/neuter hosts take non-vocalic
+        # forms (była/było + m/ś).
+        if host_xpos.startswith("praet:sg:m"):
+            target_variant = "wok"
+        elif not (host_xpos.startswith("praet:sg:f:") or host_xpos.startswith("praet:sg:n")):
+            print(f"Unknown host tag for aux clitic, tag={host['xpos']}, form={host['form']}")
+            return False
+
+    return change_morph(token, morph_dict, f"aglt:{target_number}:{target_person}:imperf:{target_variant}")
+
+
 def change_number(token: Token, morph_dict: MorphDictionary) -> bool:
     source_xpos = token["xpos"]
     if "pl" in source_xpos:
         target_xpos = source_xpos.replace("pl", "sg")
     elif "sg" in source_xpos:
         target_xpos = source_xpos.replace("sg", "pl")
+        if target_xpos.startswith("praet:pl:") and target_xpos.endswith((":agl", ":nagl")):
+            # Remove the final colon-separated :agl/:nagl segment.
+            # Plural past forms do not have those variants in the Polimorf dictionary.
+            target_xpos = target_xpos.rsplit(":", 1)[0]
     else:
         print("Unknown tag", source_xpos)
         return False
@@ -202,15 +227,40 @@ def load_sentences(conllu_path: Path, limit=None) -> list[conllu.TokenList]:
 
 
 def sentence_text(sentence: conllu.TokenList) -> str:
+    no_space_until_token_id = None
+    multiword_space_after = None
     out: list[str] = []
     for token in sentence:
-        if not isinstance(token["id"], int):
+        token_id = token["id"]
+        # conllu parses a CoNLL-U multiword token id like "3-4" as
+        # the tuple (3, "-", 4).
+        if isinstance(token_id, tuple) and len(token_id) == 3 and token_id[1] == "-":
+            # Transforms mutate syntactic component tokens in place, e.g.
+            # "3 był" + "4 em" -> "3 byli" + "4 śmy". That leaves the
+            # CoNLL-U multiword row "3-4 byłem" outdated and inconsistent, so
+            # the tree is invalid if serialized as CoNLL-U. For text output we
+            # ignore the old multiword form and print "3 byli" and "4 śmy"
+            # without spaces between them.
+            # If the multiword row itself has SpaceAfter=No, that applies after
+            # the final component token in the range.
+            _, _, no_space_until_token_id = token_id
+            multiword_space_after = (token.get("misc") or {}).get("SpaceAfter")
+            continue
+        if not isinstance(token_id, int):
             continue
 
         out.append(token["form"])
         misc = token.get("misc")
-        if not misc or misc.get("SpaceAfter") != "No":
+        if no_space_until_token_id is not None and token_id < no_space_until_token_id:
+            continue
+        if (
+                (not misc or misc.get("SpaceAfter") != "No")
+                and multiword_space_after != "No"
+        ):
             out.append(" ")
+        if token_id == no_space_until_token_id:
+            no_space_until_token_id = None
+            multiword_space_after = None
 
     return "".join(out).rstrip()
 

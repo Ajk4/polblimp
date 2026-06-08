@@ -1,6 +1,8 @@
-from tqdm import tqdm
-import csv, gzip
+import csv
+import gzip
 from collections import defaultdict
+
+from tqdm import tqdm
 
 # TODO komentarz url
 # TODO argparse
@@ -19,10 +21,10 @@ with tqdm(gzip.open(path, "rt", encoding="utf-8", errors="replace")) as f:
             continue
         form, lemma, tag = cols[0], cols[1], cols[2]
 
-        unwanted_prefixes = {"adv:", 'aglt:', "depr:", 'ppron12', 'prep:', 'pact:', 'ger:', 'imps:'}
+        unwanted_prefixes = {"adv:", "depr:", "ppron12", "prep:", "pact:", "ger:", "imps:"}
 
         # reduce dict by removing unneeded entries
-        if tag in {'interj', 'burk', 'comp', 'conj', 'qub'} or any(tag.startswith(p) for p in unwanted_prefixes):
+        if tag in {"interj", "burk", "comp", "conj", "qub"} or any(tag.startswith(p) for p in unwanted_prefixes):
             continue
 
         acc[lemma][tag] = form
@@ -31,7 +33,7 @@ with tqdm(gzip.open(path, "rt", encoding="utf-8", errors="replace")) as f:
 print("All tags", all_tags)
 all_tags = list(sorted(all_tags))
 
-with open("conllu_analysis/dictionary.v4.csv", "w", encoding="utf-8", newline="") as out:
+with open("polblimp/dictionary.v4.csv", "w", encoding="utf-8", newline="") as out:
     w = csv.writer(out)
     w.writerow(["lemma", *all_tags])
     for lemma, d in acc.items():

@@ -8,6 +8,12 @@ from typing import Optional
 
 
 def is_subtag(tag: str, supertag: str) -> bool:
+    """Return whether a concrete tag is covered by a broader dictionary tag.
+
+    Dot-separated options are handled by the normal matching loop, e.g.
+    ``praet:pl:m1:imperf`` matches ``praet:pl:m1.p1:imperf`` and
+    ``praet:pl:f:imperf`` matches ``praet:pl:m2.m3.f.n1.n2.p2.p3:imperf``.
+    """
     if tag == supertag:
         return True
 

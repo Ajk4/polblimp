@@ -151,11 +151,8 @@ a-node $root := [
   
 # For generating pairs
     (
-    # 3rd person: change the number of $cop
-    ($nsubj.iset/person !in{'1', '2'})
-    or
-    # 1st and 2nd person, present and future tense: change the number of $cop
-    ($cop.iset/tense in{'pres', 'fut'} and $nsubj.iset/person in{'1', '2'})
+    # change the number of $cop
+    ($nsubj.iset/person !in{'1', '2'}) or ($nsubj.iset/person in{'1', '2'} and $cop.iset/tense in{'pres', 'fut'})
     or
     # 1st and 2nd person, past tense: change the number of $auxclitic and of $cop 
     ($cop.iset/tense = 'past' and $nsubj.iset/person in{'1', '2'} and child a-node $auxclitic := [deprel = 'aux:clitic'])
