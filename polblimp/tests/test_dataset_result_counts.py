@@ -7,6 +7,11 @@ from pathlib import Path
 import conllu
 
 from phenomena.common import load_sentences
+from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_simple.generator import (
+    match_subj_verb_gender_simple_1a,
+    match_subj_verb_gender_simple_1b,
+    match_subj_verb_gender_simple_1c,
+)
 from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_simple.generator import (
     match_subj_verb_number_simple_1a,
     match_subj_verb_number_simple_1b,
@@ -53,6 +58,10 @@ ExpectedCount = int | MatchFunction
 class TestDatasetResultCounts(unittest.TestCase):
     EXPECTED_RESULTS: dict[str, dict[MatchFunction, ExpectedCount]] = {
         "lfg": {
+            match_subj_verb_gender_simple_1a: 1627,
+            match_subj_verb_gender_simple_1b: 264,
+            match_subj_verb_gender_simple_1c: 373,
+            ##
             match_subj_verb_number_simple_1a: 6267,
             match_subj_verb_number_simple_1b: 217,
             match_subj_verb_number_simple_2a: 32,

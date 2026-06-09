@@ -69,8 +69,8 @@ a-node $root := [
     # ii. plural, masculine personal - change the subgender (LFG) or the animacy (PDB) of $root (mp → nmp)
     ($root.iset/number = 'plur' and ($nsubj.conll/feat ~ 'SubGender=Masc1' or $nsubj.conll/feat ~ 'Animacy=Hum'))
     or
-    # iii. plural, masculine personal - change the subgender (LFG) or the animacy (PDB) of $root (nmp → mp)
-    ($root.iset/number = 'plur' and ($nsubj.conll/feat !~ 'SubGender=Masc1' or $nsubj.conll/feat !~ 'Animacy=Hum'))
+    # iii. plural, non-masculine-personal - change the subgender (LFG) or the animacy (PDB) of $root (nmp → mp)
+    ($root.iset/number = 'plur' and ($nsubj.conll/feat !~ 'SubGender=Masc1' and $nsubj.conll/feat !~ 'Animacy=Hum'))
   ),
   ]
 ]
