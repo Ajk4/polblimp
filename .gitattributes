@@ -1,1 +1,2 @@
 dictionary*csv filter=lfs diff=lfs merge=lfs -text
+poliqarp.xls filter=lfs diff=lfs merge=lfs -text
