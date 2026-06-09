@@ -47,10 +47,11 @@ from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_numerals
 
 
 MatchFunction = Callable[[conllu.TokenList], object | None]
+ExpectedCount = int | MatchFunction
 
 
 class TestDatasetResultCounts(unittest.TestCase):
-    EXPECTED_RESULTS: dict[str, dict[MatchFunction, int]] = {
+    EXPECTED_RESULTS: dict[str, dict[MatchFunction, ExpectedCount]] = {
         "lfg": {
             match_subj_verb_number_simple_1a: 6267,
             match_subj_verb_number_simple_1b: 217,
@@ -58,14 +59,14 @@ class TestDatasetResultCounts(unittest.TestCase):
             match_subj_verb_number_simple_2b: 37,
             match_subj_verb_number_simple_3a: 1021,
             match_subj_verb_number_simple_3b: 4,
-            match_subj_verb_number_csubj_1a: 93,
-            match_subj_verb_number_csubj_2a: 6,
             match_subj_verb_number_genitive_1a: 78,
-            match_subj_verb_number_numerals_1a: 69,
-            match_subj_verb_number_numerals_1b: 137,
-            match_subj_verb_number_numerals_1c: 3,
-            match_subj_verb_number_numerals_2a: 12,
-            match_subj_verb_number_numerals_2b: 13 - 1, # IN connlu one matched sentence is duplicated
+            match_subj_verb_number_csubj_1a: match_subj_verb_person_csubj_1a,
+            match_subj_verb_number_csubj_2a: match_subj_verb_person_csubj_2a,
+            match_subj_verb_number_numerals_1a: match_subj_verb_person_numerals_1a,
+            match_subj_verb_number_numerals_1b: match_subj_verb_person_numerals_1b,
+            match_subj_verb_number_numerals_1c: match_subj_verb_person_numerals_1c,
+            match_subj_verb_number_numerals_2a: match_subj_verb_person_numerals_2a,
+            match_subj_verb_number_numerals_2b: match_subj_verb_person_numerals_2b,
             ##
             match_subj_verb_person_csubj_1a: 93,
             match_subj_verb_person_csubj_2a: 6,
@@ -111,6 +112,10 @@ class TestDatasetResultCounts(unittest.TestCase):
             self.assertIn(dataset_name, self.DATASET_FILENAMES)
             for match_fn, expected_count in expected_counts.items():
                 with self.subTest(dataset=dataset_name, variant=match_fn.__name__):
+                    if not isinstance(expected_count, int):
+                        expected_count = expected_counts[expected_count]
+                    self.assertIsInstance(expected_count, int)
+
                     actual_count = sum(
                         1
                         for sentence in self.sentences_by_dataset[dataset_name]
