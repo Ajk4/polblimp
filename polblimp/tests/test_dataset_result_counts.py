@@ -15,6 +15,10 @@ from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_simple.g
     match_subj_verb_number_simple_3a,
     match_subj_verb_number_simple_3b,
 )
+from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_csubj.generator import (
+    match_subj_verb_number_csubj_1a,
+    match_subj_verb_number_csubj_2a,
+)
 from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_csubj.generator import (
     match_subj_verb_person_csubj_1a,
     match_subj_verb_person_csubj_2a,
@@ -44,6 +48,8 @@ class TestDatasetResultCounts(unittest.TestCase):
             match_subj_verb_number_simple_2b: 37,
             match_subj_verb_number_simple_3a: 1021,
             match_subj_verb_number_simple_3b: 4,
+            match_subj_verb_number_csubj_1a: 93,
+            match_subj_verb_number_csubj_2a: 6,
             ##
             match_subj_verb_person_csubj_1a: 93,
             match_subj_verb_person_csubj_2a: 6,

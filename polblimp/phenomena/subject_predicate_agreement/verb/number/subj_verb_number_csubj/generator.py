@@ -1,75 +1,60 @@
-
 from __future__ import annotations
 
 from typing import Optional
 
 import conllu
 import pandas as pd
+from conllu import Token
 
 from phenomena.common import change_number, run_filter_transform
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_csubj.generator import (
+    match_subj_verb_person_csubj_1a,
+    match_subj_verb_person_csubj_2a,
+)
 
 
-def run_subj_pred_number_csubj(
+def run_subj_verb_number_csubj(
         sentences: list[conllu.TokenList],
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    def transform(sentence: conllu.TokenList) -> bool:
-        matches = extract_subj_pred_number_csubj(sentence)
-        assert matches is not None, "Matched senteces are supposed to be filtered first"
-        return change_number(matches["cop"], morph_dict)
+    # Main verb
+    def transform_1a(sentence) -> bool:
+        matches = match_subj_verb_number_csubj_1a(sentence)
+        return change_number(matches["root"], morph_dict)
 
-    return run_filter_transform(
+    variant_1a = run_filter_transform(
         sentences,
-        match_subj_pred_number_csubj,
-        transform,
+        lambda s: match_subj_verb_number_csubj_1a(s) is not None,
+        transform_1a,
         limit=limit,
-        progress_desc="subj_pred_number_csubj",
+        progress_desc="subj_verb_number_csubj__1a",
     )
 
+    # Copular auxiliary verb
+    def transform_2a(sentence) -> bool:
+        matches = match_subj_verb_number_csubj_2a(sentence)
+        return change_number(matches["cop"], morph_dict)
 
-def match_subj_pred_number_csubj(
-        sentence: conllu.TokenList,
-) -> bool:
-    return extract_subj_pred_number_csubj(sentence) is not None
+    variant_2a = run_filter_transform(
+        sentences,
+        lambda s: match_subj_verb_number_csubj_2a(s) is not None,
+        transform_2a,
+        limit=limit,
+        progress_desc="subj_verb_number_csubj__2a",
+    )
+
+    variants = [variant_1a, variant_2a]
+    df = pd.concat(variants)
+    df.attrs["matched_sentences"] = sum(df.attrs["matched_sentences"] for df in variants)
+
+    return df
 
 
-def extract_subj_pred_number_csubj(
-        sentence: conllu.TokenList,
-) -> Optional[dict[str, conllu.Token]]:
-    root = sentence.to_tree()
-    if root.token["upos"] == "VERB":
-        return None
-    if root.token["deprel"] != "root":
-        return None
+def match_subj_verb_number_csubj_1a(sentence: conllu.TokenList) -> dict[str, Token] | None:
+    return match_subj_verb_person_csubj_1a(sentence)
 
-    clausal = None
-    for child in root.children:
-        if child.token["upos"] != "VERB":
-            continue
-        if child.token["deprel"] != "csubj":
-            continue
-        clausal = child
-        break
 
-    if clausal is None:
-        return None
-
-    cop = None
-    for child in root.children:
-        if child.token["upos"] != "AUX":
-            continue
-        if child.token.get("lemma") in {"to", "by"}:
-            continue
-        cop = child
-        break
-
-    if cop is None:
-        return None
-
-    return {
-        "root": root.token,
-        "clausal": clausal.token,
-        "cop": cop.token,
-    }
+def match_subj_verb_number_csubj_2a(sentence: conllu.TokenList) -> dict[str, Token] | None:
+    return match_subj_verb_person_csubj_2a(sentence)
