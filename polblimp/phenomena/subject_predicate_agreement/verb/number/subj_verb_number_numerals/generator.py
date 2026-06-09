@@ -1,13 +1,20 @@
-
 from __future__ import annotations
 
 from typing import Optional
 
 import conllu
 import pandas as pd
+from conllu import Token
 
-from phenomena.common import change_number_root, run_filter_transform
+from phenomena.common import change_number, run_filter_transform
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_numerals.generator import (
+    match_subj_verb_person_numerals_1a,
+    match_subj_verb_person_numerals_1b,
+    match_subj_verb_person_numerals_1c,
+    match_subj_verb_person_numerals_2a,
+    match_subj_verb_person_numerals_2b,
+)
 
 
 def run_subj_verb_number_numerals(
@@ -15,48 +22,95 @@ def run_subj_verb_number_numerals(
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    return run_filter_transform(
+    # Main verb
+    def transform_1a(sentence) -> bool:
+        matches = match_subj_verb_number_numerals_1a(sentence)
+        return change_number(matches["root"], morph_dict)
+
+    variant_1a = run_filter_transform(
         sentences,
-        match_subj_verb_number_numerals,
-        lambda sentence: change_number_root(sentence, morph_dict),
+        lambda s: match_subj_verb_number_numerals_1a(s) is not None,
+        transform_1a,
         limit=limit,
-        progress_desc="subj_verb_number_numerals",
+        progress_desc="subj_verb_number_numerals__1a",
     )
 
+    def transform_1b(sentence) -> bool:
+        matches = match_subj_verb_number_numerals_1b(sentence)
+        return change_number(matches["root"], morph_dict)
 
-def match_subj_verb_number_numerals(
-        sentence: conllu.TokenList,
-) -> bool:
-    root = sentence.to_tree()
-    root_feats = root.token["feats"] or {}
+    variant_1b = run_filter_transform(
+        sentences,
+        lambda s: match_subj_verb_number_numerals_1b(s) is not None,
+        transform_1b,
+        limit=limit,
+        progress_desc="subj_verb_number_numerals__1b",
+    )
 
-    if root.token["upos"] != "VERB":
-        return False
-    if root.token["deprel"] != "root":
-        return False
+    def transform_1c(sentence) -> bool:
+        matches = match_subj_verb_number_numerals_1c(sentence)
+        root_feats = matches["root"]["feats"] or {}
+        if not change_number(matches["aux"], morph_dict):
+            return False
+        if root_feats.get("VerbForm") == "Fin":
+            return change_number(matches["root"], morph_dict)
+        return True
 
-    root_number = root_feats.get("Number")
-    if root_number not in {"Sing", "Plur"}:
-        return False
+    variant_1c = run_filter_transform(
+        sentences,
+        lambda s: match_subj_verb_number_numerals_1c(s) is not None,
+        transform_1c,
+        limit=limit,
+        progress_desc="subj_verb_number_numerals__1c",
+    )
 
-    for child in root.children:
-        if child.token["upos"] != "NOUN":
-            continue
-        if child.token["deprel"] != "nsubj":
-            continue
+    # Copular auxiliary verb
+    def transform_2a(sentence) -> bool:
+        matches = match_subj_verb_number_numerals_2a(sentence)
+        return change_number(matches["cop"], morph_dict)
 
-        child_feats = child.token["feats"] or {}
-        nsubj_case = child_feats.get("Case")
+    variant_2a = run_filter_transform(
+        sentences,
+        lambda s: match_subj_verb_number_numerals_2a(s) is not None,
+        transform_2a,
+        limit=limit,
+        progress_desc="subj_verb_number_numerals__2a",
+    )
 
-        for num_child in child.children:
-            if num_child.token["upos"] != "NUM":
-                continue
+    def transform_2b(sentence) -> bool:
+        matches = match_subj_verb_number_numerals_2b(sentence)
+        return change_number(matches["cop"], morph_dict)
 
-            num_child_feats = num_child.token["feats"] or {}
-            is_gen_acc = nsubj_case == "Gen" and num_child_feats.get("Case") == "Acc"
-            if root_number == "Sing" and is_gen_acc:
-                return True
-            if root_number == "Plur" and not is_gen_acc:
-                return True
+    variant_2b = run_filter_transform(
+        sentences,
+        lambda s: match_subj_verb_number_numerals_2b(s) is not None,
+        transform_2b,
+        limit=limit,
+        progress_desc="subj_verb_number_numerals__2b",
+    )
 
-    return False
+    variants = [variant_1a, variant_1b, variant_1c, variant_2a, variant_2b]
+    df = pd.concat(variants)
+    df.attrs["matched_sentences"] = sum(df.attrs["matched_sentences"] for df in variants)
+
+    return df
+
+
+def match_subj_verb_number_numerals_1a(sentence: conllu.TokenList) -> dict[str, Token] | None:
+    return match_subj_verb_person_numerals_1a(sentence)
+
+
+def match_subj_verb_number_numerals_1b(sentence: conllu.TokenList) -> dict[str, Token] | None:
+    return match_subj_verb_person_numerals_1b(sentence)
+
+
+def match_subj_verb_number_numerals_1c(sentence: conllu.TokenList) -> dict[str, Token] | None:
+    return match_subj_verb_person_numerals_1c(sentence)
+
+
+def match_subj_verb_number_numerals_2a(sentence: conllu.TokenList) -> dict[str, Token] | None:
+    return match_subj_verb_person_numerals_2a(sentence)
+
+
+def match_subj_verb_number_numerals_2b(sentence: conllu.TokenList) -> dict[str, Token] | None:
+    return match_subj_verb_person_numerals_2b(sentence)

@@ -28,6 +28,7 @@ class TestDatasetOutputSnapshots(unittest.TestCase):
         "lfg": {
             "subj_verb_number_csubj": "c22c8758a64e49732f9b00f1f7c747a28532d9403891946b6c245d9b16585675",
             "subj_verb_number_genitive": "fc73cb03b50ce385dd88fbbbf29de52ce602e4778163c6cc9a1d18349dac657b",
+            "subj_verb_number_numerals": "2ea33c835b593109238d260c3fb2657f23b5203726edcd3e3f898693b2217c4b",
             "subj_verb_number_simple": "4082d81f56c872208580246d6189327302629f73c68dbe8ca2da147295016863",
             "subj_verb_person_csubj": "ee8743083a2e18c53337628faa36d2e0ad15d1aad0a6cb3b5ade37230e84d3e0",
             "subj_verb_person_genitive": "a6aa58460d49b4bbada3f94300d8d7dc5b5d898ecd490727b648b10feb0e9626",
@@ -37,6 +38,7 @@ class TestDatasetOutputSnapshots(unittest.TestCase):
         "pdb": {
             "subj_verb_number_csubj": "eb6f7c3744d595eb325775916cc4ebed664fd67a9fca5f190c476885ad1f3243",
             "subj_verb_number_genitive": "b2d294e7c7cd5f243cabc5fdae9bc4f6c1786c520cc4047a4fce181bf310f60e",
+            "subj_verb_number_numerals": "13c32a7c28a61fc4c673f32b6c814122c0de5c0ce485a6eb4ed0b87ceb9fea23",
             "subj_verb_number_simple": "4ae711acfbb95ec06bc1d5891bbf7cd6d96b3b5697ea39406e7464ed85cbac26",
             "subj_verb_person_csubj": "b53d5faba14947083052758a371cdd3aadf6355e49f6ef5c65633c69af25924c",
             "subj_verb_person_genitive": "3eead87569fade9ae12bfca3f80ca2692559c6c0e531b6f821536d6d5dfe6853",
