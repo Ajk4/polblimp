@@ -1,13 +1,16 @@
-
 from __future__ import annotations
 
 from typing import Optional
 
 import conllu
 import pandas as pd
+from conllu import Token
 
-from phenomena.common import run_filter_transform, change_number_root
+from phenomena.common import change_number, run_filter_transform
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_numerals.generator import (
+    QUANTIFIER_LEMMAS,
+)
 
 
 def run_subj_verb_number_genitive(
@@ -15,42 +18,59 @@ def run_subj_verb_number_genitive(
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    return run_filter_transform(
+    # Main verb
+    def transform_1a(sentence) -> bool:
+        matches = match_subj_verb_number_genitive_1a(sentence)
+        return change_number(matches["root"], morph_dict)
+
+    variant_1a = run_filter_transform(
         sentences,
-        match_subj_verb_number_genitive,
-        lambda sentence: change_number_root(sentence, morph_dict),
+        lambda s: match_subj_verb_number_genitive_1a(s) is not None,
+        transform_1a,
         limit=limit,
-        progress_desc="subj_verb_number_genitive",
+        progress_desc="subj_verb_number_genitive__1a",
     )
 
+    return variant_1a
 
-def match_subj_verb_number_genitive(
-        sentence: conllu.TokenList,
-) -> bool:
+
+def match_subj_verb_number_genitive_1a(sentence: conllu.TokenList) -> dict[str, Token] | None:
     root = sentence.to_tree()
-    root_feats = root.token["feats"] or {}
+    root_token = root.token
+    root_feats = root_token["feats"] or {}
 
-    if root.token["deprel"] != "root":
-        return False
-    if root.token["upos"] != "VERB":
-        return False
+    if root_token["upos"] != "VERB":
+        return None
+    if root_token["deprel"] != "root":
+        return None
     if root_feats.get("Number") != "Sing":
-        return False
+        return None
 
-    for child in root.children:
-        child_feats = child.token["feats"] or {}
-        if child.token["deprel"] != "nsubj":
+    for nsubj in root.children:
+        nsubj_token = nsubj.token
+        nsubj_feats = nsubj_token["feats"] or {}
+
+        if nsubj_token["deprel"] != "nsubj":
             continue
-        if child_feats.get("Case") != "Gen":
+        if nsubj_feats.get("Case") != "Gen":
+            continue
+        if has_numeral_or_quantifier_child(nsubj):
             continue
 
-        has_num_child = False
-        for subject_child in child.children:
-            if subject_child.token["upos"] == "NUM":
-                has_num_child = True
-                break
+        return {
+            "root": root_token,
+            "nsubj": nsubj_token,
+        }
 
-        if not has_num_child:
+    return None
+
+
+def has_numeral_or_quantifier_child(nsubj: conllu.TokenTree) -> bool:
+    for child in nsubj.children:
+        child_token = child.token
+        if child_token["upos"] == "NUM":
+            return True
+        if child_token["deprel"].startswith("det") and child_token["lemma"] in QUANTIFIER_LEMMAS:
             return True
 
     return False
