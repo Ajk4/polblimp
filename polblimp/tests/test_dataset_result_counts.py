@@ -12,6 +12,10 @@ from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_simple.g
     match_subj_verb_gender_simple_1b,
     match_subj_verb_gender_simple_1c,
 )
+from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_numerals.generator import (
+    match_subj_verb_gender_numerals_1a,
+    match_subj_verb_gender_numerals_2a,
+)
 from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_simple.generator import (
     match_subj_verb_number_simple_1a,
     match_subj_verb_number_simple_1b,
@@ -52,7 +56,7 @@ from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_numerals
 
 
 MatchFunction = Callable[[conllu.TokenList], object | None]
-ExpectedCount = int | MatchFunction
+ExpectedCount = int | MatchFunction | None
 
 
 class TestDatasetResultCounts(unittest.TestCase):
@@ -61,6 +65,8 @@ class TestDatasetResultCounts(unittest.TestCase):
             match_subj_verb_gender_simple_1a: 1627,
             match_subj_verb_gender_simple_1b: 264,
             match_subj_verb_gender_simple_1c: 373,
+            match_subj_verb_gender_numerals_1a: 139,
+            match_subj_verb_gender_numerals_2a: 13,
             ##
             match_subj_verb_number_simple_1a: 6267,
             match_subj_verb_number_simple_1b: 217,
@@ -89,6 +95,10 @@ class TestDatasetResultCounts(unittest.TestCase):
             match_subj_verb_person_genitive_1a: 54,
             match_subj_verb_person_genitive_1b: 24,
         },
+        "pdb": {
+            match_subj_verb_gender_numerals_1a: 141,
+            match_subj_verb_gender_numerals_2a: 5,
+        },
     }
 
     DATASET_FILENAMES: dict[str, tuple[str, ...]] = {
@@ -96,6 +106,11 @@ class TestDatasetResultCounts(unittest.TestCase):
             "pl_lfg-ud-train.conllu",
             "pl_lfg-ud-dev.conllu",
             "pl_lfg-ud-test.conllu",
+        ),
+        "pdb": (
+            "pl_pdb-ud-train.conllu",
+            "pl_pdb-ud-dev.conllu",
+            "pl_pdb-ud-test.conllu",
         ),
     }
 
@@ -121,6 +136,8 @@ class TestDatasetResultCounts(unittest.TestCase):
             self.assertIn(dataset_name, self.DATASET_FILENAMES)
             for match_fn, expected_count in expected_counts.items():
                 with self.subTest(dataset=dataset_name, variant=match_fn.__name__):
+                    if expected_count is None:
+                        self.skipTest("TODO: fill expected count")
                     if not isinstance(expected_count, int):
                         expected_count = expected_counts[expected_count]
                     self.assertIsInstance(expected_count, int)

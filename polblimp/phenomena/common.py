@@ -196,6 +196,77 @@ def change_gender(root: Token, morph_dict: MorphDictionary) -> bool:
 
     return change_morph(root, morph_dict, target_xpos)
 
+
+def change_gender_to(token: Token, morph_dict: MorphDictionary, target_gender: str) -> bool:
+    source_xpos = token["xpos"]
+    target_xpos = None
+
+    if target_gender == "Masc":
+        if ":sg:" in source_xpos:
+            if ":f:" in source_xpos:
+                target_xpos = source_xpos.replace(":f:", ":m1.m2.m3:")
+            elif ":n:" in source_xpos:
+                target_xpos = source_xpos.replace(":n:", ":m1.m2.m3:")
+            elif ":n1.n2:" in source_xpos:
+                target_xpos = source_xpos.replace(":n1.n2:", ":m1.m2.m3:")
+        elif ":pl:" in source_xpos:
+            if ":m2.m3.f.n1.n2.p2.p3:" in source_xpos:
+                target_xpos = source_xpos.replace(":m2.m3.f.n1.n2.p2.p3:", ":m1.p1:")
+            elif ":m2:" in source_xpos:
+                target_xpos = source_xpos.replace(":m2:", ":m1.p1:")
+            elif ":m3:" in source_xpos:
+                target_xpos = source_xpos.replace(":m3:", ":m1.p1:")
+            elif ":f:" in source_xpos:
+                target_xpos = source_xpos.replace(":f:", ":m1.p1:")
+            elif ":n:" in source_xpos:
+                target_xpos = source_xpos.replace(":n:", ":m1.p1:")
+            elif ":n1:" in source_xpos:
+                target_xpos = source_xpos.replace(":n1:", ":m1.p1:")
+            elif ":n2:" in source_xpos:
+                target_xpos = source_xpos.replace(":n2:", ":m1.p1:")
+            elif ":p2:" in source_xpos:
+                target_xpos = source_xpos.replace(":p2:", ":m1.p1:")
+            elif ":p3:" in source_xpos:
+                target_xpos = source_xpos.replace(":p3:", ":m1.p1:")
+    elif target_gender == "Fem":
+        if ":sg:" in source_xpos:
+            if ":m1.m2.m3:" in source_xpos:
+                target_xpos = source_xpos.replace(":m1.m2.m3:", ":f:")
+            elif ":m1:" in source_xpos:
+                target_xpos = source_xpos.replace(":m1:", ":f:")
+            elif ":m2:" in source_xpos:
+                target_xpos = source_xpos.replace(":m2:", ":f:")
+            elif ":m3:" in source_xpos:
+                target_xpos = source_xpos.replace(":m3:", ":f:")
+            elif ":n:" in source_xpos:
+                target_xpos = source_xpos.replace(":n:", ":f:")
+            elif ":n1.n2:" in source_xpos:
+                target_xpos = source_xpos.replace(":n1.n2:", ":f:")
+        elif ":pl:" in source_xpos:
+            if ":m1.p1:" in source_xpos:
+                target_xpos = source_xpos.replace(":m1.p1:", ":m2.m3.f.n1.n2.p2.p3:")
+            elif ":m1:" in source_xpos:
+                target_xpos = source_xpos.replace(":m1:", ":m2.m3.f.n1.n2.p2.p3:")
+    elif target_gender == "Neut":
+        if ":sg:" in source_xpos:
+            if ":m1.m2.m3:" in source_xpos:
+                target_xpos = source_xpos.replace(":m1.m2.m3:", ":n1.n2:")
+            elif ":m1:" in source_xpos:
+                target_xpos = source_xpos.replace(":m1:", ":n1.n2:")
+            elif ":m2:" in source_xpos:
+                target_xpos = source_xpos.replace(":m2:", ":n1.n2:")
+            elif ":m3:" in source_xpos:
+                target_xpos = source_xpos.replace(":m3:", ":n1.n2:")
+            elif ":f:" in source_xpos:
+                target_xpos = source_xpos.replace(":f:", ":n1.n2:")
+
+    if target_xpos is None:
+        print(f"Unknown tag for target gender, tag={source_xpos}, form={token['form']}, target_gender={target_gender}")
+        return False
+
+    return change_morph(token, morph_dict, target_xpos)
+
+
 def match_children(tree: conllu.TokenTree, token_predicate):
     matches = []
     for child in tree.children:

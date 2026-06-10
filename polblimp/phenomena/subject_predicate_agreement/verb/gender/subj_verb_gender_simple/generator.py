@@ -6,11 +6,8 @@ import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import change_gender, change_morph, match_descendants, run_filter_transform
+from phenomena.common import change_gender, change_gender_to, change_morph, match_descendants, run_filter_transform
 from phenomena.morph_dictionary import MorphDictionary
-from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_obj_relative_clause_1.generator import (
-    change_gender_to,
-)
 
 
 def run_subj_verb_gender_simple(
@@ -23,7 +20,7 @@ def run_subj_verb_gender_simple(
         if target_gender is None:
             return False
         if matches["root"]["lemma"] == "powinien" or matches["root"]["xpos"].startswith("winien:"):
-            return change_winien_gender(matches["root"], morph_dict, target_gender)
+            return change_gender_to(matches["root"], morph_dict, target_gender)
         if target_gender == "Masc" and (matches["root"]["feats"] or {}).get("Number") == "Plur":
             return change_plural_to_masculine_personal(matches["root"], morph_dict)
         if target_gender == "Fem":
@@ -200,25 +197,6 @@ def get_target_gender(token: Token) -> str | None:
         return "Masc"
 
     return None
-
-
-def change_winien_gender(token: Token, morph_dict: MorphDictionary, target_gender: str) -> bool:
-    feats = token["feats"] or {}
-    number = feats.get("Number")
-
-    if number == "Plur":
-        target_xpos = (
-            "winien:pl:m2.m3.f.n1.n2.p2.p3:imperf"
-            if target_gender == "Fem"
-            else "winien:pl:m1.p1:imperf"
-        )
-    elif number == "Sing":
-        target_xpos = "winien:sg:f:imperf" if target_gender == "Fem" else "winien:sg:m1.m2.m3:imperf"
-    else:
-        print(f"Unknown winien tag={token['xpos']}, form={token['form']}")
-        return False
-
-    return change_morph(token, morph_dict, target_xpos)
 
 
 def change_plural_to_masculine_personal(token: Token, morph_dict: MorphDictionary) -> bool:

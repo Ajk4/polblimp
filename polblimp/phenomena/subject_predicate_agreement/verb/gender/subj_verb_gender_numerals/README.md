@@ -11,8 +11,8 @@ This paradigm covers both:
 - non-verbal predicates with a copular construction, where gender is expressed on the copula.
 
 To create the ungrammatical sentence change the gender of:  
-- the main verb (\$root) or
-- the copular verb (\$cop).
+- the main verb (\$root) (query 1) or
+- the copular verb (\$cop) (query 2).
 
 ## Examples
 ```
