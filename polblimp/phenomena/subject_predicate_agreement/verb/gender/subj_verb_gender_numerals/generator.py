@@ -6,7 +6,7 @@ import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import change_gender_to, match_descendants, run_filter_transform
+from phenomena.common import change_gender, match_descendants, run_filter_transform
 from phenomena.morph_dictionary import MorphDictionary
 from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_numerals.generator import QUANTIFIER_LEMMAS
 
@@ -176,7 +176,7 @@ def change_numeral_predicate_gender(
     if target_gender is None or predicate_xpos_has_target_gender(predicate["xpos"], target_gender):
         return False
 
-    return change_gender_to(predicate, morph_dict, target_gender)
+    return change_gender(predicate, morph_dict, target_gender=target_gender)
 
 
 def get_target_gender_for_numeral_predicate(predicate: Token, nsubj: Token) -> str | None:

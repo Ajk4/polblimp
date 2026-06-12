@@ -171,100 +171,104 @@ def change_gender_root(
     return change_gender(root, morph_dict)
 
 
-def change_gender(root: Token, morph_dict: MorphDictionary) -> bool:
-    source_xpos = root["xpos"]
-
-    if source_xpos in {'praet:sg:m1:imperf', 'praet:sg:m2:imperf', 'praet:sg:m3:imperf'}:
-        # In this case all m1.m2.m3 are the same, so replace with n1.n2
-        target_xpos = 'praet:sg:n1.n2:imperf'
-    elif ":n:" in source_xpos:
-        if random.randint(0, 1) == 0:
-            target_xpos = source_xpos.replace(":n:", ":m1:")
-        else:
-            target_xpos = source_xpos.replace(":n:", ":f:")
-    elif ":f" in source_xpos:
-        target_xpos = source_xpos.replace(":f:", ":m1:")
-    elif ":m1" in source_xpos:
-        target_xpos = source_xpos.replace(":m1:", ":f:")
-    elif ":m2" in source_xpos:
-        target_xpos = source_xpos.replace(":m2:", ":m1:")
-    elif ":m3" in source_xpos:
-        target_xpos = source_xpos.replace(":m3:", ":m1:")
-    else:
-        print(f"Unknown tag for gender change, tag={source_xpos}, form={root['form']}")
+def change_gender(
+        token: Token,
+        morph_dict: MorphDictionary,
+        target_gender: str | None = None,
+) -> bool:
+    source_xpos = token["xpos"]
+    if target_gender is None:
+        target_gender = _select_target_gender(source_xpos)
+    if target_gender is None:
+        print(f"Unknown tag for gender change, tag={source_xpos}, form={token['form']}")
         return False
 
-    return change_morph(root, morph_dict, target_xpos)
-
-
-def change_gender_to(token: Token, morph_dict: MorphDictionary, target_gender: str) -> bool:
-    source_xpos = token["xpos"]
-    target_xpos = None
-
-    if target_gender == "Masc":
-        if ":sg:" in source_xpos:
-            if ":f:" in source_xpos:
-                target_xpos = source_xpos.replace(":f:", ":m1.m2.m3:")
-            elif ":n:" in source_xpos:
-                target_xpos = source_xpos.replace(":n:", ":m1.m2.m3:")
-            elif ":n1.n2:" in source_xpos:
-                target_xpos = source_xpos.replace(":n1.n2:", ":m1.m2.m3:")
-        elif ":pl:" in source_xpos:
-            if ":m2.m3.f.n1.n2.p2.p3:" in source_xpos:
-                target_xpos = source_xpos.replace(":m2.m3.f.n1.n2.p2.p3:", ":m1.p1:")
-            elif ":m2:" in source_xpos:
-                target_xpos = source_xpos.replace(":m2:", ":m1.p1:")
-            elif ":m3:" in source_xpos:
-                target_xpos = source_xpos.replace(":m3:", ":m1.p1:")
-            elif ":f:" in source_xpos:
-                target_xpos = source_xpos.replace(":f:", ":m1.p1:")
-            elif ":n:" in source_xpos:
-                target_xpos = source_xpos.replace(":n:", ":m1.p1:")
-            elif ":n1:" in source_xpos:
-                target_xpos = source_xpos.replace(":n1:", ":m1.p1:")
-            elif ":n2:" in source_xpos:
-                target_xpos = source_xpos.replace(":n2:", ":m1.p1:")
-            elif ":p2:" in source_xpos:
-                target_xpos = source_xpos.replace(":p2:", ":m1.p1:")
-            elif ":p3:" in source_xpos:
-                target_xpos = source_xpos.replace(":p3:", ":m1.p1:")
-    elif target_gender == "Fem":
-        if ":sg:" in source_xpos:
-            if ":m1.m2.m3:" in source_xpos:
-                target_xpos = source_xpos.replace(":m1.m2.m3:", ":f:")
-            elif ":m1:" in source_xpos:
-                target_xpos = source_xpos.replace(":m1:", ":f:")
-            elif ":m2:" in source_xpos:
-                target_xpos = source_xpos.replace(":m2:", ":f:")
-            elif ":m3:" in source_xpos:
-                target_xpos = source_xpos.replace(":m3:", ":f:")
-            elif ":n:" in source_xpos:
-                target_xpos = source_xpos.replace(":n:", ":f:")
-            elif ":n1.n2:" in source_xpos:
-                target_xpos = source_xpos.replace(":n1.n2:", ":f:")
-        elif ":pl:" in source_xpos:
-            if ":m1.p1:" in source_xpos:
-                target_xpos = source_xpos.replace(":m1.p1:", ":m2.m3.f.n1.n2.p2.p3:")
-            elif ":m1:" in source_xpos:
-                target_xpos = source_xpos.replace(":m1:", ":m2.m3.f.n1.n2.p2.p3:")
-    elif target_gender == "Neut":
-        if ":sg:" in source_xpos:
-            if ":m1.m2.m3:" in source_xpos:
-                target_xpos = source_xpos.replace(":m1.m2.m3:", ":n1.n2:")
-            elif ":m1:" in source_xpos:
-                target_xpos = source_xpos.replace(":m1:", ":n1.n2:")
-            elif ":m2:" in source_xpos:
-                target_xpos = source_xpos.replace(":m2:", ":n1.n2:")
-            elif ":m3:" in source_xpos:
-                target_xpos = source_xpos.replace(":m3:", ":n1.n2:")
-            elif ":f:" in source_xpos:
-                target_xpos = source_xpos.replace(":f:", ":n1.n2:")
-
+    target_xpos = _target_gender_xpos(source_xpos, target_gender)
     if target_xpos is None:
         print(f"Unknown tag for target gender, tag={source_xpos}, form={token['form']}, target_gender={target_gender}")
         return False
 
     return change_morph(token, morph_dict, target_xpos)
+
+
+def _select_target_gender(source_xpos: str) -> str | None:
+    if source_xpos in {'praet:sg:m1:imperf', 'praet:sg:m2:imperf', 'praet:sg:m3:imperf'}:
+        return "Neut"
+    if ":n:" in source_xpos:
+        return "Masc" if random.randint(0, 1) == 0 else "Fem"
+    if ":f" in source_xpos:
+        return "Masc"
+    if ":m1" in source_xpos:
+        return "Fem"
+    if ":m2" in source_xpos or ":m3" in source_xpos:
+        return "Masc"
+    return None
+
+
+def _target_gender_xpos(source_xpos: str, target_gender: str) -> str | None:
+    if target_gender == "Masc":
+        if ":sg:" in source_xpos:
+            if ":f:" in source_xpos:
+                return source_xpos.replace(":f:", ":m1.m2.m3:")
+            elif ":n:" in source_xpos:
+                return source_xpos.replace(":n:", ":m1.m2.m3:")
+            elif ":n1.n2:" in source_xpos:
+                return source_xpos.replace(":n1.n2:", ":m1.m2.m3:")
+            elif ":m2:" in source_xpos:
+                return source_xpos.replace(":m2:", ":m1:")
+            elif ":m3:" in source_xpos:
+                return source_xpos.replace(":m3:", ":m1:")
+        elif ":pl:" in source_xpos:
+            if ":m2.m3.f.n1.n2.p2.p3:" in source_xpos:
+                return source_xpos.replace(":m2.m3.f.n1.n2.p2.p3:", ":m1.p1:")
+            elif ":m2:" in source_xpos:
+                return source_xpos.replace(":m2:", ":m1.p1:")
+            elif ":m3:" in source_xpos:
+                return source_xpos.replace(":m3:", ":m1.p1:")
+            elif ":f:" in source_xpos:
+                return source_xpos.replace(":f:", ":m1.p1:")
+            elif ":n:" in source_xpos:
+                return source_xpos.replace(":n:", ":m1.p1:")
+            elif ":n1:" in source_xpos:
+                return source_xpos.replace(":n1:", ":m1.p1:")
+            elif ":n2:" in source_xpos:
+                return source_xpos.replace(":n2:", ":m1.p1:")
+            elif ":p2:" in source_xpos:
+                return source_xpos.replace(":p2:", ":m1.p1:")
+            elif ":p3:" in source_xpos:
+                return source_xpos.replace(":p3:", ":m1.p1:")
+    elif target_gender == "Fem":
+        if ":sg:" in source_xpos:
+            if ":m1.m2.m3:" in source_xpos:
+                return source_xpos.replace(":m1.m2.m3:", ":f:")
+            elif ":m1:" in source_xpos:
+                return source_xpos.replace(":m1:", ":f:")
+            elif ":m2:" in source_xpos:
+                return source_xpos.replace(":m2:", ":f:")
+            elif ":m3:" in source_xpos:
+                return source_xpos.replace(":m3:", ":f:")
+            elif ":n:" in source_xpos:
+                return source_xpos.replace(":n:", ":f:")
+            elif ":n1.n2:" in source_xpos:
+                return source_xpos.replace(":n1.n2:", ":f:")
+        elif ":pl:" in source_xpos:
+            if ":m1.p1:" in source_xpos:
+                return source_xpos.replace(":m1.p1:", ":m2.m3.f.n1.n2.p2.p3:")
+            elif ":m1:" in source_xpos:
+                return source_xpos.replace(":m1:", ":m2.m3.f.n1.n2.p2.p3:")
+    elif target_gender == "Neut":
+        if ":sg:" in source_xpos:
+            if ":m1.m2.m3:" in source_xpos:
+                return source_xpos.replace(":m1.m2.m3:", ":n1.n2:")
+            elif ":m1:" in source_xpos:
+                return source_xpos.replace(":m1:", ":n1.n2:")
+            elif ":m2:" in source_xpos:
+                return source_xpos.replace(":m2:", ":n1.n2:")
+            elif ":m3:" in source_xpos:
+                return source_xpos.replace(":m3:", ":n1.n2:")
+            elif ":f:" in source_xpos:
+                return source_xpos.replace(":f:", ":n1.n2:")
+    return None
 
 
 def match_children(tree: conllu.TokenTree, token_predicate):

@@ -4,9 +4,13 @@ from typing import Optional
 
 import conllu
 import pandas as pd
+from conllu import Token
 
-from phenomena.common import run_filter_transform, change_gender_root
+from phenomena.common import change_gender, run_filter_transform
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_genitive.generator import (
+    has_numeral_or_quantifier_child,
+)
 
 
 def run_subj_verb_gender_genitive(
@@ -14,44 +18,47 @@ def run_subj_verb_gender_genitive(
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
+    def transform_1a(sentence: conllu.TokenList) -> bool:
+        matches = match_subj_verb_gender_genitive_1a(sentence)
+        return change_gender(matches["root"], morph_dict)
+
     return run_filter_transform(
         sentences,
-        match_subj_verb_gender_genitive,
-        lambda sentence: change_gender_root(sentence, morph_dict),
+        lambda s: match_subj_verb_gender_genitive_1a(s) is not None,
+        transform_1a,
         limit=limit,
-        progress_desc="subj_verb_gender_genitive",
+        progress_desc="subj_verb_gender_genitive__1a",
     )
 
 
-def match_subj_verb_gender_genitive(
-        sentence: conllu.TokenList,
-) -> bool:
+def match_subj_verb_gender_genitive_1a(sentence: conllu.TokenList) -> dict[str, Token] | None:
     root = sentence.to_tree()
-    root_feats = root.token["feats"] or {}
+    root_token = root.token
+    root_feats = root_token["feats"] or {}
 
-    if root.token["deprel"] != "root":
-        return False
-    if root.token["upos"] != "VERB":
-        return False
+    if root_token["upos"] != "VERB":
+        return None
+    if root_token["deprel"] != "root":
+        return None
     if root_feats.get("Number") != "Sing":
-        return False
+        return None
     if root_feats.get("Gender") != "Neut":
-        return False
+        return None
 
-    for child in root.children:
-        child_feats = child.token["feats"] or {}
-        if child.token["deprel"] != "nsubj":
+    for nsubj in root.children:
+        nsubj_token = nsubj.token
+        nsubj_feats = nsubj_token["feats"] or {}
+
+        if nsubj_token["deprel"] != "nsubj":
             continue
-        if child_feats.get("Case") != "Gen":
+        if nsubj_feats.get("Case") != "Gen":
+            continue
+        if has_numeral_or_quantifier_child(nsubj):
             continue
 
-        has_num_child = False
-        for subject_child in child.children:
-            if subject_child.token["upos"] == "NUM":
-                has_num_child = True
-                break
+        return {
+            "root": root_token,
+            "nsubj": nsubj_token,
+        }
 
-        if not has_num_child:
-            return True
-
-    return False
+    return None

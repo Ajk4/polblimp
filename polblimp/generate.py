@@ -15,6 +15,10 @@ from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_simple.g
     run_subj_verb_gender_simple
 from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_numerals.generator import \
     run_subj_verb_gender_numerals
+from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_csubj.generator import \
+    run_subj_verb_gender_csubj
+from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_genitive.generator import \
+    run_subj_verb_gender_genitive
 from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_simple.generator import \
     run_subj_verb_number_simple
 from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_csubj.generator import \
@@ -38,6 +42,8 @@ QueryRunner = Callable[
 ]
 
 PARADIGM_RUNNERS: dict[str, QueryRunner] = {
+    "subj_verb_gender_csubj": run_subj_verb_gender_csubj,
+    "subj_verb_gender_genitive": run_subj_verb_gender_genitive,
     "subj_verb_gender_numerals": run_subj_verb_gender_numerals,
     "subj_verb_gender_simple": run_subj_verb_gender_simple,
     "subj_verb_number_csubj": run_subj_verb_number_csubj,

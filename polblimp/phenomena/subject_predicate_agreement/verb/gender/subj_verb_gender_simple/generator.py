@@ -6,7 +6,7 @@ import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import change_gender, change_gender_to, change_morph, match_descendants, run_filter_transform
+from phenomena.common import change_gender, change_morph, match_descendants, run_filter_transform
 from phenomena.morph_dictionary import MorphDictionary
 
 
@@ -20,11 +20,11 @@ def run_subj_verb_gender_simple(
         if target_gender is None:
             return False
         if matches["root"]["lemma"] == "powinien" or matches["root"]["xpos"].startswith("winien:"):
-            return change_gender_to(matches["root"], morph_dict, target_gender)
+            return change_gender(matches["root"], morph_dict, target_gender=target_gender)
         if target_gender == "Masc" and (matches["root"]["feats"] or {}).get("Number") == "Plur":
             return change_plural_to_masculine_personal(matches["root"], morph_dict)
         if target_gender == "Fem":
-            return change_gender_to(matches["root"], morph_dict, target_gender)
+            return change_gender(matches["root"], morph_dict, target_gender=target_gender)
         return change_gender(matches["root"], morph_dict)
 
     # Main verb, singular

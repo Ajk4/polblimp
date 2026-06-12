@@ -16,6 +16,13 @@ from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_numerals
     match_subj_verb_gender_numerals_1a,
     match_subj_verb_gender_numerals_2a,
 )
+from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_csubj.generator import (
+    match_subj_verb_gender_csubj_1a,
+    match_subj_verb_gender_csubj_2a,
+)
+from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_genitive.generator import (
+    match_subj_verb_gender_genitive_1a,
+)
 from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_simple.generator import (
     match_subj_verb_number_simple_1a,
     match_subj_verb_number_simple_1b,
@@ -65,6 +72,9 @@ class TestDatasetResultCounts(unittest.TestCase):
             match_subj_verb_gender_simple_1a: 1627,
             match_subj_verb_gender_simple_1b: 264,
             match_subj_verb_gender_simple_1c: 373,
+            match_subj_verb_gender_genitive_1a: 24,
+            match_subj_verb_gender_csubj_1a: 40,
+            match_subj_verb_gender_csubj_2a: 0,
             match_subj_verb_gender_numerals_1a: 139,
             match_subj_verb_gender_numerals_2a: 13,
             ##
@@ -96,6 +106,9 @@ class TestDatasetResultCounts(unittest.TestCase):
             match_subj_verb_person_genitive_1b: 24,
         },
         "pdb": {
+            match_subj_verb_gender_genitive_1a: 37,
+            match_subj_verb_gender_csubj_1a: 32,
+            match_subj_verb_gender_csubj_2a: 4,
             match_subj_verb_gender_numerals_1a: 141,
             match_subj_verb_gender_numerals_2a: 5,
         },
