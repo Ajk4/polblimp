@@ -1,12 +1,18 @@
 from __future__ import annotations
 
+from importlib import import_module
 from typing import Optional
 
 import conllu
 import pandas as pd
+from conllu import Token
 
-from phenomena.common import change_number, match_descendants, run_filter_transform
+from phenomena.common import change_number, run_filter_transform
 from phenomena.morph_dictionary import MorphDictionary
+
+match_subj_adjectival_number_cop = import_module(
+    "phenomena.subject_predicate_agreement.adjective.adjective and copula.subj_adjectival_number_cop.generator"
+).match_subj_adjectival_number_cop
 
 
 def run_subj_adjectival_number(
@@ -15,66 +21,20 @@ def run_subj_adjectival_number(
         limit: Optional[int],
 ) -> pd.DataFrame:
     def transform(sentence: conllu.TokenList) -> bool:
-        matches = extract_subj_adjectival_number(sentence)
-        assert matches is not None, "Matched senteces are supposed to be filtered first"
-        return change_number(matches["root"], morph_dict)
+        matches = match_subj_adjectival_number(sentence)
+        assert matches is not None, "Matched sentences are supposed to be filtered first"
+        root_form = matches["root"]["form"]
+        changed = change_number(matches["root"], morph_dict)
+        return changed and matches["root"]["form"] != root_form
 
     return run_filter_transform(
         sentences,
-        match_subj_adjectival_number,
+        lambda s: match_subj_adjectival_number(s) is not None,
         transform,
         limit=limit,
         progress_desc="subj_adjectival_number",
     )
 
 
-def match_subj_adjectival_number(
-        sentence: conllu.TokenList,
-) -> bool:
-    return extract_subj_adjectival_number(sentence) is not None
-
-
-def extract_subj_adjectival_number(
-        sentence: conllu.TokenList,
-) -> Optional[dict[str, conllu.Token]]:
-    root = sentence.to_tree()
-    if root.token["upos"] != "ADJ":
-        return None
-    if root.token["deprel"] != "root":
-        return None
-
-    nsubj = None
-    for child in root.children:
-        if child.token["deprel"] not in {"nsubj", "nsubj:pass"}:
-            continue
-
-        descendants = match_descendants(
-            child,
-            lambda token: token["deprel"] in {"nmod", "nmod:poss", "xcomp", "conj", "nummod"},
-        )
-        if descendants:
-            continue
-
-        nsubj = child
-        break
-
-    if nsubj is None:
-        return None
-
-    cop = None
-    for child in root.children:
-        if child.token["upos"] != "AUX":
-            continue
-        if child.token.get("lemma") in {"to", "by"}:
-            continue
-        cop = child
-        break
-
-    if cop is None:
-        return None
-
-    return {
-        "root": root.token,
-        "nsubj": nsubj.token,
-        "cop": cop.token,
-    }
+def match_subj_adjectival_number(sentence: conllu.TokenList) -> dict[str, Token] | None:
+    return match_subj_adjectival_number_cop(sentence)

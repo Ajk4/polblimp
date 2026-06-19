@@ -14,6 +14,15 @@ match_subj_adjectival_gender_cop = import_module(
 match_subj_adjectival_number_cop = import_module(
     "phenomena.subject_predicate_agreement.adjective.adjective and copula.subj_adjectival_number_cop.generator"
 ).match_subj_adjectival_number_cop
+match_subj_adjectival_case = import_module(
+    "phenomena.subject_predicate_agreement.adjective.adjective only.subj_adjectival_case.generator"
+).match_subj_adjectival_case
+match_subj_adjectival_gender = import_module(
+    "phenomena.subject_predicate_agreement.adjective.adjective only.subj_adjectival_gender.generator"
+).match_subj_adjectival_gender
+match_subj_adjectival_number = import_module(
+    "phenomena.subject_predicate_agreement.adjective.adjective only.subj_adjectival_number.generator"
+).match_subj_adjectival_number
 from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_simple.generator import (
     match_subj_verb_gender_simple_1a,
     match_subj_verb_gender_simple_1b,
@@ -76,6 +85,9 @@ ExpectedCount = int | MatchFunction | None
 class TestDatasetResultCounts(unittest.TestCase):
     EXPECTED_RESULTS: dict[str, dict[MatchFunction, ExpectedCount]] = {
         "lfg": {
+            match_subj_adjectival_case: match_subj_adjectival_number_cop,
+            match_subj_adjectival_gender: 503,
+            match_subj_adjectival_number: match_subj_adjectival_number_cop,
             match_subj_adjectival_gender_cop: 230,
             match_subj_adjectival_number_cop: 520,
             ##
@@ -116,6 +128,9 @@ class TestDatasetResultCounts(unittest.TestCase):
             match_subj_verb_person_genitive_1b: 24,
         },
         "pdb": {
+            match_subj_adjectival_case: match_subj_adjectival_number_cop,
+            match_subj_adjectival_gender: 1111,
+            match_subj_adjectival_number: match_subj_adjectival_number_cop,
             match_subj_adjectival_gender_cop: 342,
             match_subj_adjectival_number_cop: 1125,
             ##

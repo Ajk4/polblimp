@@ -4,8 +4,9 @@ from typing import Optional
 
 import conllu
 import pandas as pd
+from conllu import Token
 
-from phenomena.common import change_gender, match_descendants, run_filter_transform
+from phenomena.common import change_gender, run_filter_transform
 from phenomena.morph_dictionary import MorphDictionary
 
 
@@ -15,69 +16,57 @@ def run_subj_adjectival_gender(
         limit: Optional[int],
 ) -> pd.DataFrame:
     def transform(sentence: conllu.TokenList) -> bool:
-        matches = extract_subj_adjectival_gender(sentence)
+        matches = match_subj_adjectival_gender(sentence)
         assert matches is not None, "Matched sentences are supposed to be filtered first"
-        return change_gender(matches["root"], morph_dict)
+        root_form = matches["root"]["form"]
+        changed = change_gender(matches["root"], morph_dict)
+        return changed and matches["root"]["form"] != root_form
 
     return run_filter_transform(
         sentences,
-        match_subj_adjectival_gender,
+        lambda s: match_subj_adjectival_gender(s) is not None,
         transform,
         limit=limit,
         progress_desc="subj_adjectival_gender",
     )
 
 
-def match_subj_adjectival_gender(
-        sentence: conllu.TokenList,
-) -> bool:
-    return extract_subj_adjectival_gender(sentence) is not None
-
-
-def extract_subj_adjectival_gender(
-        sentence: conllu.TokenList,
-) -> Optional[dict[str, conllu.Token]]:
+def match_subj_adjectival_gender(sentence: conllu.TokenList) -> dict[str, Token] | None:
     root = sentence.to_tree()
-    if root.token["upos"] != "ADJ":
+    root_token = root.token
+
+    if root_token["upos"] != "ADJ":
         return None
-    if root.token["deprel"] != "root":
+    if root_token["deprel"] != "root":
         return None
 
-    nsubj = None
+    nsubj_token = None
     for child in root.children:
-        child_feats = child.token["feats"] or {}
-        if child.token["deprel"] not in {"nsubj", "nsubj:pass"}:
+        child_token = child.token
+        child_feats = child_token["feats"] or {}
+        if child_token["deprel"] not in {"nsubj", "nsubj:pass"}:
             continue
         if child_feats.get("Case") != "Nom":
             continue
-
-        descendants = match_descendants(
-            child,
-            lambda token: token["deprel"] in {"nmod", "nmod:poss", "xcomp", "conj", "nummod"},
-        )
-        if descendants:
+        if child_feats.get("Person") in {"1", "2"}:
             continue
-
-        nsubj = child
+        nsubj_token = child_token
         break
 
-    if nsubj is None:
+    if nsubj_token is None:
         return None
 
-    cop = None
     for child in root.children:
-        if child.token["upos"] != "AUX":
+        child_token = child.token
+        if child_token["upos"] != "AUX":
             continue
-        if child.token.get("lemma") in {"to", "by"}:
+        if child_token.get("lemma") in {"to", "by"}:
             continue
-        cop = child
-        break
 
-    if cop is None:
-        return None
+        return {
+            "root": root_token,
+            "nsubj": nsubj_token,
+            "cop": child_token,
+        }
 
-    return {
-        "root": root.token,
-        "nsubj": nsubj.token,
-        "cop": cop.token,
-    }
+    return None

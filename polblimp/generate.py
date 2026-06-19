@@ -18,6 +18,15 @@ run_subj_adjectival_gender_cop = import_module(
 run_subj_adjectival_number_cop = import_module(
     "phenomena.subject_predicate_agreement.adjective.adjective and copula.subj_adjectival_number_cop.generator"
 ).run_subj_adjectival_number_cop
+run_subj_adjectival_case = import_module(
+    "phenomena.subject_predicate_agreement.adjective.adjective only.subj_adjectival_case.generator"
+).run_subj_adjectival_case
+run_subj_adjectival_gender = import_module(
+    "phenomena.subject_predicate_agreement.adjective.adjective only.subj_adjectival_gender.generator"
+).run_subj_adjectival_gender
+run_subj_adjectival_number = import_module(
+    "phenomena.subject_predicate_agreement.adjective.adjective only.subj_adjectival_number.generator"
+).run_subj_adjectival_number
 from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_simple.generator import \
     run_subj_verb_gender_simple
 from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_numerals.generator import \
@@ -49,7 +58,10 @@ QueryRunner = Callable[
 ]
 
 PARADIGM_RUNNERS: dict[str, QueryRunner] = {
+    "subj_adjectival_case": run_subj_adjectival_case,
+    "subj_adjectival_gender": run_subj_adjectival_gender,
     "subj_adjectival_gender_cop": run_subj_adjectival_gender_cop,
+    "subj_adjectival_number": run_subj_adjectival_number,
     "subj_adjectival_number_cop": run_subj_adjectival_number_cop,
     "subj_verb_gender_csubj": run_subj_verb_gender_csubj,
     "subj_verb_gender_genitive": run_subj_verb_gender_genitive,
