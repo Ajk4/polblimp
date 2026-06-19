@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from importlib import import_module
 import unittest
 from collections.abc import Callable
 from pathlib import Path
@@ -8,21 +7,21 @@ from pathlib import Path
 import conllu
 
 from phenomena.common import load_sentences
-match_subj_adjectival_gender_cop = import_module(
-    "phenomena.subject_predicate_agreement.adjective.adjective and copula.subj_adjectival_gender_cop.generator"
-).match_subj_adjectival_gender_cop
-match_subj_adjectival_number_cop = import_module(
-    "phenomena.subject_predicate_agreement.adjective.adjective and copula.subj_adjectival_number_cop.generator"
-).match_subj_adjectival_number_cop
-match_subj_adjectival_case = import_module(
-    "phenomena.subject_predicate_agreement.adjective.adjective only.subj_adjectival_case.generator"
-).match_subj_adjectival_case
-match_subj_adjectival_gender = import_module(
-    "phenomena.subject_predicate_agreement.adjective.adjective only.subj_adjectival_gender.generator"
-).match_subj_adjectival_gender
-match_subj_adjectival_number = import_module(
-    "phenomena.subject_predicate_agreement.adjective.adjective only.subj_adjectival_number.generator"
-).match_subj_adjectival_number
+from phenomena.subject_predicate_agreement.adjective.adjective_and_copula.subj_adjectival_gender_cop.generator import (
+    match_subj_adjectival_gender_cop,
+)
+from phenomena.subject_predicate_agreement.adjective.adjective_and_copula.subj_adjectival_number_cop.generator import (
+    match_subj_adjectival_number_cop,
+)
+from phenomena.subject_predicate_agreement.adjective.adjective_only.subj_adjectival_case.generator import (
+    match_subj_adjectival_case,
+)
+from phenomena.subject_predicate_agreement.adjective.adjective_only.subj_adjectival_gender.generator import (
+    match_subj_adjectival_gender,
+)
+from phenomena.subject_predicate_agreement.adjective.adjective_only.subj_adjectival_number.generator import (
+    match_subj_adjectival_number,
+)
 from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_simple.generator import (
     match_subj_verb_gender_simple_1a,
     match_subj_verb_gender_simple_1b,

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from importlib import import_module
 from typing import Optional
 
 import conllu
@@ -9,10 +8,9 @@ from conllu import Token
 
 from phenomena.common import change_morph, run_filter_transform
 from phenomena.morph_dictionary import MorphDictionary
-
-match_subj_adjectival_number = import_module(
-    "phenomena.subject_predicate_agreement.adjective.adjective only.subj_adjectival_number.generator"
-).match_subj_adjectival_number
+from phenomena.subject_predicate_agreement.adjective.adjective_only.subj_adjectival_number.generator import (
+    match_subj_adjectival_number,
+)
 
 
 def run_subj_adjectival_case(

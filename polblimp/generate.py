@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-from importlib import import_module
 from collections.abc import Callable
 from pathlib import Path
 from typing import Optional
@@ -12,21 +11,21 @@ import conllu
 
 from phenomena.common import load_sentences
 from phenomena.morph_dictionary import MorphDictionary
-run_subj_adjectival_gender_cop = import_module(
-    "phenomena.subject_predicate_agreement.adjective.adjective and copula.subj_adjectival_gender_cop.generator"
-).run_subj_adjectival_gender_cop
-run_subj_adjectival_number_cop = import_module(
-    "phenomena.subject_predicate_agreement.adjective.adjective and copula.subj_adjectival_number_cop.generator"
-).run_subj_adjectival_number_cop
-run_subj_adjectival_case = import_module(
-    "phenomena.subject_predicate_agreement.adjective.adjective only.subj_adjectival_case.generator"
-).run_subj_adjectival_case
-run_subj_adjectival_gender = import_module(
-    "phenomena.subject_predicate_agreement.adjective.adjective only.subj_adjectival_gender.generator"
-).run_subj_adjectival_gender
-run_subj_adjectival_number = import_module(
-    "phenomena.subject_predicate_agreement.adjective.adjective only.subj_adjectival_number.generator"
-).run_subj_adjectival_number
+from phenomena.subject_predicate_agreement.adjective.adjective_and_copula.subj_adjectival_gender_cop.generator import (
+    run_subj_adjectival_gender_cop,
+)
+from phenomena.subject_predicate_agreement.adjective.adjective_and_copula.subj_adjectival_number_cop.generator import (
+    run_subj_adjectival_number_cop,
+)
+from phenomena.subject_predicate_agreement.adjective.adjective_only.subj_adjectival_case.generator import (
+    run_subj_adjectival_case,
+)
+from phenomena.subject_predicate_agreement.adjective.adjective_only.subj_adjectival_gender.generator import (
+    run_subj_adjectival_gender,
+)
+from phenomena.subject_predicate_agreement.adjective.adjective_only.subj_adjectival_number.generator import (
+    run_subj_adjectival_number,
+)
 from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_simple.generator import \
     run_subj_verb_gender_simple
 from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_numerals.generator import \
