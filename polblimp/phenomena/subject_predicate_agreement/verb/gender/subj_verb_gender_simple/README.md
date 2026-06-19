@@ -79,6 +79,53 @@ a-node $root := [
 2. Copular verb
 
 ```
+a-node $root := [
+  tag != 'VERB' or 
+  lemma = 'to',
+  deprel = 'root',
+  
+  child a-node $cop :=[ 
+    tag = 'AUX',
+    lemma !in {'to', 'by'},
+    member iset [tense = 'past']
+  ],
+  
+  child a-node $nsubj := [
+    deprel in {'nsubj', 'nsubj:pass'}, 
+
+    # no attractors between subject and verb
+    0x descendant $att := [
+      deprel in {'nmod', 'nmod:poss', 'nmod:arg', 'xcomp', 'conj', 'nummod'},
+      (
+        ($cop.iset/number = 'sing' and $att.iset/gender != $cop.iset/gender)
+        or
+        ($cop.iset/number = 'plur' and (($nsubj.conll/feat ~ 'SubGender=Masc1' and $att.conll/feat !~
+         'SubGender=Masc1') or ($nsubj.conll/feat ~ 'Animacy=Hum' and $att.conll/feat !~'Animacy=Hum')))
+        or
+        ($cop.iset/number = 'plur' and (($nsubj.conll/feat !~ 'SubGender=Masc1' and $att.conll/feat ~
+         'SubGender=Masc1') or ($nsubj.conll/feat !~ 'Animacy=Hum' and $att.conll/feat ~'Animacy=Hum')))
+      ),
+
+      (
+        ($nsubj.ord < ord and ord < $cop.ord)
+        or
+        ($cop.ord < ord and ord < $nsubj.ord)
+      )
+    ],
+    
+   # for generating pairs
+   (
+   # i. singular - change the gender of $root
+   ($cop.iset/number = 'sing')
+    or
+   # ii. plural, masculine personal - change the subgender (LFG) or the animacy (PDB) of $root (mp → nmp)
+    ($cop.iset/number = 'plur' and ($nsubj.conll/feat ~ 'SubGender=Masc1' or $nsubj.conll/feat ~ 'Animacy=Hum'))
+    or
+   # iii. plural, non-masculine-personal - change the subgender (LFG) or the animacy (PDB) of $root (nmp → mp)
+    ($cop.iset/number = 'plur' and $nsubj.conll/feat !~ 'SubGender=Masc1' and $nsubj.conll/feat !~ 'Animacy=Hum') 
+      ),
+  ]
+]
 
 ```
 
@@ -90,8 +137,8 @@ UD 2.18 results:
  PDB: 2550 + 1404
 
 2:  
- LFG:  
- PDB: 
+ LFG: 388 + 60,  
+ PDB: 390 + 343
 
  
 (deprel = root + deprel != root)  
