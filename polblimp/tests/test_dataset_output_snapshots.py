@@ -26,6 +26,8 @@ class TestDatasetOutputSnapshots(unittest.TestCase):
 
     EXPECTED_HASHES: dict[str, dict[str, str]] = {
         "lfg": {
+            "subj_adjectival_gender_cop": "747ef327a851734e36cf717155b3fe2379838cea57a1c69eec80b110c29074f3",
+            "subj_adjectival_number_cop": "34105fff5e538b1c7649dc3de8a097117f7f6e7cc1e235e2dc7365bca9f9dbdd",
             "subj_verb_gender_csubj": "b4973ed8d329f895159d487757b1c387d2a585469215d2455b77b44ce0608c08",
             "subj_verb_gender_genitive": "e1f95054ae695715fd633e70e66a3c4a7fb51d7d5e19ec6c38bd5f9600e18b02",
             "subj_verb_gender_numerals": "8b94c9bdac228230d41ec471199adf9057ccd4a15c0edcd0768b529722794a0a",
@@ -40,6 +42,8 @@ class TestDatasetOutputSnapshots(unittest.TestCase):
             "subj_verb_person_simple": "bf6a983f4afad6dec37dca96f9005e9c269830736556e7306d59e5d49dbba4d0",
         },
         "pdb": {
+            "subj_adjectival_gender_cop": "15b941350be1643a8214024d77610766ab46b949f452ac2a22658dc181052d85",
+            "subj_adjectival_number_cop": "b954fe3fe768671f06bbec1902baaaad39565779738a838eb5209cec2af8a14d",
             "subj_verb_gender_csubj": "c0af288c18dc4cf9dd9fb85cb1e5d590570e34ca52dc5f9e51da1290b6d7930f",
             "subj_verb_gender_genitive": "b3ebb3633dd950eb7e8a91d25bde8583785f87e7c7f36a5b92abab1256c400b6",
             "subj_verb_gender_numerals": "bf307bf82c2f5966581330c1558345ddf59aed88807ca6d081afadc3e9af5f8c",

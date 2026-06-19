@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from importlib import import_module
 import unittest
 from collections.abc import Callable
 from pathlib import Path
@@ -7,6 +8,12 @@ from pathlib import Path
 import conllu
 
 from phenomena.common import load_sentences
+match_subj_adjectival_gender_cop = import_module(
+    "phenomena.subject_predicate_agreement.adjective.adjective and copula.subj_adjectival_gender_cop.generator"
+).match_subj_adjectival_gender_cop
+match_subj_adjectival_number_cop = import_module(
+    "phenomena.subject_predicate_agreement.adjective.adjective and copula.subj_adjectival_number_cop.generator"
+).match_subj_adjectival_number_cop
 from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_simple.generator import (
     match_subj_verb_gender_simple_1a,
     match_subj_verb_gender_simple_1b,
@@ -69,6 +76,9 @@ ExpectedCount = int | MatchFunction | None
 class TestDatasetResultCounts(unittest.TestCase):
     EXPECTED_RESULTS: dict[str, dict[MatchFunction, ExpectedCount]] = {
         "lfg": {
+            match_subj_adjectival_gender_cop: 230,
+            match_subj_adjectival_number_cop: 520,
+            ##
             match_subj_verb_gender_simple_1a: 1627,
             match_subj_verb_gender_simple_1b: 264,
             match_subj_verb_gender_simple_1c: 373,
@@ -106,6 +116,9 @@ class TestDatasetResultCounts(unittest.TestCase):
             match_subj_verb_person_genitive_1b: 24,
         },
         "pdb": {
+            match_subj_adjectival_gender_cop: 342,
+            match_subj_adjectival_number_cop: 1125,
+            ##
             match_subj_verb_gender_genitive_1a: 37,
             match_subj_verb_gender_csubj_1a: 32,
             match_subj_verb_gender_csubj_2a: 4,

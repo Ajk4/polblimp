@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from importlib import import_module
 from collections.abc import Callable
 from pathlib import Path
 from typing import Optional
@@ -11,6 +12,12 @@ import conllu
 
 from phenomena.common import load_sentences
 from phenomena.morph_dictionary import MorphDictionary
+run_subj_adjectival_gender_cop = import_module(
+    "phenomena.subject_predicate_agreement.adjective.adjective and copula.subj_adjectival_gender_cop.generator"
+).run_subj_adjectival_gender_cop
+run_subj_adjectival_number_cop = import_module(
+    "phenomena.subject_predicate_agreement.adjective.adjective and copula.subj_adjectival_number_cop.generator"
+).run_subj_adjectival_number_cop
 from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_simple.generator import \
     run_subj_verb_gender_simple
 from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_numerals.generator import \
@@ -42,6 +49,8 @@ QueryRunner = Callable[
 ]
 
 PARADIGM_RUNNERS: dict[str, QueryRunner] = {
+    "subj_adjectival_gender_cop": run_subj_adjectival_gender_cop,
+    "subj_adjectival_number_cop": run_subj_adjectival_number_cop,
     "subj_verb_gender_csubj": run_subj_verb_gender_csubj,
     "subj_verb_gender_genitive": run_subj_verb_gender_genitive,
     "subj_verb_gender_numerals": run_subj_verb_gender_numerals,
