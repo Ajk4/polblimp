@@ -27,7 +27,6 @@ To create the ungrammatical sentence change the gender of:
 ```
 a-node $root := [
   tag = 'VERB',
-  deprel = 'root',
   member iset [
     number = 'sing',
     gender = 'neut' 
@@ -35,7 +34,9 @@ a-node $root := [
 
   child a-node $csubj := [
     tag = 'VERB',
-    deprel ~ 'subj'
+    deprel ~ 'subj',
+    # exclude sentences with lemma 'kto' - incorrect annotations
+    0x child [lemma  = 'kto']
   ]
 ]
 ```
@@ -43,11 +44,12 @@ a-node $root := [
 ```
 a-node $root := [
   tag != 'VERB',
-  deprel = 'root',
   
   child a-node $csubj := [
     tag = 'VERB',
     deprel ~ 'subj',
+    # exclude sentences with lemma 'kto' - incorrect annotations
+    0x child [lemma  = 'kto']
   ],
 
   child a-node $cop :=[ 
@@ -65,11 +67,11 @@ a-node $root := [
 UD 2.18 results:  
 
 1:  
- LFG: 40 + 8,  
- PDB: 32 + 17
+ LFG: 48,  
+ PDB: 48
 
 2:  
- LFG: 0 + 1,  
- PDB: 4 + 5
+ LFG: 1,  
+ PDB: 9
  
- (deprel = root + deprel != root)  
+Removed the 'root' constraint. Needed to exclude a child node with lemma 'kto'. The annotations are wrong and the verb labeled as 'csubj' is not actually a csubj.

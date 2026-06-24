@@ -26,12 +26,13 @@ To create the ungrammatical sentence:
 ```
 a-node $root := [
   tag = 'VERB',
-  deprel = 'root',
   member iset [number = 'sing'],
 
   child a-node $csubj := [
     tag = 'VERB',
-    deprel ~ 'subj'
+    deprel ~ 'subj',
+    # exclude sentences with lemma 'kto' - incorrect annotations
+    0x child [lemma  = 'kto']
   ]
 ]
 ```
@@ -39,11 +40,12 @@ a-node $root := [
 ```
 a-node $root := [
   tag != 'VERB',
-  deprel = 'root',
   
   child a-node $csubj := [
     tag = 'VERB',
     deprel ~ 'subj',
+    # exclude sentences with lemma 'kto' - incorrect annotations
+    0x child [lemma  = 'kto']
   ],
 
   child a-node $cop :=[ 
@@ -58,11 +60,11 @@ Queries are identical to those used for subj_verb_person_csubj.
 
 UD 2.18 results:  
 1:  
- LFG: 93 + 13,  
- PDB: 92 + 40
+ LFG: 105,  
+ PDB: 127
 
 2:  
- LFG: 6 + 1,  
- PDB: 15 + 18
+ LFG: 7,  
+ PDB: 32
  
- (deprel = root + deprel != root)  
+ Removed the 'root' constraint. Needed to exclude a child node with lemma 'kto'. The annotations are wrong and the verb labeled as 'csubj' is not actually a csubj. 
