@@ -28,7 +28,6 @@ To create the ungrammatical sentence change the person of:
 ```
 a-node $root := [
   tag = 'VERB',
-  deprel = 'root',
  
   child a-node $nsubj := [
     tag = 'NOUN',
@@ -37,7 +36,7 @@ a-node $root := [
     child a-node $num := [
     tag = 'NUM'
     or 
-    (lemma in {'kilka', 'kilkaset', 'kilkanaście', 'kilkadziesiąt', 'sporo', 'mnóstwo', 'dużo', 'wiele', 'więcej', 'najwięcej', 'większość', 'mało', 'mniej', 'najmniej', 'trochę', 'parę', 'niewiele', 'ile', 'tyle'} and deprel = 'det')
+    (lemma in {'kilka', 'kilkaset', 'kilkanaście', 'kilkadziesiąt', 'sporo', 'mnóstwo', 'dużo', 'wiele', 'więcej', 'najwięcej', 'większość', 'mało', 'mniej', 'najmniej', 'trochę', 'parę', 'niewiele', 'ile', 'tyle'} and deprel ~ 'det')
     ],
   ],
 
@@ -80,7 +79,6 @@ a-node $root := [
 ```
 a-node $root := [
   tag != 'VERB' or lemma = 'to',
-  deprel = 'root',
   
   child a-node $nsubj := [
     deprel in {'nsubj', 'nsubj:pass'}, 
@@ -129,3 +127,4 @@ UD 2.18 results:
  PDB: 11 + 12
  
  (deprel = root + deprel != root)  
+ Removed the 'root' constraint. Fixed a typo - it was deprel = 'det', now it is deprel ~ 'det'
