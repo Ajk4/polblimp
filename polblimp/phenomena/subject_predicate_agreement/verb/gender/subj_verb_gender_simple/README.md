@@ -84,12 +84,15 @@ a-node $root := [
   
   child a-node $cop :=[ 
     tag = 'AUX',
-    lemma !in {'to', 'by'},
-    member iset [tense = 'past']
+    lemma !in {'to', 'by'}
   ],
   
   child a-node $nsubj := [
     deprel in {'nsubj', 'nsubj:pass'}, 
+    member iset [
+      case = 'nom',
+      gender = $cop.iset/gender
+    ],
 
     # no attractors between subject and verb
     0x descendant $att := [
@@ -110,6 +113,9 @@ a-node $root := [
         ($cop.ord < ord and ord < $nsubj.ord)
       )
     ],
+
+    # no conjunct subject (anywhere)
+    0x child [deprel = 'conj'],
     
    # for generating pairs
    (
@@ -135,8 +141,8 @@ UD 2.18 results:
  PDB: 2550 + 1404
 
 2:  
- LFG: 388 + 60,  
- PDB: 390 + 343
+ LFG: 380 + 57,  
+ PDB: 361 + 322
 
  
 (deprel = root + deprel != root)  
