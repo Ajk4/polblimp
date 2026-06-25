@@ -29,7 +29,6 @@ To create the ungrammatical sentence change the gender of:
 ```
 a-node $root := [
   tag = 'VERB',
-  deprel = 'root',
   member iset [
     number in {'sing', 'plur'} 
   ],
@@ -82,7 +81,6 @@ a-node $root := [
 a-node $root := [
   tag != 'VERB' or 
   lemma = 'to',
-  deprel = 'root',
   
   child a-node $cop :=[ 
     tag = 'AUX',
@@ -142,3 +140,4 @@ UD 2.18 results:
 
  
 (deprel = root + deprel != root)  
+Removed the 'root' constraint.

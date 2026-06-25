@@ -34,7 +34,6 @@ To create the ungrammatical sentence change the number of:
 ```
 a-node $root := [
   tag = 'VERB',
-  deprel = 'root',
 
   child a-node $nsubj := [
     deprel = 'nsubj',
@@ -77,7 +76,6 @@ a-node $root := [
 a-node $root := [
   tag = 'VERB',
   lemma != 'to',
-  deprel = 'root',
   
   child a-node $aux :=  [
     deprel = 'aux'],
@@ -123,7 +121,6 @@ a-node $root := [
 a-node $root := [
   tag != 'VERB' or 
   lemma = 'to',
-  deprel = 'root',
   
   child a-node $cop :=[ 
     tag = 'AUX',
@@ -177,3 +174,4 @@ UD 2.18 results:
 
  
 (deprel = root + deprel != root)  
+Removed the 'root' constraint.

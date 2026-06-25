@@ -16,12 +16,12 @@ To create the ungrammatical sentence change the number of the main verb (\$root)
 ```
 a-node $root :=  [
   tag = 'VERB',
-  deprel = 'root',
   member iset [number = 'sing'],
 
   child a-node $nsubj :=[
     deprel = 'nsubj',
     member iset [ case = 'gen' ],
+
     # exclude numerals and quantifiers
     0x child [tag = 'NUM' or (lemma in {'kilka', 'kilkaset', 'kilkanaście', 'kilkadziesiąt', 'sporo', 'mnóstwo', 'dużo', 'wiele', 'więcej', 'najwięcej', 'większość', 'mało', 'mniej', 'najmniej', 'trochę', 'parę', 'niewiele', 'ile', 'tyle'} and deprel ~ 'det')
     ]
@@ -32,8 +32,9 @@ a-node $root :=  [
 ## Notes
 UD 2.18 results:  
 
- LFG: 78 + 15,  
- PDB: 103 + 111
+ LFG: 78 + 15 = 93,  
+ PDB: 103 + 111 = 214
 
  
 (deprel = root + deprel != root)  
+Removed the 'root' constraint.

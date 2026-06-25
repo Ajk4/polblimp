@@ -25,7 +25,6 @@ To create the ungrammatical sentence:
 ```
 a-node $root := [
   tag = 'VERB',
-  deprel = 'root',
 
   child a-node $nsubj := [
     deprel = 'nsubj',
@@ -52,7 +51,6 @@ a-node $root := [
 ```
 a-node $root := [
   tag != 'VERB' or lemma = 'to',
-  deprel = 'root',
 
   child a-node $nsubj := [
     deprel in {'nsubj', 'nsubj:pass'}, 
@@ -89,3 +87,4 @@ UD 2.18 results:
  PDB: 1581 + 1279
 
  (deprel = root + deprel != root)  
+ Removed the 'root' constraint.
