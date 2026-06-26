@@ -29,7 +29,7 @@ To create the ungrammatical sentence change the number of:
 
 ## Queries
 
- 1a. Main verb
+ 1. Main verb
 ```
 a-node $root := [
   tag = 'VERB',
@@ -102,7 +102,7 @@ a-node $root := [
 # For generating pairs change number of $root
 ]
 ```
- 1b. Main verb, compound future
+ 2. Main verb, compound future
 ```
 a-node $root := [
   tag = 'VERB',
@@ -189,7 +189,7 @@ a-node $root := [
   )
 ]
 ```
- 2. Copular verb
+ 3. Copular verb
 ```
 a-node $root := [
   tag != 'VERB' or 
