@@ -5,42 +5,69 @@ from pathlib import Path
 
 import conllu
 
-from phenomena.common import sentence_text
+from phenomena.common import load_sentences
+from phenomena.morph_dictionary import MorphDictionary
+from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_simple.generator import (
+    run_subj_verb_number_simple,
+)
+from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_csubj.generator import (
+    run_subj_verb_person_csubj,
+)
+from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_simple.generator import (
+    run_subj_verb_person_simple,
+)
 
 
 class TestSentenceText(unittest.TestCase):
-    def test_multiword_token_components_do_not_get_spaces(self) -> None:
-        sentence = self._load_sentence("pl_pdb-ud-train.conllu", "train-s7190")
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.repo_root = Path(__file__).resolve().parents[1]
+        cls.morph_dict = MorphDictionary.load(cls.repo_root / "dictionary.v4.csv")
 
-        self.assertEqual(
-            "Ja nie byłem zbyt głodny, więc poprzestałem na sałatce.",
-            sentence_text(sentence),
-        )
+    def test_generated_sentence_outputs(self) -> None:
+        cases = [
+            {
+                "dataset": ("pl_lfg-ud-test.conllu", 1574),
+                "source": "Wydawało mi się, że prowadzę z drzewem bezgłośny dialog.",
+                "transform": run_subj_verb_person_csubj,
+                "expected": "Wydawałoś mi się, że prowadzę z drzewem bezgłośny dialog.",
+            },
+            {
+                "dataset": ("pl_lfg-ud-test.conllu", 1575),
+                "source": "Wydawało się, że jej życie dobiegnie końca bez większych niespodzianek.",
+                "transform": run_subj_verb_person_csubj,
+                "expected": "Wydawałoś się, że jej życie dobiegnie końca bez większych niespodzianek.",
+            },
+            {
+                "dataset": ("pl_lfg-ud-train.conllu", 3082),
+                "source": "I to była prawda.",
+                "transform": run_subj_verb_person_simple,
+                "expected": "I to byłam prawda.",
+            },
+            {
+                "dataset": ("pl_lfg-ud-train.conllu", 3083),
+                "source": "i to byłby komplet..",
+                "transform": run_subj_verb_person_simple,
+                "expected": "i to byłbyś komplet..",
+            },
+            {
+                "dataset": ("pl_pdb-ud-train.conllu", 7189),
+                "source": "Ja nie byłem zbyt głodny, więc poprzestałem na sałatce.",
+                "transform": run_subj_verb_number_simple,
+                "expected": "Ja nie byliśmy zbyt głodny, więc poprzestałem na sałatce.",
+            },
+        ]
 
-        self._token_by_id(sentence, 3)["form"] = "byli"
-        self._token_by_id(sentence, 4)["form"] = "śmy"
-        self._token_by_id(sentence, 9)["form"] = "poprzestał"
-        self._token_by_id(sentence, 10)["form"] = "em"
+        for case in cases:
+            with self.subTest(expected=case["expected"]):
+                sentence = self._get_sentence(case)
+                self.assertEqual(case["source"], sentence.metadata["text"])
+                transform = case["transform"]
+                df = transform([sentence], self.morph_dict, None)
 
-        self.assertEqual(
-            "Ja nie byliśmy zbyt głodny, więc poprzestałem na sałatce.",
-            sentence_text(sentence),
-        )
+                self.assertEqual(1, len(df))
+                self.assertEqual(case["expected"], df.iloc[0]["incorrect"])
 
-    @staticmethod
-    def _load_sentence(filename: str, sent_id: str) -> conllu.TokenList:
-        path = Path(__file__).resolve().parents[1] / "data" / filename
-        with path.open("r", encoding="utf-8") as handle:
-            for sentence in conllu.parse_incr(handle):
-                if sentence.metadata.get("sent_id") == sent_id:
-                    return sentence
-
-        raise AssertionError(f"Missing test sentence: {filename}:{sent_id}")
-
-    @staticmethod
-    def _token_by_id(sentence: conllu.TokenList, token_id: int) -> conllu.Token:
-        for token in sentence:
-            if token["id"] == token_id:
-                return token
-
-        raise AssertionError(f"Missing token id: {token_id}")
+    def _get_sentence(self, case: dict) -> conllu.TokenList:
+        filename, index = case["dataset"]
+        return load_sentences(self.repo_root / "data" / filename)[index]

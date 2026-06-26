@@ -108,25 +108,45 @@ def change_person_root(sentence: conllu.TokenList, morph_dict: MorphDictionary) 
 
 
 def append_aux_clitic(token: Token, morph_dict: MorphDictionary) -> bool:
-    token_form = token["form"]
     source_xpos = token["xpos"]
-    if source_xpos.startswith("praet") and not source_xpos.endswith(":agl"):
-        agl_xpos = source_xpos + ":agl"
-        agl_form = morph_dict.get_form(token["lemma"], agl_xpos)
-        if agl_form is not None:
-            if token_form and token_form[0].isupper():
-                agl_form = agl_form[:1].upper() + agl_form[1:]
-            token_form = agl_form
+    if not (source_xpos.startswith("praet") or source_xpos.startswith("winien")):
+        print(f"Unknown tag for aux clitic append, tag={source_xpos}, form={token['form']}")
+        return False
 
-    if random.randint(0, 1) == 0:
-        suffix = "śmy" if (token.get("feats") or {}).get("Number") == "Plur" else "m"
+    if ":pl:" in source_xpos:
+        target_number = "pl"
+    elif ":sg:" in source_xpos:
+        target_number = "sg"
     else:
-        suffix = "ście" if (token.get("feats") or {}).get("Number") == "Plur" else "ś"
+        print(f"Unknown number for aux clitic append, tag={source_xpos}, form={token['form']}")
+        return False
 
-    if suffix in {"m", "ś"} and not token_form.endswith(("a", "o")):
-        suffix = "e" + suffix
+    target_person = "pri" if random.randint(0, 1) == 0 else "sec"
+    if target_number == "sg" and ":sg:m" in source_xpos:
+        target_variant = "wok"
+    else:
+        target_variant = "nwok"
 
-    token["form"] = token_form + suffix
+    host_xpos = source_xpos
+    if host_xpos.endswith((":agl", ":nagl")):
+        host_xpos = host_xpos.rsplit(":", 1)[0]
+
+    host_form = morph_dict.get_form(token["lemma"], host_xpos)
+    if host_form is None:
+        print(f"Missing form, lemma: {token['lemma']}, target_tag: {host_xpos}")
+        return False
+
+    clitic_xpos = f"aglt:{target_number}:{target_person}:imperf:{target_variant}"
+    clitic_form = morph_dict.get_form("być", clitic_xpos)
+    if clitic_form is None:
+        print(f"Missing form, lemma: być, target_tag: {clitic_xpos}")
+        return False
+
+    form = token.get("form", "")
+    if form and form[0].isupper():
+        host_form = host_form[:1].upper() + host_form[1:]
+
+    token["form"] = host_form + clitic_form
     return True
 
 
@@ -147,16 +167,8 @@ def change_person(token: conllu.Token, morph_dict: MorphDictionary) -> bool:
             target_xpos = source_xpos.replace(":ter:", ":pri:")
         else:
             target_xpos = source_xpos.replace(":ter:", ":sec:")
-    elif token["lemma"] == "być" and source_xpos.startswith("praet"):
-        person = random.choice(["pri", "sec", "ter"])
-        number = "sg" if ":sg:" in source_xpos else "pl"
-        tense = "imperf" if "imperf" in source_xpos else "perf"
-        target_xpos = f"bedzie:{number}:{person}:{tense}"
     elif source_xpos.startswith("praet"):
-        person = random.choice(["pri", "sec", "ter"])
-        number = "sg" if ":sg:" in source_xpos else "pl"
-        tense = "imperf" if "imperf" in source_xpos else "perf"
-        target_xpos = f"fin:{number}:{person}:{tense}"
+        return append_aux_clitic(token, morph_dict)
     else:
         print(f"Unknown tag={source_xpos}, form={token['form']}")
         return False

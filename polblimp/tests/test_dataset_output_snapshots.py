@@ -39,10 +39,10 @@ class TestDatasetOutputSnapshots(unittest.TestCase):
             "subj_verb_number_genitive": "fc73cb03b50ce385dd88fbbbf29de52ce602e4778163c6cc9a1d18349dac657b",
             "subj_verb_number_numerals": "2ea33c835b593109238d260c3fb2657f23b5203726edcd3e3f898693b2217c4b",
             "subj_verb_number_simple": "4082d81f56c872208580246d6189327302629f73c68dbe8ca2da147295016863",
-            "subj_verb_person_csubj": "ee8743083a2e18c53337628faa36d2e0ad15d1aad0a6cb3b5ade37230e84d3e0",
+            "subj_verb_person_csubj": "55e5ed22d4672f3fa4bf867e15f16deaa35bf3c75b63aee05e0c8e13c9a6c4ec",
             "subj_verb_person_genitive": "a6aa58460d49b4bbada3f94300d8d7dc5b5d898ecd490727b648b10feb0e9626",
-            "subj_verb_person_numerals": "aff27f705abef25156577f7da5229709c028069e85fdbb3ade8a2a6f2ed3ac91",
-            "subj_verb_person_simple": "bf6a983f4afad6dec37dca96f9005e9c269830736556e7306d59e5d49dbba4d0",
+            "subj_verb_person_numerals": "2f5af06ee042f67e235b8ee266f760843358d5995662339ce2e9bdeb500b1243",
+            "subj_verb_person_simple": "69d5905c13c525869d6eede4db2052085bfde83aae0d0e4a3669a8716695a53b",
         },
         "pdb": {
             "subj_adjectival_case": "3c5199fda24205831fb4202ab9d41036e267a1225f58826baaf9b825c4dd019b",
@@ -58,10 +58,10 @@ class TestDatasetOutputSnapshots(unittest.TestCase):
             "subj_verb_number_genitive": "b2d294e7c7cd5f243cabc5fdae9bc4f6c1786c520cc4047a4fce181bf310f60e",
             "subj_verb_number_numerals": "13c32a7c28a61fc4c673f32b6c814122c0de5c0ce485a6eb4ed0b87ceb9fea23",
             "subj_verb_number_simple": "4ae711acfbb95ec06bc1d5891bbf7cd6d96b3b5697ea39406e7464ed85cbac26",
-            "subj_verb_person_csubj": "b53d5faba14947083052758a371cdd3aadf6355e49f6ef5c65633c69af25924c",
+            "subj_verb_person_csubj": "83cd765a00880f1f0abfb4ebf840b336d05ecab388e2745c7717096fd5a2e8e6",
             "subj_verb_person_genitive": "3eead87569fade9ae12bfca3f80ca2692559c6c0e531b6f821536d6d5dfe6853",
-            "subj_verb_person_numerals": "c69edb825ccba95453e0e2263d6055915e878b77623c7ba0e6336edf3b94f27f",
-            "subj_verb_person_simple": "64374bd43a1f302e045d037ebd17b19c77c8d125dd41dcefbebc0b208607cb2f",
+            "subj_verb_person_numerals": "35cf244c459cf68fe303deda349941ee4e3ca2cfe98776bfa4b150ae8d83793e",
+            "subj_verb_person_simple": "f7ce1b0323b3be4f274ba696353f3e8a26ce2bdb5d25bba22aa8ff298ee05725",
         },
     }
 

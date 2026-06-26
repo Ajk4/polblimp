@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import random
 from typing import Optional
 
 import conllu
@@ -47,6 +49,11 @@ def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: M
 
     def transform_1d(sentence) -> bool:
         matches = extract_subj_verb_person_1d(sentence)
+        if "auxcnd" in matches:
+            # Conditional is split in UD as past host + "by" (e.g. "był" + "by").
+            # Person attaches to the conditional particle ("byś"), not the host
+            # ("byłeśby" is invalid).
+            return change_conditional_person(matches["aux"], matches["auxcnd"], morph_dict)
         return change_person(matches['aux'], morph_dict)
 
     variant_1d = run_filter_transform(
@@ -83,6 +90,11 @@ def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: M
 
     def transform_2c(sentence) -> bool:
         matches = match_subj_verb_person_2c(sentence)
+        if "auxcnd" in matches:
+            # Conditional is split in UD as past host + "by" (e.g. "był" + "by").
+            # Person attaches to the conditional particle ("byś"), not the host
+            # ("byłeśby" is invalid).
+            return change_conditional_person(matches["cop"], matches["auxcnd"], morph_dict)
         return change_person(matches['cop'], morph_dict)
 
     variant_2c = run_filter_transform(
@@ -129,6 +141,36 @@ def remove_aux_clitic(sentence: conllu.TokenList, auxclitic: Token) -> bool:
 
     del sentence[clitic_index]
 
+    return True
+
+
+def change_conditional_person(aux: Token, auxcnd: Token, morph_dict: MorphDictionary) -> bool:
+    aux_xpos = aux["xpos"]
+    if ":pl:" in aux_xpos:
+        target_number = "pl"
+    elif ":sg:" in aux_xpos:
+        target_number = "sg"
+    else:
+        print(f"Unknown conditional aux number, tag={aux_xpos}, form={aux['form']}")
+        return False
+
+    target_person = "pri" if random.randint(0, 1) == 0 else "sec"
+    by_form = morph_dict.get_form(auxcnd["lemma"], auxcnd["xpos"])
+    if by_form is None:
+        print(f"Missing form, lemma: {auxcnd['lemma']}, target_tag: {auxcnd['xpos']}")
+        return False
+
+    clitic_xpos = f"aglt:{target_number}:{target_person}:imperf:nwok"
+    clitic_form = morph_dict.get_form("być", clitic_xpos)
+    if clitic_form is None:
+        print(f"Missing form, lemma: być, target_tag: {clitic_xpos}")
+        return False
+
+    form = auxcnd.get("form", "")
+    if form and form[0].isupper():
+        by_form = by_form[:1].upper() + by_form[1:]
+
+    auxcnd["form"] = by_form + clitic_form
     return True
 
 
@@ -257,12 +299,20 @@ def extract_subj_verb_person_1d(sentence: conllu.TokenList) -> dict[str, Token] 
         if not (nsubj_feats.get("Case") != "Gen"):
             continue
 
+        auxcnd = next(
+            (child.token for child in root.children if child.token["deprel"] == "aux:cnd"),
+            None,
+        )
+
         for aux in root.children:
             if aux.token["deprel"] == "aux":
-                return {
+                match = {
                     "root": root.token,
                     "aux": aux.token,
                 }
+                if auxcnd is not None:
+                    match["auxcnd"] = auxcnd
+                return match
 
     return None
 
@@ -355,6 +405,11 @@ def match_subj_verb_person_2c(sentence: conllu.TokenList) -> dict[str, Token] | 
     if root_token["upos"] == "VERB" and root_token.get("lemma") != "to":
         return None
 
+    auxcnd = next(
+        (child.token for child in root.children if child.token["deprel"] == "aux:cnd"),
+        None,
+    )
+
     cop = None
     for child in root.children:
         child_token = child.token
@@ -380,10 +435,13 @@ def match_subj_verb_person_2c(sentence: conllu.TokenList) -> dict[str, Token] | 
             continue
         if nsubj_feats.get("Person") in {"1", "2"}:
             continue
-        return {
+        match = {
             "root": root_token,
             "nsubj": nsubj_token,
             "cop": cop.token,
         }
+        if auxcnd is not None:
+            match["auxcnd"] = auxcnd
+        return match
 
     return None

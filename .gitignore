@@ -4,3 +4,5 @@ dictionary.v2.csv
 .idea
 .DS_Store
 __pycache__
+
+variants.txt
