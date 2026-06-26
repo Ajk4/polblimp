@@ -299,17 +299,21 @@ def match_descendants(tree: conllu.TokenTree, token_predicate):
     return matches
 
 
-def load_sentences(conllu_path: Path, limit=None) -> list[conllu.TokenList]:
+def load_sentences(conllu_path: Path, skip_duplicates: bool = True) -> list[conllu.TokenList]:
     sentences: list[conllu.TokenList] = []
+    previous_text = None
     with conllu_path.open("r", encoding="utf-8") as handle:
         for sentence in conllu.parse_incr(handle):
+            current_text = sentence_text(sentence)
+            if skip_duplicates and current_text == previous_text:
+                print(f"Skipping duplicate sentence in {conllu_path.name}: {current_text}")
+                continue
+
             metadata = sentence.metadata or {}
             metadata["dataset"] = conllu_path.name
             sentence.metadata = metadata
             sentences.append(sentence)
-            if limit is not None:
-                if len(sentences) >= limit:
-                    break
+            previous_text = current_text
     return sentences
 
 

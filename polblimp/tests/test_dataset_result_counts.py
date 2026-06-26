@@ -85,6 +85,13 @@ ExpectedCount = int | MatchFunction | None
 
 
 class TestDatasetResultCounts(unittest.TestCase):
+
+    """
+    Numbers are from:
+    * https://lindat.mff.cuni.cz/services/pmltq/?query=pdb#!/treebank/udpl_lfg218/query/CoeQIiQ/result?filter=true&timeout=30&limit=10000
+    * https://lindat.mff.cuni.cz/services/pmltq/?query=pdb#!/treebank/udpl_pdb218/query/CoeQIiQ/result?filter=true&timeout=30&limit=10000
+    """
+
     EXPECTED_RESULTS: dict[str, dict[MatchFunction, ExpectedCount]] = {
         "lfg": {
             match_subj_adjectival_case: match_subj_adjectival_number_cop,
@@ -177,7 +184,7 @@ class TestDatasetResultCounts(unittest.TestCase):
 
             sentences = []
             for path in paths:
-                sentences.extend(load_sentences(path))
+                sentences.extend(load_sentences(path, skip_duplicates=False))
             cls.sentences_by_dataset[dataset_name] = sentences
 
     def test_expected_result_counts(self) -> None:

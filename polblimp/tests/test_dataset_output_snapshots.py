@@ -77,7 +77,7 @@ class TestDatasetOutputSnapshots(unittest.TestCase):
                     path = data_dir / filename
                     if not path.exists():
                         raise FileNotFoundError(f"Missing {dataset_name} data file: {path}")
-                    sentences.extend(load_sentences(path))
+                    sentences.extend(load_sentences(path, skip_duplicates=False))
 
                 expected_hashes = self.EXPECTED_HASHES[dataset_name]
                 self.assertEqual(set(expected_hashes), set(PARADIGM_RUNNERS))
