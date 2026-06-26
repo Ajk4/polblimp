@@ -6,7 +6,7 @@ import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import change_gender, change_morph, match_descendants, run_filter_transform
+from phenomena.common import change_gender, match_descendants, run_filter_transform
 from phenomena.morph_dictionary import MorphDictionary
 
 
@@ -15,21 +15,16 @@ def run_subj_verb_gender_simple(
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    def transform(matches: dict[str, Token]) -> bool:
-        target_gender = get_target_gender(matches["root"])
+    def transform(matches: dict[str, Token], target_name: str) -> bool:
+        target = matches[target_name]
+        target_gender = get_target_gender(target)
         if target_gender is None:
             return False
-        if matches["root"]["lemma"] == "powinien" or matches["root"]["xpos"].startswith("winien:"):
-            return change_gender(matches["root"], morph_dict, target_gender=target_gender)
-        if target_gender == "Masc" and (matches["root"]["feats"] or {}).get("Number") == "Plur":
-            return change_plural_to_masculine_personal(matches["root"], morph_dict)
-        if target_gender == "Fem":
-            return change_gender(matches["root"], morph_dict, target_gender=target_gender)
-        return change_gender(matches["root"], morph_dict)
+        return change_gender(target, morph_dict, target_gender=target_gender)
 
     # Main verb, singular
     def transform_1a(sentence) -> bool:
-        return transform(match_subj_verb_gender_simple_1a(sentence))
+        return transform(match_subj_verb_gender_simple_1a(sentence), "root")
 
     variant_1a = run_filter_transform(
         sentences,
@@ -41,7 +36,7 @@ def run_subj_verb_gender_simple(
 
     # Main verb, plural masculine-personal
     def transform_1b(sentence) -> bool:
-        return transform(match_subj_verb_gender_simple_1b(sentence))
+        return transform(match_subj_verb_gender_simple_1b(sentence), "root")
 
     variant_1b = run_filter_transform(
         sentences,
@@ -53,7 +48,7 @@ def run_subj_verb_gender_simple(
 
     # Main verb, plural non-masculine-personal
     def transform_1c(sentence) -> bool:
-        return transform(match_subj_verb_gender_simple_1c(sentence))
+        return transform(match_subj_verb_gender_simple_1c(sentence), "root")
 
     variant_1c = run_filter_transform(
         sentences,
@@ -63,7 +58,43 @@ def run_subj_verb_gender_simple(
         progress_desc="subj_verb_gender_simple__1c",
     )
 
-    variants = [variant_1a, variant_1b, variant_1c]
+    # Copular verb, singular
+    def transform_2a(sentence) -> bool:
+        return transform(match_subj_verb_gender_simple_2a(sentence), "cop")
+
+    variant_2a = run_filter_transform(
+        sentences,
+        lambda s: match_subj_verb_gender_simple_2a(s) is not None,
+        transform_2a,
+        limit=limit,
+        progress_desc="subj_verb_gender_simple__2a",
+    )
+
+    # Copular verb, plural masculine-personal
+    def transform_2b(sentence) -> bool:
+        return transform(match_subj_verb_gender_simple_2b(sentence), "cop")
+
+    variant_2b = run_filter_transform(
+        sentences,
+        lambda s: match_subj_verb_gender_simple_2b(s) is not None,
+        transform_2b,
+        limit=limit,
+        progress_desc="subj_verb_gender_simple__2b",
+    )
+
+    # Copular verb, plural non-masculine-personal
+    def transform_2c(sentence) -> bool:
+        return transform(match_subj_verb_gender_simple_2c(sentence), "cop")
+
+    variant_2c = run_filter_transform(
+        sentences,
+        lambda s: match_subj_verb_gender_simple_2c(s) is not None,
+        transform_2c,
+        limit=limit,
+        progress_desc="subj_verb_gender_simple__2c",
+    )
+
+    variants = [variant_1a, variant_1b, variant_1c, variant_2a, variant_2b, variant_2c]
     df = pd.concat(variants)
     df.attrs["matched_sentences"] = sum(df.attrs["matched_sentences"] for df in variants)
 
@@ -106,6 +137,18 @@ def match_subj_verb_gender_simple_1c(sentence: conllu.TokenList) -> dict[str, To
     return None
 
 
+def match_subj_verb_gender_simple_2a(sentence: conllu.TokenList) -> dict[str, Token] | None:
+    return extract_copular_verb_gender_match(sentence, target_number="Sing")
+
+
+def match_subj_verb_gender_simple_2b(sentence: conllu.TokenList) -> dict[str, Token] | None:
+    return extract_copular_verb_gender_match(sentence, target_number="Plur", target_masculine_personal=True)
+
+
+def match_subj_verb_gender_simple_2c(sentence: conllu.TokenList) -> dict[str, Token] | None:
+    return extract_copular_verb_gender_match(sentence, target_number="Plur", target_masculine_personal=False)
+
+
 def extract_main_verb_gender_match(sentence: conllu.TokenList) -> dict[str, Token] | None:
     root = sentence.to_tree()
     root_token = root.token
@@ -144,8 +187,97 @@ def extract_main_verb_gender_match(sentence: conllu.TokenList) -> dict[str, Toke
     return None
 
 
+def extract_copular_verb_gender_match(
+        sentence: conllu.TokenList,
+        target_number: str | None = None,
+        target_masculine_personal: bool | None = None,
+) -> dict[str, Token] | None:
+    for root in token_trees(sentence.to_tree()):
+        match = extract_copular_verb_gender_match_for_root(root, target_number, target_masculine_personal)
+        if match is not None:
+            return match
+
+    return None
+
+
+def extract_copular_verb_gender_match_for_root(
+        root: conllu.TokenTree,
+        target_number: str | None,
+        target_masculine_personal: bool | None,
+) -> dict[str, Token] | None:
+    root_token = root.token
+
+    if root_token["upos"] == "VERB" and root_token["lemma"] != "to":
+        return None
+
+    for cop in root.children:
+        cop_token = cop.token
+        cop_feats = cop_token["feats"] or {}
+        if cop_token["upos"] != "AUX":
+            continue
+        if cop_token["lemma"] in {"to", "by"}:
+            continue
+        if cop_feats.get("Number") not in {"Sing", "Plur"}:
+            continue
+        if target_number is not None and cop_feats.get("Number") != target_number:
+            continue
+
+        cop_gender = cop_feats.get("Gender")
+        for nsubj in root.children:
+            nsubj_token = nsubj.token
+            nsubj_feats = nsubj_token["feats"] or {}
+            if nsubj_token["deprel"] not in {"nsubj", "nsubj:pass"}:
+                continue
+            if nsubj_feats.get("Case") != "Nom":
+                continue
+            if nsubj_feats.get("Gender") != cop_gender:
+                continue
+            if has_gender_attractor_between(nsubj, cop_token):
+                continue
+            if has_conj_child(nsubj):
+                cop_is_plural = cop_feats.get("Number") == "Plur"
+                singular_conj_subject_allowed = (
+                    root_token["upos"] == "ADJ"
+                    or (
+                        root_token["upos"] == "VERB"
+                        and root_token["lemma"] == "to"
+                        and root_token["deprel"] == "root"
+                    )
+                )
+                if cop_is_plural or not singular_conj_subject_allowed:
+                    continue
+            if (
+                    target_masculine_personal is not None
+                    and is_masculine_personal(nsubj_token) != target_masculine_personal
+            ):
+                continue
+
+            return {
+                "root": root_token,
+                "cop": cop_token,
+                "nsubj": nsubj_token,
+            }
+
+    return None
+
+
 def match_subj_verb_gender_simple(sentence: conllu.TokenList) -> bool:
-    return extract_main_verb_gender_match(sentence) is not None
+    return (
+        extract_main_verb_gender_match(sentence) is not None
+        or extract_copular_verb_gender_match(sentence) is not None
+    )
+
+
+def has_conj_child(tree: conllu.TokenTree) -> bool:
+    return any(child.token["deprel"] == "conj" for child in tree.children)
+
+
+def token_trees(tree: conllu.TokenTree) -> list[conllu.TokenTree]:
+    trees = [tree]
+    for child in tree.children:
+        trees.extend(token_trees(child))
+    return trees
+
 
 
 def has_gender_attractor_between(nsubj: conllu.TokenTree, root_token: Token) -> bool:
@@ -197,16 +329,3 @@ def get_target_gender(token: Token) -> str | None:
         return "Masc"
 
     return None
-
-
-def change_plural_to_masculine_personal(token: Token, morph_dict: MorphDictionary) -> bool:
-    source_xpos = token["xpos"]
-    if source_xpos.endswith(":imperf"):
-        target_xpos = "praet:pl:m1:imperf"
-    elif source_xpos.endswith(":perf"):
-        target_xpos = "praet:pl:m1:perf"
-    else:
-        print(f"Unknown plural gender tag={source_xpos}, form={token['form']}")
-        return False
-
-    return change_morph(token, morph_dict, target_xpos)
