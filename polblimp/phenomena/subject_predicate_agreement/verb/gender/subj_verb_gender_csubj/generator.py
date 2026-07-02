@@ -47,13 +47,19 @@ def run_subj_verb_gender_csubj(
 
 
 def match_subj_verb_gender_csubj_1a(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    root = sentence.to_tree()
+    for root in token_trees(sentence.to_tree()):
+        match = match_subj_verb_gender_csubj_1a_for_root(root)
+        if match is not None:
+            return match
+
+    return None
+
+
+def match_subj_verb_gender_csubj_1a_for_root(root: conllu.TokenTree) -> dict[str, Token] | None:
     root_token = root.token
     root_feats = root_token["feats"] or {}
 
     if root_token["upos"] != "VERB":
-        return None
-    if root_token["deprel"] != "root":
         return None
     if root_feats.get("Number") != "Sing":
         return None
@@ -66,6 +72,8 @@ def match_subj_verb_gender_csubj_1a(sentence: conllu.TokenList) -> dict[str, Tok
             continue
         if "subj" not in csubj_token["deprel"]:
             continue
+        if has_kto_child(csubj):
+            continue
 
         return {
             "root": root_token,
@@ -76,12 +84,18 @@ def match_subj_verb_gender_csubj_1a(sentence: conllu.TokenList) -> dict[str, Tok
 
 
 def match_subj_verb_gender_csubj_2a(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    root = sentence.to_tree()
+    for root in token_trees(sentence.to_tree()):
+        match = match_subj_verb_gender_csubj_2a_for_root(root)
+        if match is not None:
+            return match
+
+    return None
+
+
+def match_subj_verb_gender_csubj_2a_for_root(root: conllu.TokenTree) -> dict[str, Token] | None:
     root_token = root.token
 
     if root_token["upos"] == "VERB":
-        return None
-    if root_token["deprel"] != "root":
         return None
 
     csubj_token = None
@@ -90,6 +104,8 @@ def match_subj_verb_gender_csubj_2a(sentence: conllu.TokenList) -> dict[str, Tok
         if child_token["upos"] != "VERB":
             continue
         if "subj" not in child_token["deprel"]:
+            continue
+        if has_kto_child(csubj):
             continue
         csubj_token = child_token
         break
@@ -116,3 +132,14 @@ def match_subj_verb_gender_csubj_2a(sentence: conllu.TokenList) -> dict[str, Tok
         }
 
     return None
+
+
+def has_kto_child(tree: conllu.TokenTree) -> bool:
+    return any(child.token["lemma"] == "kto" for child in tree.children)
+
+
+def token_trees(tree: conllu.TokenTree) -> list[conllu.TokenTree]:
+    trees = [tree]
+    for child in tree.children:
+        trees.extend(token_trees(child))
+    return trees

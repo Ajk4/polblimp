@@ -49,15 +49,20 @@ def run_subj_verb_person_csubj(
 
 
 def match_subj_verb_person_csubj_1a(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    root = sentence.to_tree()
+    for root in token_trees(sentence.to_tree()):
+        match = match_subj_verb_person_csubj_1a_for_root(root)
+        if match is not None:
+            return match
+
+    return None
+
+
+def match_subj_verb_person_csubj_1a_for_root(root: conllu.TokenTree) -> dict[str, Token] | None:
     root_token = root.token
-    root_feats = root_token["feats"] or {}
 
     if root_token["upos"] != "VERB":
         return None
-    if root_token["deprel"] != "root":
-        return None
-    if root_feats.get("Number") != "Sing":
+    if not is_singular_verb_for_csubj(root_token):
         return None
 
     for csubj in root.children:
@@ -65,6 +70,8 @@ def match_subj_verb_person_csubj_1a(sentence: conllu.TokenList) -> dict[str, Tok
         if csubj_token["upos"] != "VERB":
             continue
         if "subj" not in csubj_token["deprel"]:
+            continue
+        if has_kto_child(csubj) and not has_correlative_ten_child(root):
             continue
         return {
             "root": root_token,
@@ -75,12 +82,18 @@ def match_subj_verb_person_csubj_1a(sentence: conllu.TokenList) -> dict[str, Tok
 
 
 def match_subj_verb_person_csubj_2a(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    root = sentence.to_tree()
+    for root in token_trees(sentence.to_tree()):
+        match = match_subj_verb_person_csubj_2a_for_root(root)
+        if match is not None:
+            return match
+
+    return None
+
+
+def match_subj_verb_person_csubj_2a_for_root(root: conllu.TokenTree) -> dict[str, Token] | None:
     root_token = root.token
 
     if root_token["upos"] == "VERB":
-        return None
-    if root_token["deprel"] != "root":
         return None
 
     csubj = None
@@ -109,3 +122,25 @@ def match_subj_verb_person_csubj_2a(sentence: conllu.TokenList) -> dict[str, Tok
         }
 
     return None
+
+
+def has_kto_child(tree: conllu.TokenTree) -> bool:
+    return any(child.token["lemma"] == "kto" for child in tree.children)
+
+
+def has_correlative_ten_child(tree: conllu.TokenTree) -> bool:
+    return any(child.token["lemma"] == "ten" for child in tree.children)
+
+
+def is_singular_verb_for_csubj(token: Token) -> bool:
+    feats = token["feats"] or {}
+    if feats.get("Number") == "Sing":
+        return True
+    return token["lemma"] == "to" and token["xpos"] == "pred"
+
+
+def token_trees(tree: conllu.TokenTree) -> list[conllu.TokenTree]:
+    trees = [tree]
+    for child in tree.children:
+        trees.extend(token_trees(child))
+    return trees
