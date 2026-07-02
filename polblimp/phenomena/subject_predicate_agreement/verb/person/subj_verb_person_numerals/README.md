@@ -43,22 +43,24 @@ a-node $root := [
 # For generating pairs
 (   
   (
-  # i. In present and future tense, change the person of $root
-    (($root.iset/tense in{'pres', 'fut'} and $root.iset/person = '3')
-    or
-  # ii. In past tense (or lemma 'powinien'), a suffix must be added to $root
-    (($root.iset/tense = 'past' or $root.lemma = 'powinien') and 0x child [deprel = 'aux'])
-    )
-
-     and
-
-      # check if the sentences are annotated correctly
-     (($root.iset/number = 'sing' and $nsubj.iset/case = 'gen')
+    (
+      # i. In present and future tense, change the person of $root
+      ($root.iset/tense in{'pres', 'fut'} and $root.iset/person = '3')
       or
-      ($root.iset/number = 'plur' and $nsubj.iset/case = 'nom'))
+      # ii. In past tense (or lemma 'powinien'), a suffix must be added to $root
+      (($root.iset/tense = 'past' or $root.lemma = 'powinien') and 0x child [deprel = 'aux'])
+    )
+    and
+
+    # check if the sentences are annotated correctly
+    (
+      ($root.iset/number = 'sing' and $nsubj.iset/case = 'gen')
+      or
+      ($root.iset/number = 'plur' and $nsubj.iset/case = 'nom')
+    )
   )
       
-    or
+  or
     
   # iii. In compound future tense, change the person of $aux
     ($root.lemma != 'to' 
