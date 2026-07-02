@@ -138,11 +138,10 @@ class TestDatasetResultCounts(unittest.TestCase):
             match_subj_verb_number_csubj_1a: 105,
             match_subj_verb_number_csubj_2a: 7,
             ##
-            match_subj_verb_number_numerals_1a: None,
-            match_subj_verb_number_numerals_1b: None,
-            match_subj_verb_number_numerals_1c: None,
-            match_subj_verb_number_numerals_2a: None,
-            match_subj_verb_number_numerals_2b: None,
+            match_subj_verb_number_numerals_1a: 227,
+            match_subj_verb_number_numerals_1b: 1,
+            match_subj_verb_number_numerals_1c: 2,
+            match_subj_verb_number_numerals_2a: 27,
             ##
             match_subj_verb_person_csubj_1a: match_subj_verb_number_csubj_1a,
             match_subj_verb_person_csubj_2a: match_subj_verb_number_csubj_2a,
@@ -179,11 +178,10 @@ class TestDatasetResultCounts(unittest.TestCase):
             match_subj_verb_number_csubj_1a: 127,
             match_subj_verb_number_csubj_2a: 32,
             ##
-            match_subj_verb_number_numerals_1a: None,
-            match_subj_verb_number_numerals_1b: None,
-            match_subj_verb_number_numerals_1c: None,
-            match_subj_verb_number_numerals_2a: None,
-            match_subj_verb_number_numerals_2b: None,
+            match_subj_verb_number_numerals_1a: 782,
+            match_subj_verb_number_numerals_1b: 4,
+            match_subj_verb_number_numerals_1c: 2,
+            match_subj_verb_number_numerals_2a: 23,
             ##
             match_subj_verb_person_numerals_1a: 587,
             match_subj_verb_person_numerals_1b: 193,
