@@ -97,20 +97,25 @@ def run_subj_verb_number_numerals(
 
 
 def match_subj_verb_number_numerals_1a(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    return match_subj_verb_person_numerals_1a(sentence)
+    matches = match_subj_verb_person_numerals_1a(sentence)
+    return matches[0] if matches else None
 
 
 def match_subj_verb_number_numerals_1b(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    return match_subj_verb_person_numerals_1b(sentence)
+    matches = match_subj_verb_person_numerals_1b(sentence)
+    return matches[0] if matches else None
 
 
 def match_subj_verb_number_numerals_1c(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    return match_subj_verb_person_numerals_1c(sentence)
+    matches = match_subj_verb_person_numerals_1c(sentence)
+    return matches[0] if matches else None
 
 
 def match_subj_verb_number_numerals_2a(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    return match_subj_verb_person_numerals_2a(sentence)
+    matches = match_subj_verb_person_numerals_2a(sentence)
+    return matches[0] if matches else None
 
 
 def match_subj_verb_number_numerals_2b(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    return match_subj_verb_person_numerals_2b(sentence)
+    matches = match_subj_verb_person_numerals_2b(sentence)
+    return matches[0] if matches else None

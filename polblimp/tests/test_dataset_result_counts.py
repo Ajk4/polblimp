@@ -96,6 +96,12 @@ class TestDatasetResultCounts(unittest.TestCase):
     Numbers are from:
     * https://lindat.mff.cuni.cz/services/pmltq/?query=pdb#!/treebank/udpl_lfg218/query/CoeQIiQ/result?filter=true&timeout=30&limit=10000
     * https://lindat.mff.cuni.cz/services/pmltq/?query=pdb#!/treebank/udpl_pdb218/query/CoeQIiQ/result?filter=true&timeout=30&limit=10000
+
+    IMPORTANT - web search engine returns all possible matches.
+    If sentence can be matched two different ways, both ways are returned. It might inflate some numbers in this test.
+    For those cases test here points to multiple-matches-per-sentence aware matcher.
+
+    In normal pair-generation mode we take only one match.
     """
 
     EXPECTED_RESULTS: dict[str, dict[MatchFunction, ExpectedCount]] = {
@@ -131,20 +137,21 @@ class TestDatasetResultCounts(unittest.TestCase):
             match_subj_verb_number_genitive_1a: 78,
             match_subj_verb_number_csubj_1a: 105,
             match_subj_verb_number_csubj_2a: 7,
-            match_subj_verb_number_numerals_1a: match_subj_verb_person_numerals_1a,
-            match_subj_verb_number_numerals_1b: match_subj_verb_person_numerals_1b,
-            match_subj_verb_number_numerals_1c: match_subj_verb_person_numerals_1c,
-            match_subj_verb_number_numerals_2a: match_subj_verb_person_numerals_2a,
-            match_subj_verb_number_numerals_2b: match_subj_verb_person_numerals_2b,
+            ##
+            match_subj_verb_number_numerals_1a: None,
+            match_subj_verb_number_numerals_1b: None,
+            match_subj_verb_number_numerals_1c: None,
+            match_subj_verb_number_numerals_2a: None,
+            match_subj_verb_number_numerals_2b: None,
             ##
             match_subj_verb_person_csubj_1a: match_subj_verb_number_csubj_1a,
             match_subj_verb_person_csubj_2a: match_subj_verb_number_csubj_2a,
             ##
-            match_subj_verb_person_numerals_1a: 69,
-            match_subj_verb_person_numerals_1b: 137,
+            match_subj_verb_person_numerals_1a: 79,
+            match_subj_verb_person_numerals_1b: 146,
             match_subj_verb_person_numerals_1c: 3,
-            match_subj_verb_person_numerals_2a: 12,
-            match_subj_verb_person_numerals_2b: 13 - 1, # IN connlu one matched sentence is duplicated
+            match_subj_verb_person_numerals_2a: 13,
+            match_subj_verb_person_numerals_2b: 14,
             ##
             match_subj_verb_person_genitive_1a: 54,
             match_subj_verb_person_genitive_1b: 24,
@@ -171,6 +178,18 @@ class TestDatasetResultCounts(unittest.TestCase):
             ##
             match_subj_verb_number_csubj_1a: 127,
             match_subj_verb_number_csubj_2a: 32,
+            ##
+            match_subj_verb_number_numerals_1a: None,
+            match_subj_verb_number_numerals_1b: None,
+            match_subj_verb_number_numerals_1c: None,
+            match_subj_verb_number_numerals_2a: None,
+            match_subj_verb_number_numerals_2b: None,
+            ##
+            match_subj_verb_person_numerals_1a: 587,
+            match_subj_verb_person_numerals_1b: 193,
+            match_subj_verb_person_numerals_1c: 6,
+            match_subj_verb_person_numerals_2a: 11,
+            match_subj_verb_person_numerals_2b: 10,
             ##
             match_subj_verb_person_csubj_1a: match_subj_verb_number_csubj_1a,
             match_subj_verb_person_csubj_2a: match_subj_verb_number_csubj_2a,
@@ -219,8 +238,15 @@ class TestDatasetResultCounts(unittest.TestCase):
                     self.assertIsInstance(expected_count, int)
 
                     actual_count = sum(
-                        1
+                        count_matches(match_fn(sentence))
                         for sentence in self.sentences_by_dataset[dataset_name]
-                        if match_fn(sentence) is not None
                     )
                     self.assertEqual(expected_count, actual_count)
+
+
+def count_matches(result: object | None) -> int:
+    if isinstance(result, list):
+        return len(result)
+    if result is None:
+        return 0
+    return 1
