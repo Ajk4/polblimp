@@ -313,34 +313,21 @@ def token_trees(tree: conllu.TokenTree) -> list[conllu.TokenTree]:
     return trees
 
 
-def is_numeral_or_quantifier(token: Token, deprel_contains_det: bool = False) -> bool:
-    det_matches = (
-        "det" in token["deprel"]
-        if deprel_contains_det
-        else token["deprel"] == "det"
-    )
+def is_numeral_or_quantifier(token: Token) -> bool:
     return token["upos"] == "NUM" or (
-        det_matches and token["lemma"] in QUANTIFIER_LEMMAS
+        token["deprel"] == "det" and token["lemma"] in QUANTIFIER_LEMMAS
     )
 
 
-def extract_numeral_children(
+def extract_children(
         tree: conllu.TokenTree,
-        deprel_contains_det: bool = False,
+        token_predicate: Callable[[Token], bool],
 ) -> list[Token]:
     return [
         child.token
         for child in tree.children
-        if is_numeral_or_quantifier(child.token, deprel_contains_det)
+        if token_predicate(child.token)
     ]
-
-
-def extract_numeral_child(
-        tree: conllu.TokenTree,
-        deprel_contains_det: bool = False,
-) -> Token | None:
-    nums = extract_numeral_children(tree, deprel_contains_det)
-    return nums[0] if nums else None
 
 
 def agrees_with_numeral_subject(number: str | None, nsubj_case: str | None) -> bool:
@@ -349,13 +336,6 @@ def agrees_with_numeral_subject(number: str | None, nsubj_case: str | None) -> b
         or (number == "Plur" and nsubj_case == "Nom")
     )
 
-
-def match_children(tree: conllu.TokenTree, token_predicate):
-    matches = []
-    for child in tree.children:
-        if token_predicate(child.token):
-            matches.append(child.token)
-    return matches
 
 def match_descendants(tree: conllu.TokenTree, token_predicate):
     matches = []

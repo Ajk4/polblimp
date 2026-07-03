@@ -10,9 +10,8 @@ from phenomena.common import (
     agrees_with_numeral_subject,
     append_aux_clitic,
     change_person,
-    extract_numeral_child,
-    extract_numeral_children,
-    match_children,
+    extract_children,
+    is_numeral_or_quantifier,
     run_filter_transform,
     token_trees,
 )
@@ -179,7 +178,7 @@ def match_subj_verb_person_numerals_1b(sentence: conllu.TokenList) -> list[dict[
             continue
         if not (root_feats.get("Tense") == "Past" or root_token["lemma"] == "powinien"):
             continue
-        if len(match_children(root, lambda token: token["deprel"] == "aux")) != 0:
+        if len(extract_children(root, lambda token: token["deprel"] == "aux")) != 0:
             continue
 
         match = extract_match(root)
@@ -296,7 +295,8 @@ def extract_main_verb_numeral_match(
         if check_root_number and not agrees_with_numeral_subject(root_number, nsubj_feats.get("Case")):
             continue
 
-        num = extract_numeral_child(nsubj)
+        nums = extract_children(nsubj, is_numeral_or_quantifier)
+        num = nums[0] if nums else None
         if num is None:
             continue
 
@@ -324,7 +324,7 @@ def extract_copular_numeral_matches(sentence: conllu.TokenList) -> list[dict[str
             if nsubj_token["deprel"] not in {"nsubj", "nsubj:pass"}:
                 continue
 
-            nums = extract_numeral_children(nsubj)
+            nums = extract_children(nsubj, is_numeral_or_quantifier)
             if not nums:
                 continue
 

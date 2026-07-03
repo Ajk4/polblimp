@@ -10,7 +10,8 @@ from phenomena.common import (
     QUANTIFIER_LEMMAS,
     agrees_with_numeral_subject,
     change_gender,
-    extract_numeral_children,
+    extract_children,
+    is_numeral_or_quantifier,
     match_descendants,
     run_filter_transform,
     token_trees,
@@ -130,7 +131,7 @@ def extract_copular_gender_numeral_matches(root: conllu.TokenTree) -> list[dict[
         if not is_copular_gender_numeral_subject(root_token, nsubj_token):
             continue
 
-        nums = extract_numeral_children(nsubj)
+        nums = extract_children(nsubj, is_numeral_or_quantifier)
         if not nums:
             continue
 

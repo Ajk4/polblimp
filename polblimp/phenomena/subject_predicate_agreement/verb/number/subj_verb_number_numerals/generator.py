@@ -7,10 +7,10 @@ import pandas as pd
 from conllu import Token
 
 from phenomena.common import (
+    QUANTIFIER_LEMMAS,
     agrees_with_numeral_subject,
     change_number,
-    extract_numeral_child,
-    extract_numeral_children,
+    extract_children,
     run_filter_transform,
     token_trees,
 )
@@ -198,7 +198,8 @@ def extract_main_verb_number_numeral_base_matches(
         if nsubj_token["deprel"] != "nsubj":
             continue
 
-        num = extract_numeral_child(nsubj, deprel_contains_det=True)
+        nums = extract_children(nsubj, is_number_numeral_or_quantifier)
+        num = nums[0] if nums else None
         if num is None:
             continue
         if not is_number_numeral_subject(nsubj_token, num):
@@ -241,6 +242,12 @@ def is_number_numeral_subject(token: Token, num: Token) -> bool:
     return token["upos"] == "PROPN" and "gov" in num["deprel"]
 
 
+def is_number_numeral_or_quantifier(token: Token) -> bool:
+    return token["upos"] == "NUM" or (
+        "det" in token["deprel"] and token["lemma"] in QUANTIFIER_LEMMAS
+    )
+
+
 def extract_copular_number_numeral_matches(sentence: conllu.TokenList) -> list[dict[str, Token]]:
     matches = []
 
@@ -256,7 +263,7 @@ def extract_copular_number_numeral_matches(sentence: conllu.TokenList) -> list[d
             if nsubj_token["deprel"] not in {"nsubj", "nsubj:pass"}:
                 continue
 
-            nums = extract_numeral_children(nsubj, deprel_contains_det=True)
+            nums = extract_children(nsubj, is_number_numeral_or_quantifier)
             if not nums:
                 continue
 

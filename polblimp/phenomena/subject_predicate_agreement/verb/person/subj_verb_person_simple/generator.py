@@ -7,7 +7,7 @@ import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import run_filter_transform, change_person_root, match_children, change_person, append_aux_clitic
+from phenomena.common import run_filter_transform, change_person_root, extract_children, change_person, append_aux_clitic
 from phenomena.morph_dictionary import MorphDictionary
 
 def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: MorphDictionary,
@@ -266,7 +266,7 @@ def match_subj_verb_person_1c(sentence: conllu.TokenList) -> dict[str, Token] | 
         if not (nsubj_feats.get("Person", "") not in {"1", "2"}):
             continue
 
-        if not (len(match_children(root, lambda ch: ch["deprel"] == "aux")) == 0):
+        if not (len(extract_children(root, lambda ch: ch["deprel"] == "aux")) == 0):
             continue
 
         return {
