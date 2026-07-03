@@ -24,11 +24,11 @@ def run_subj_verb_gender_simple(
 
     # Main verb, singular
     def transform_1a(sentence) -> bool:
-        return transform(match_subj_verb_gender_simple_1a(sentence), "root")
+        return transform(match_subj_verb_gender_simple_1a(sentence)[0], "root")
 
     variant_1a = run_filter_transform(
         sentences,
-        lambda s: match_subj_verb_gender_simple_1a(s) is not None,
+        lambda s: len(match_subj_verb_gender_simple_1a(s)) != 0,
         transform_1a,
         limit=limit,
         progress_desc="subj_verb_gender_simple__1a",
@@ -36,11 +36,11 @@ def run_subj_verb_gender_simple(
 
     # Main verb, plural masculine-personal
     def transform_1b(sentence) -> bool:
-        return transform(match_subj_verb_gender_simple_1b(sentence), "root")
+        return transform(match_subj_verb_gender_simple_1b(sentence)[0], "root")
 
     variant_1b = run_filter_transform(
         sentences,
-        lambda s: match_subj_verb_gender_simple_1b(s) is not None,
+        lambda s: len(match_subj_verb_gender_simple_1b(s)) != 0,
         transform_1b,
         limit=limit,
         progress_desc="subj_verb_gender_simple__1b",
@@ -48,11 +48,11 @@ def run_subj_verb_gender_simple(
 
     # Main verb, plural non-masculine-personal
     def transform_1c(sentence) -> bool:
-        return transform(match_subj_verb_gender_simple_1c(sentence), "root")
+        return transform(match_subj_verb_gender_simple_1c(sentence)[0], "root")
 
     variant_1c = run_filter_transform(
         sentences,
-        lambda s: match_subj_verb_gender_simple_1c(s) is not None,
+        lambda s: len(match_subj_verb_gender_simple_1c(s)) != 0,
         transform_1c,
         limit=limit,
         progress_desc="subj_verb_gender_simple__1c",
@@ -60,11 +60,11 @@ def run_subj_verb_gender_simple(
 
     # Copular verb, singular
     def transform_2a(sentence) -> bool:
-        return transform(match_subj_verb_gender_simple_2a(sentence), "cop")
+        return transform(match_subj_verb_gender_simple_2a(sentence)[0], "cop")
 
     variant_2a = run_filter_transform(
         sentences,
-        lambda s: match_subj_verb_gender_simple_2a(s) is not None,
+        lambda s: len(match_subj_verb_gender_simple_2a(s)) != 0,
         transform_2a,
         limit=limit,
         progress_desc="subj_verb_gender_simple__2a",
@@ -72,11 +72,11 @@ def run_subj_verb_gender_simple(
 
     # Copular verb, plural masculine-personal
     def transform_2b(sentence) -> bool:
-        return transform(match_subj_verb_gender_simple_2b(sentence), "cop")
+        return transform(match_subj_verb_gender_simple_2b(sentence)[0], "cop")
 
     variant_2b = run_filter_transform(
         sentences,
-        lambda s: match_subj_verb_gender_simple_2b(s) is not None,
+        lambda s: len(match_subj_verb_gender_simple_2b(s)) != 0,
         transform_2b,
         limit=limit,
         progress_desc="subj_verb_gender_simple__2b",
@@ -84,11 +84,11 @@ def run_subj_verb_gender_simple(
 
     # Copular verb, plural non-masculine-personal
     def transform_2c(sentence) -> bool:
-        return transform(match_subj_verb_gender_simple_2c(sentence), "cop")
+        return transform(match_subj_verb_gender_simple_2c(sentence)[0], "cop")
 
     variant_2c = run_filter_transform(
         sentences,
-        lambda s: match_subj_verb_gender_simple_2c(s) is not None,
+        lambda s: len(match_subj_verb_gender_simple_2c(s)) != 0,
         transform_2c,
         limit=limit,
         progress_desc="subj_verb_gender_simple__2c",
@@ -101,66 +101,67 @@ def run_subj_verb_gender_simple(
     return df
 
 
-def match_subj_verb_gender_simple_1a(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    match = extract_main_verb_gender_match(sentence)
-    if match is None:
-        return None
-
-    root_feats = match["root"]["feats"] or {}
-    if root_feats.get("Number") == "Sing":
-        return match
-
-    return None
+def match_subj_verb_gender_simple_1a(sentence: conllu.TokenList) -> list[dict[str, Token]]:
+    return [
+        match
+        for match in extract_main_verb_gender_matches(sentence)
+        if (match["root"]["feats"] or {}).get("Number") == "Sing"
+    ]
 
 
-def match_subj_verb_gender_simple_1b(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    match = extract_main_verb_gender_match(sentence)
-    if match is None:
-        return None
-
-    root_feats = match["root"]["feats"] or {}
-    if root_feats.get("Number") == "Plur" and is_masculine_personal(match["nsubj"]):
-        return match
-
-    return None
+def match_subj_verb_gender_simple_1b(sentence: conllu.TokenList) -> list[dict[str, Token]]:
+    return [
+        match
+        for match in extract_main_verb_gender_matches(sentence)
+        if (match["root"]["feats"] or {}).get("Number") == "Plur"
+        and is_masculine_personal(match["nsubj"])
+    ]
 
 
-def match_subj_verb_gender_simple_1c(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    match = extract_main_verb_gender_match(sentence)
-    if match is None:
-        return None
-
-    root_feats = match["root"]["feats"] or {}
-    if root_feats.get("Number") == "Plur" and not is_masculine_personal(match["nsubj"]):
-        return match
-
-    return None
+def match_subj_verb_gender_simple_1c(sentence: conllu.TokenList) -> list[dict[str, Token]]:
+    return [
+        match
+        for match in extract_main_verb_gender_matches(sentence)
+        if (match["root"]["feats"] or {}).get("Number") == "Plur"
+        and not is_masculine_personal(match["nsubj"])
+    ]
 
 
-def match_subj_verb_gender_simple_2a(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    return extract_copular_verb_gender_match(sentence, target_number="Sing")
+def match_subj_verb_gender_simple_2a(sentence: conllu.TokenList) -> list[dict[str, Token]]:
+    return extract_copular_verb_gender_matches(sentence, target_number="Sing")
 
 
-def match_subj_verb_gender_simple_2b(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    return extract_copular_verb_gender_match(sentence, target_number="Plur", target_masculine_personal=True)
+def match_subj_verb_gender_simple_2b(sentence: conllu.TokenList) -> list[dict[str, Token]]:
+    return extract_copular_verb_gender_matches(sentence, target_number="Plur", target_masculine_personal=True)
 
 
-def match_subj_verb_gender_simple_2c(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    return extract_copular_verb_gender_match(sentence, target_number="Plur", target_masculine_personal=False)
+def match_subj_verb_gender_simple_2c(sentence: conllu.TokenList) -> list[dict[str, Token]]:
+    return extract_copular_verb_gender_matches(sentence, target_number="Plur", target_masculine_personal=False)
+
+
+def extract_main_verb_gender_matches(sentence: conllu.TokenList) -> list[dict[str, Token]]:
+    matches = []
+    for root in token_trees(sentence.to_tree()):
+        matches.extend(extract_main_verb_gender_matches_for_root(root))
+
+    return matches
 
 
 def extract_main_verb_gender_match(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    root = sentence.to_tree()
+    matches = extract_main_verb_gender_matches(sentence)
+    return matches[0] if matches else None
+
+
+def extract_main_verb_gender_matches_for_root(root: conllu.TokenTree) -> list[dict[str, Token]]:
     root_token = root.token
     root_feats = root_token["feats"] or {}
+    matches = []
 
     if root_token["upos"] != "VERB":
-        return None
-    if root_token["deprel"] != "root":
-        return None
+        return matches
     if root_feats.get("Number") != "Sing":
         if root_feats.get("Number") != "Plur":
-            return None
+            return matches
 
     root_gender = root_feats.get("Gender")
     root_number = root_feats.get("Number")
@@ -179,36 +180,36 @@ def extract_main_verb_gender_match(sentence: conllu.TokenList) -> dict[str, Toke
         if has_gender_attractor_between(nsubj, root_token):
             continue
 
-        return {
+        matches.append({
             "root": root_token,
             "nsubj": nsubj_token,
-        }
+        })
 
-    return None
+    return matches
 
 
-def extract_copular_verb_gender_match(
+def extract_copular_verb_gender_matches(
         sentence: conllu.TokenList,
         target_number: str | None = None,
         target_masculine_personal: bool | None = None,
-) -> dict[str, Token] | None:
+) -> list[dict[str, Token]]:
+    matches = []
     for root in token_trees(sentence.to_tree()):
-        match = extract_copular_verb_gender_match_for_root(root, target_number, target_masculine_personal)
-        if match is not None:
-            return match
+        matches.extend(extract_copular_verb_gender_matches_for_root(root, target_number, target_masculine_personal))
 
-    return None
+    return matches
 
 
-def extract_copular_verb_gender_match_for_root(
+def extract_copular_verb_gender_matches_for_root(
         root: conllu.TokenTree,
         target_number: str | None,
         target_masculine_personal: bool | None,
-) -> dict[str, Token] | None:
+) -> list[dict[str, Token]]:
     root_token = root.token
+    matches = []
 
     if root_token["upos"] == "VERB" and root_token["lemma"] != "to":
-        return None
+        return matches
 
     for cop in root.children:
         cop_token = cop.token
@@ -235,36 +236,26 @@ def extract_copular_verb_gender_match_for_root(
             if has_gender_attractor_between(nsubj, cop_token):
                 continue
             if has_conj_child(nsubj):
-                cop_is_plural = cop_feats.get("Number") == "Plur"
-                singular_conj_subject_allowed = (
-                    root_token["upos"] == "ADJ"
-                    or (
-                        root_token["upos"] == "VERB"
-                        and root_token["lemma"] == "to"
-                        and root_token["deprel"] == "root"
-                    )
-                )
-                if cop_is_plural or not singular_conj_subject_allowed:
-                    continue
+                continue
             if (
                     target_masculine_personal is not None
                     and is_masculine_personal(nsubj_token) != target_masculine_personal
             ):
                 continue
 
-            return {
+            matches.append({
                 "root": root_token,
                 "cop": cop_token,
                 "nsubj": nsubj_token,
-            }
+            })
 
-    return None
+    return matches
 
 
 def match_subj_verb_gender_simple(sentence: conllu.TokenList) -> bool:
     return (
         extract_main_verb_gender_match(sentence) is not None
-        or extract_copular_verb_gender_match(sentence) is not None
+        or len(extract_copular_verb_gender_matches(sentence)) != 0
     )
 
 
