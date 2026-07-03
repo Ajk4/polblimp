@@ -70,4 +70,4 @@ class TestSentenceText(unittest.TestCase):
 
     def _get_sentence(self, case: dict) -> conllu.TokenList:
         filename, index = case["dataset"]
-        return load_sentences(self.repo_root / "data" / filename)[index]
+        return load_sentences(self.repo_root / "data" / filename, skip_duplicates=False)[index]
