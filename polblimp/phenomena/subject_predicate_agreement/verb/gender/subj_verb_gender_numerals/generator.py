@@ -6,9 +6,16 @@ import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import change_gender, match_descendants, run_filter_transform
+from phenomena.common import (
+    QUANTIFIER_LEMMAS,
+    agrees_with_numeral_subject,
+    change_gender,
+    extract_numeral_children,
+    match_descendants,
+    run_filter_transform,
+    token_trees,
+)
 from phenomena.morph_dictionary import MorphDictionary
-from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_numerals.generator import QUANTIFIER_LEMMAS
 
 
 def run_subj_verb_gender_numerals(
@@ -19,11 +26,11 @@ def run_subj_verb_gender_numerals(
     # Main verb
     def transform_1a(sentence: conllu.TokenList) -> bool:
         matches = match_subj_verb_gender_numerals_1a(sentence)
-        return change_numeral_predicate_gender(matches["root"], matches["nsubj"], morph_dict)
+        return change_numeral_predicate_gender(matches[0]["root"], matches[0]["nsubj"], morph_dict)
 
     variant_1a = run_filter_transform(
         sentences,
-        lambda s: match_subj_verb_gender_numerals_1a(s) is not None,
+        lambda s: bool(match_subj_verb_gender_numerals_1a(s)),
         transform_1a,
         limit=limit,
         progress_desc="subj_verb_gender_numerals__1a",
@@ -32,11 +39,11 @@ def run_subj_verb_gender_numerals(
     # Copular auxiliary verb
     def transform_2a(sentence: conllu.TokenList) -> bool:
         matches = match_subj_verb_gender_numerals_2a(sentence)
-        return change_numeral_predicate_gender(matches["cop"], matches["nsubj"], morph_dict)
+        return change_numeral_predicate_gender(matches[0]["cop"], matches[0]["nsubj"], morph_dict)
 
     variant_2a = run_filter_transform(
         sentences,
-        lambda s: match_subj_verb_gender_numerals_2a(s) is not None,
+        lambda s: bool(match_subj_verb_gender_numerals_2a(s)),
         transform_2a,
         limit=limit,
         progress_desc="subj_verb_gender_numerals__2a",
@@ -49,17 +56,23 @@ def run_subj_verb_gender_numerals(
     return df
 
 
-def match_subj_verb_gender_numerals_1a(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    root = sentence.to_tree()
+def match_subj_verb_gender_numerals_1a(sentence: conllu.TokenList) -> list[dict[str, Token]]:
+    matches = []
+    for root in token_trees(sentence.to_tree()):
+        matches.extend(extract_main_verb_gender_numeral_matches(root))
+
+    return matches
+
+
+def extract_main_verb_gender_numeral_matches(root: conllu.TokenTree) -> list[dict[str, Token]]:
     root_token = root.token
     root_feats = root_token["feats"] or {}
+    matches = []
 
     if root_token["upos"] != "VERB":
-        return None
-    if root_token["deprel"] != "root":
-        return None
+        return matches
     if root_feats.get("Gender") not in {"Masc", "Fem", "Neut"}:
-        return None
+        return matches
 
     for nsubj in root.children:
         nsubj_token = nsubj.token
@@ -69,76 +82,82 @@ def match_subj_verb_gender_numerals_1a(sentence: conllu.TokenList) -> dict[str, 
             continue
         if nsubj_token["deprel"] not in {"nsubj", "obj"}:
             continue
-        numeral_agreement_pattern = (
-            (root_feats.get("Number") == "Sing" and nsubj_feats.get("Case") == "Gen")
-            or (root_feats.get("Number") == "Plur" and nsubj_feats.get("Case") == "Nom")
-        )
-        if not numeral_agreement_pattern:
+        if not agrees_with_numeral_subject(root_feats.get("Number"), nsubj_feats.get("Case")):
             continue
 
-        num = extract_numeral(nsubj)
+        num = extract_gender_numeral(nsubj)
         if num is None:
             continue
-        if nsubj_token["deprel"] == "obj" and "NumForm" not in (num["feats"] or {}):
+        if not is_main_verb_gender_numeral_subject(root_token, nsubj_token, num):
             continue
 
-        return {
+        matches.append({
             "root": root_token,
             "nsubj": nsubj_token,
             "num": num,
-        }
+        })
 
-    return None
+    return matches
 
 
-def match_subj_verb_gender_numerals_2a(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    root = sentence.to_tree()
+def is_main_verb_gender_numeral_subject(root_token: Token, nsubj_token: Token, num: Token) -> bool:
+    if nsubj_token["deprel"] == "nsubj":
+        return True
+    if root_token["deprel"] == "csubj":
+        return False
+    return "NumForm" in (num["feats"] or {})
+
+
+def match_subj_verb_gender_numerals_2a(sentence: conllu.TokenList) -> list[dict[str, Token]]:
+    matches = []
+    for root in token_trees(sentence.to_tree()):
+        matches.extend(extract_copular_gender_numeral_matches(root))
+
+    return matches
+
+
+def extract_copular_gender_numeral_matches(root: conllu.TokenTree) -> list[dict[str, Token]]:
     root_token = root.token
+    matches = []
 
-    if root_token["deprel"] != "root":
-        return None
     if root_token["upos"] == "VERB" and root_token["lemma"] != "to":
-        return None
+        return matches
 
     for nsubj in root.children:
         nsubj_token = nsubj.token
         nsubj_feats = nsubj_token["feats"] or {}
 
-        if nsubj_token["deprel"] not in {"nsubj", "nsubj:pass", "obl"}:
+        if not is_copular_gender_numeral_subject(root_token, nsubj_token):
             continue
 
-        num = extract_numeral_child(nsubj)
-        if num is None:
+        nums = extract_numeral_children(nsubj)
+        if not nums:
             continue
 
-        for cop in root.children:
-            cop_token = cop.token
-            cop_feats = cop_token["feats"] or {}
-            if cop_token["upos"] != "AUX":
-                continue
-            if cop_token["lemma"] in {"to", "by"}:
-                continue
-            if cop_feats.get("Tense") != "Past":
-                continue
-            nsubj_case = nsubj_feats.get("Case")
-            copular_numeral_agreement = (
-                (cop_feats.get("Gender") == "Neut" and nsubj_case == "Gen")
-                or (cop_feats.get("Gender") == nsubj_feats.get("Gender") and nsubj_case == "Nom")
-            )
-            if not copular_numeral_agreement:
-                continue
+        for num in nums:
+            for cop in root.children:
+                cop_token = cop.token
+                cop_feats = cop_token["feats"] or {}
+                if cop_token["upos"] != "AUX":
+                    continue
+                if cop_token["lemma"] in {"to", "by"}:
+                    continue
+                if cop_feats.get("Tense") != "Past":
+                    continue
+                if not agrees_with_gender_numeral_subject(cop_feats, nsubj_feats):
+                    continue
 
-            return {
-                "root": root_token,
-                "nsubj": nsubj_token,
-                "num": num,
-                "cop": cop_token,
-            }
+                matches.append({
+                    "root": root_token,
+                    "nsubj": nsubj_token,
+                    "num": num,
+                    "cop": cop_token,
+                })
 
-    return None
+    return matches
 
 
-def extract_numeral(tree: conllu.TokenTree) -> Token | None:
+def extract_gender_numeral(tree: conllu.TokenTree) -> Token | None:
     descendants = match_descendants(
         tree,
         lambda token: (
@@ -155,15 +174,24 @@ def extract_numeral(tree: conllu.TokenTree) -> Token | None:
     return descendants[0] if descendants else None
 
 
-def extract_numeral_child(tree: conllu.TokenTree) -> Token | None:
-    for child in tree.children:
-        child_token = child.token
-        if child_token["upos"] == "NUM":
-            return child_token
-        if child_token["deprel"] == "det" and child_token["lemma"] in QUANTIFIER_LEMMAS:
-            return child_token
+def is_copular_gender_numeral_subject(root_token: Token, nsubj_token: Token) -> bool:
+    if nsubj_token["deprel"] in {"nsubj", "nsubj:pass"}:
+        return True
+    return root_token["upos"] == "ADV" and nsubj_token["deprel"] == "obl"
 
-    return None
+
+def agrees_with_gender_numeral_subject(
+        predicate_feats: dict[str, str],
+        nsubj_feats: dict[str, str],
+) -> bool:
+    nsubj_case = nsubj_feats.get("Case")
+    return (
+        (predicate_feats.get("Gender") == "Neut" and nsubj_case == "Gen")
+        or (
+            predicate_feats.get("Gender") == nsubj_feats.get("Gender")
+            and nsubj_case == "Nom"
+        )
+    )
 
 
 def change_numeral_predicate_gender(

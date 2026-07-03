@@ -283,6 +283,73 @@ def _target_gender_xpos(source_xpos: str, target_gender: str) -> str | None:
     return None
 
 
+QUANTIFIER_LEMMAS = {
+    "kilka",
+    "kilkaset",
+    "kilkanaście",
+    "kilkadziesiąt",
+    "sporo",
+    "mnóstwo",
+    "dużo",
+    "wiele",
+    "więcej",
+    "najwięcej",
+    "większość",
+    "mało",
+    "mniej",
+    "najmniej",
+    "trochę",
+    "parę",
+    "niewiele",
+    "ile",
+    "tyle",
+}
+
+
+def token_trees(tree: conllu.TokenTree) -> list[conllu.TokenTree]:
+    trees = [tree]
+    for child in tree.children:
+        trees.extend(token_trees(child))
+    return trees
+
+
+def is_numeral_or_quantifier(token: Token, deprel_contains_det: bool = False) -> bool:
+    det_matches = (
+        "det" in token["deprel"]
+        if deprel_contains_det
+        else token["deprel"] == "det"
+    )
+    return token["upos"] == "NUM" or (
+        det_matches and token["lemma"] in QUANTIFIER_LEMMAS
+    )
+
+
+def extract_numeral_children(
+        tree: conllu.TokenTree,
+        deprel_contains_det: bool = False,
+) -> list[Token]:
+    return [
+        child.token
+        for child in tree.children
+        if is_numeral_or_quantifier(child.token, deprel_contains_det)
+    ]
+
+
+def extract_numeral_child(
+        tree: conllu.TokenTree,
+        deprel_contains_det: bool = False,
+) -> Token | None:
+    nums = extract_numeral_children(tree, deprel_contains_det)
+    return nums[0] if nums else None
+
+
+def agrees_with_numeral_subject(number: str | None, nsubj_case: str | None) -> bool:
+    return (
+        (number == "Sing" and nsubj_case == "Gen")
+        or (number == "Plur" and nsubj_case == "Nom")
+    )
+
+
 def match_children(tree: conllu.TokenTree, token_predicate):
     matches = []
     for child in tree.children:

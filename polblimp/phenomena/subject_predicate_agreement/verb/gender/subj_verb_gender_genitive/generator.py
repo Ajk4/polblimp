@@ -6,7 +6,7 @@ import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import change_gender, run_filter_transform
+from phenomena.common import change_gender, run_filter_transform, token_trees
 from phenomena.morph_dictionary import MorphDictionary
 from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_genitive.generator import (
     has_numeral_or_quantifier_child,
@@ -69,9 +69,3 @@ def extract_gender_genitive_match(root: conllu.TokenTree) -> dict[str, Token] | 
 
     return None
 
-
-def token_trees(tree: conllu.TokenTree) -> list[conllu.TokenTree]:
-    trees = [tree]
-    for child in tree.children:
-        trees.extend(token_trees(child))
-    return trees

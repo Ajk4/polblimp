@@ -6,7 +6,7 @@ import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import change_gender, run_filter_transform
+from phenomena.common import change_gender, run_filter_transform, token_trees
 from phenomena.morph_dictionary import MorphDictionary
 
 
@@ -137,9 +137,3 @@ def match_subj_verb_gender_csubj_2a_for_root(root: conllu.TokenTree) -> dict[str
 def has_kto_child(tree: conllu.TokenTree) -> bool:
     return any(child.token["lemma"] == "kto" for child in tree.children)
 
-
-def token_trees(tree: conllu.TokenTree) -> list[conllu.TokenTree]:
-    trees = [tree]
-    for child in tree.children:
-        trees.extend(token_trees(child))
-    return trees

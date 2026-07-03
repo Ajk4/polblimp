@@ -5,31 +5,18 @@ import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import run_filter_transform, change_person, match_children, append_aux_clitic
+from phenomena.common import (
+    QUANTIFIER_LEMMAS,
+    agrees_with_numeral_subject,
+    append_aux_clitic,
+    change_person,
+    extract_numeral_child,
+    extract_numeral_children,
+    match_children,
+    run_filter_transform,
+    token_trees,
+)
 from phenomena.morph_dictionary import MorphDictionary
-
-
-QUANTIFIER_LEMMAS = {
-    "kilka",
-    "kilkaset",
-    "kilkanaście",
-    "kilkadziesiąt",
-    "sporo",
-    "mnóstwo",
-    "dużo",
-    "wiele",
-    "więcej",
-    "najwięcej",
-    "większość",
-    "mało",
-    "mniej",
-    "najmniej",
-    "trochę",
-    "parę",
-    "niewiele",
-    "ile",
-    "tyle",
-}
 
 
 def run_subj_verb_person_numerals(
@@ -104,13 +91,6 @@ def run_subj_verb_person_numerals(
     df.attrs["matched_sentences"] = sum(df.attrs["matched_sentences"] for df in variants)
 
     return df
-
-
-def token_trees(tree: conllu.TokenTree) -> list[conllu.TokenTree]:
-    trees = [tree]
-    for child in tree.children:
-        trees.extend(token_trees(child))
-    return trees
 
 
 def match_subj_verb_person_numerals_1a(sentence: conllu.TokenList) -> list[dict[str, Token]]:
@@ -366,27 +346,3 @@ def extract_copular_numeral_matches(sentence: conllu.TokenList) -> list[dict[str
                     })
 
     return matches
-
-
-def extract_numeral_children(nsubj: conllu.TokenTree) -> list[Token]:
-    nums = []
-    for child in nsubj.children:
-        child_token = child.token
-        if child_token["upos"] == "NUM":
-            nums.append(child_token)
-        elif child_token["deprel"] == "det" and child_token["lemma"] in QUANTIFIER_LEMMAS:
-            nums.append(child_token)
-
-    return nums
-
-
-def extract_numeral_child(nsubj: conllu.TokenTree) -> Token | None:
-    nums = extract_numeral_children(nsubj)
-    return nums[0] if nums else None
-
-
-def agrees_with_numeral_subject(number: str | None, nsubj_case: str | None) -> bool:
-    return (
-        (number == "Sing" and nsubj_case == "Gen")
-        or (number == "Plur" and nsubj_case == "Nom")
-    )

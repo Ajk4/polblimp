@@ -6,11 +6,8 @@ import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import append_aux_clitic, change_person, run_filter_transform
+from phenomena.common import QUANTIFIER_LEMMAS, append_aux_clitic, change_person, run_filter_transform
 from phenomena.morph_dictionary import MorphDictionary
-from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_numerals.generator import (
-    QUANTIFIER_LEMMAS,
-)
 
 
 def run_subj_verb_person_genitive(

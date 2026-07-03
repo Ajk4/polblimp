@@ -6,7 +6,7 @@ import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import change_person, run_filter_transform
+from phenomena.common import change_person, run_filter_transform, token_trees
 from phenomena.morph_dictionary import MorphDictionary
 
 
@@ -138,9 +138,3 @@ def is_singular_verb_for_csubj(token: Token) -> bool:
         return True
     return token["lemma"] == "to" and token["xpos"] == "pred"
 
-
-def token_trees(tree: conllu.TokenTree) -> list[conllu.TokenTree]:
-    trees = [tree]
-    for child in tree.children:
-        trees.extend(token_trees(child))
-    return trees

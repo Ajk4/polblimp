@@ -6,7 +6,7 @@ import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import change_gender, match_descendants, run_filter_transform
+from phenomena.common import change_gender, match_descendants, run_filter_transform, token_trees
 from phenomena.morph_dictionary import MorphDictionary
 
 
@@ -270,14 +270,6 @@ def match_subj_verb_gender_simple(sentence: conllu.TokenList) -> bool:
 
 def has_conj_child(tree: conllu.TokenTree) -> bool:
     return any(child.token["deprel"] == "conj" for child in tree.children)
-
-
-def token_trees(tree: conllu.TokenTree) -> list[conllu.TokenTree]:
-    trees = [tree]
-    for child in tree.children:
-        trees.extend(token_trees(child))
-    return trees
-
 
 
 def has_gender_attractor_between(nsubj: conllu.TokenTree, root_token: Token) -> bool:

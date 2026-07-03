@@ -6,13 +6,15 @@ import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import change_number, run_filter_transform
-from phenomena.morph_dictionary import MorphDictionary
-from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_numerals.generator import (
-    QUANTIFIER_LEMMAS,
+from phenomena.common import (
     agrees_with_numeral_subject,
+    change_number,
+    extract_numeral_child,
+    extract_numeral_children,
+    run_filter_transform,
     token_trees,
 )
+from phenomena.morph_dictionary import MorphDictionary
 
 
 def run_subj_verb_number_numerals(
@@ -196,7 +198,7 @@ def extract_main_verb_number_numeral_base_matches(
         if nsubj_token["deprel"] != "nsubj":
             continue
 
-        num = extract_number_numeral_child(nsubj)
+        num = extract_numeral_child(nsubj, deprel_contains_det=True)
         if num is None:
             continue
         if not is_number_numeral_subject(nsubj_token, num):
@@ -254,7 +256,7 @@ def extract_copular_number_numeral_matches(sentence: conllu.TokenList) -> list[d
             if nsubj_token["deprel"] not in {"nsubj", "nsubj:pass"}:
                 continue
 
-            nums = extract_number_numeral_children(nsubj)
+            nums = extract_numeral_children(nsubj, deprel_contains_det=True)
             if not nums:
                 continue
 
@@ -276,20 +278,3 @@ def extract_copular_number_numeral_matches(sentence: conllu.TokenList) -> list[d
                     })
 
     return matches
-
-
-def extract_number_numeral_child(nsubj: conllu.TokenTree) -> Token | None:
-    nums = extract_number_numeral_children(nsubj)
-    return nums[0] if nums else None
-
-
-def extract_number_numeral_children(nsubj: conllu.TokenTree) -> list[Token]:
-    nums = []
-    for child in nsubj.children:
-        child_token = child.token
-        if child_token["upos"] == "NUM":
-            nums.append(child_token)
-        elif "det" in child_token["deprel"] and child_token["lemma"] in QUANTIFIER_LEMMAS:
-            nums.append(child_token)
-
-    return nums
