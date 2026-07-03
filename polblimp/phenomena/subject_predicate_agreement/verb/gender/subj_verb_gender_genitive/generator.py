@@ -32,13 +32,19 @@ def run_subj_verb_gender_genitive(
 
 
 def match_subj_verb_gender_genitive_1a(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    root = sentence.to_tree()
+    for root in token_trees(sentence.to_tree()):
+        match = extract_gender_genitive_match(root)
+        if match is not None:
+            return match
+
+    return None
+
+
+def extract_gender_genitive_match(root: conllu.TokenTree) -> dict[str, Token] | None:
     root_token = root.token
     root_feats = root_token["feats"] or {}
 
     if root_token["upos"] != "VERB":
-        return None
-    if root_token["deprel"] != "root":
         return None
     if root_feats.get("Number") != "Sing":
         return None
@@ -62,3 +68,10 @@ def match_subj_verb_gender_genitive_1a(sentence: conllu.TokenList) -> dict[str, 
         }
 
     return None
+
+
+def token_trees(tree: conllu.TokenTree) -> list[conllu.TokenTree]:
+    trees = [tree]
+    for child in tree.children:
+        trees.extend(token_trees(child))
+    return trees
