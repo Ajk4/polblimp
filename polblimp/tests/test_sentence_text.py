@@ -7,6 +7,9 @@ import conllu
 
 from phenomena.common import load_sentences
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_simple.generator import (
+    run_subj_verb_gender_simple,
+)
 from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_simple.generator import (
     run_subj_verb_number_simple,
 )
@@ -55,6 +58,22 @@ class TestSentenceText(unittest.TestCase):
                 "source": "Ja nie byłem zbyt głodny, więc poprzestałem na sałatce.",
                 "transform": run_subj_verb_number_simple,
                 "expected": "Ja nie byliśmy zbyt głodny, więc poprzestałem na sałatce.",
+            },
+            {
+                "dataset": ("pl_pdb-ud-train.conllu", 13969),
+                "source": (
+                    "Wracając jednak do zaburzenia rytmu domowego, którego nastolatki nie zauważyły, "
+                    "połowa przepytanych nastolatków przyznała też, że regularnie budzi się w nocy, "
+                    "żeby zaktualizować statusy, wrzucić zdjęcia, dać jakieś lajki albo sprawdzić, "
+                    "ile ma się własnych lajków."
+                ),
+                "transform": run_subj_verb_gender_simple,
+                "expected": (
+                    "Wracając jednak do zaburzenia rytmu domowego, którego nastolatki nie zauważyli, "
+                    "połowa przepytanych nastolatków przyznała też, że regularnie budzi się w nocy, "
+                    "żeby zaktualizować statusy, wrzucić zdjęcia, dać jakieś lajki albo sprawdzić, "
+                    "ile ma się własnych lajków."
+                ),
             },
         ]
 

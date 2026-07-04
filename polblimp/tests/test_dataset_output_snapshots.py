@@ -55,7 +55,7 @@ class TestDatasetOutputSnapshots(unittest.TestCase):
             "subj_verb_gender_csubj": "35d45ae16fdd209ca36732fe5e9a53a2575751520c9e482ed913e0f9f8065a87",
             "subj_verb_gender_genitive": "58b76cbb1e09078162062c474b6280c4e7e7af98578f3772452e744311da3a4c",
             "subj_verb_gender_numerals": "45fa518d1d9ce70cc94cebf85874784517e606904653fd30f43516e1de32ee09",
-            "subj_verb_gender_simple": "650d75eeb43f79e9e446e237c67344cdf5eda184f235a82a0611f0add948de58",
+            "subj_verb_gender_simple": "f87b85024cfac8bf71e6d7902efea1f6ff87903879fa38a957020abbe6983b07",
             "subj_verb_number_csubj": "a45fb8bfad80173c16ebf7ccd2612cd3db3cfc125d7249fa232780a8e38cdae7",
             "subj_verb_number_genitive": "0dd84993d9990780dc0b400e59c2095a3fead2c2d1609904a59f3127e7f5c62c",
             "subj_verb_number_numerals": "656fa4ee3686a436becbf526e5b86efe8b49e903981f1252692a96abc783e565",
