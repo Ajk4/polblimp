@@ -6,7 +6,7 @@ import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import QUANTIFIER_LEMMAS, change_number, run_filter_transform
+from phenomena.common import QUANTIFIER_LEMMAS, change_number, run_filter_transform, token_trees
 from phenomena.morph_dictionary import MorphDictionary
 
 
@@ -18,11 +18,11 @@ def run_subj_verb_number_genitive(
     # Main verb
     def transform_1a(sentence) -> bool:
         matches = match_subj_verb_number_genitive_1a(sentence)
-        return change_number(matches["root"], morph_dict)
+        return change_number(matches[0]["root"], morph_dict)
 
     variant_1a = run_filter_transform(
         sentences,
-        lambda s: match_subj_verb_number_genitive_1a(s) is not None,
+        lambda s: len(match_subj_verb_number_genitive_1a(s)) != 0,
         transform_1a,
         limit=limit,
         progress_desc="subj_verb_number_genitive__1a",
@@ -31,17 +31,23 @@ def run_subj_verb_number_genitive(
     return variant_1a
 
 
-def match_subj_verb_number_genitive_1a(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    root = sentence.to_tree()
+def match_subj_verb_number_genitive_1a(sentence: conllu.TokenList) -> list[dict[str, Token]]:
+    matches = []
+    for root in token_trees(sentence.to_tree()):
+        matches.extend(extract_subj_verb_number_genitive_matches(root))
+
+    return matches
+
+
+def extract_subj_verb_number_genitive_matches(root: conllu.TokenTree) -> list[dict[str, Token]]:
     root_token = root.token
     root_feats = root_token["feats"] or {}
+    matches = []
 
     if root_token["upos"] != "VERB":
-        return None
-    if root_token["deprel"] != "root":
-        return None
+        return matches
     if root_feats.get("Number") != "Sing":
-        return None
+        return matches
 
     for nsubj in root.children:
         nsubj_token = nsubj.token
@@ -54,12 +60,12 @@ def match_subj_verb_number_genitive_1a(sentence: conllu.TokenList) -> dict[str, 
         if has_numeral_or_quantifier_child(nsubj):
             continue
 
-        return {
+        matches.append({
             "root": root_token,
             "nsubj": nsubj_token,
-        }
+        })
 
-    return None
+    return matches
 
 
 def has_numeral_or_quantifier_child(nsubj: conllu.TokenTree) -> bool:
