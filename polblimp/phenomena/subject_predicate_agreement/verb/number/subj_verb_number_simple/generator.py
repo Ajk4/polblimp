@@ -11,6 +11,7 @@ from phenomena.common import (
     change_number,
     match_descendants,
     run_filter_transform,
+    token_trees,
 )
 from phenomena.morph_dictionary import MorphDictionary
 
@@ -23,11 +24,11 @@ def run_subj_verb_number_simple(
     # Main verb
     def transform_1a(sentence) -> bool:
         matches = match_subj_verb_number_simple_1a(sentence)
-        return change_number(matches["root"], morph_dict)
+        return change_number(matches[0]["root"], morph_dict)
 
     variant_1a = run_filter_transform(
         sentences,
-        lambda s: match_subj_verb_number_simple_1a(s) is not None,
+        lambda s: len(match_subj_verb_number_simple_1a(s)) != 0,
         transform_1a,
         limit=limit,
         progress_desc="subj_verb_number_simple__1a",
@@ -35,24 +36,39 @@ def run_subj_verb_number_simple(
 
     def transform_1b(sentence) -> bool:
         matches = match_subj_verb_number_simple_1b(sentence)
-        return change_number(matches["root"], morph_dict)
+        return change_number(matches[0]["root"], morph_dict)
 
     variant_1b = run_filter_transform(
         sentences,
-        lambda s: match_subj_verb_number_simple_1b(s) is not None,
+        lambda s: len(match_subj_verb_number_simple_1b(s)) != 0,
         transform_1b,
         limit=limit,
         progress_desc="subj_verb_number_simple__1b",
     )
 
+    def transform_1c(sentence) -> bool:
+        matches = match_subj_verb_number_simple_1c(sentence)
+        return (
+            change_number(matches[0]["root"], morph_dict)
+            and change_aux_clitic_number(matches[0]["root"], matches[0]["auxclitic"], morph_dict)
+        )
+
+    variant_1c = run_filter_transform(
+        sentences,
+        lambda s: len(match_subj_verb_number_simple_1c(s)) != 0,
+        transform_1c,
+        limit=limit,
+        progress_desc="subj_verb_number_simple__1c",
+    )
+
     # Main verb, compound future
     def transform_2a(sentence) -> bool:
         matches = match_subj_verb_number_simple_2a(sentence)
-        return change_number(matches["aux"], morph_dict)
+        return change_number(matches[0]["aux"], morph_dict)
 
     variant_2a = run_filter_transform(
         sentences,
-        lambda s: match_subj_verb_number_simple_2a(s) is not None,
+        lambda s: len(match_subj_verb_number_simple_2a(s)) != 0,
         transform_2a,
         limit=limit,
         progress_desc="subj_verb_number_simple__2a",
@@ -60,11 +76,11 @@ def run_subj_verb_number_simple(
 
     def transform_2b(sentence) -> bool:
         matches = match_subj_verb_number_simple_2b(sentence)
-        return change_number(matches["aux"], morph_dict) and change_number(matches["root"], morph_dict)
+        return change_number(matches[0]["aux"], morph_dict) and change_number(matches[0]["root"], morph_dict)
 
     variant_2b = run_filter_transform(
         sentences,
-        lambda s: match_subj_verb_number_simple_2b(s) is not None,
+        lambda s: len(match_subj_verb_number_simple_2b(s)) != 0,
         transform_2b,
         limit=limit,
         progress_desc="subj_verb_number_simple__2b",
@@ -73,11 +89,11 @@ def run_subj_verb_number_simple(
     # Copular auxiliary verb
     def transform_3a(sentence) -> bool:
         matches = match_subj_verb_number_simple_3a(sentence)
-        return change_number(matches["cop"], morph_dict)
+        return change_number(matches[0]["cop"], morph_dict)
 
     variant_3a = run_filter_transform(
         sentences,
-        lambda s: match_subj_verb_number_simple_3a(s) is not None,
+        lambda s: len(match_subj_verb_number_simple_3a(s)) != 0,
         transform_3a,
         limit=limit,
         progress_desc="subj_verb_number_simple__3a",
@@ -86,138 +102,145 @@ def run_subj_verb_number_simple(
     def transform_3b(sentence) -> bool:
         matches = match_subj_verb_number_simple_3b(sentence)
         return (
-            change_number(matches["cop"], morph_dict)
-            and change_aux_clitic_number(matches["cop"], matches["auxclitic"], morph_dict)
+            change_number(matches[0]["cop"], morph_dict)
+            and change_aux_clitic_number(matches[0]["cop"], matches[0]["auxclitic"], morph_dict)
         )
 
     variant_3b = run_filter_transform(
         sentences,
-        lambda s: match_subj_verb_number_simple_3b(s) is not None,
+        lambda s: len(match_subj_verb_number_simple_3b(s)) != 0,
         transform_3b,
         limit=limit,
         progress_desc="subj_verb_number_simple__3b",
     )
 
-    variants = [variant_1a, variant_1b, variant_2a, variant_2b, variant_3a, variant_3b]
+    variants = [variant_1a, variant_1b, variant_1c, variant_2a, variant_2b, variant_3a, variant_3b]
     df = pd.concat(variants)
     df.attrs["matched_sentences"] = sum(df.attrs["matched_sentences"] for df in variants)
 
     return df
 
 
-def match_subj_verb_number_simple_1a(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    match = extract_main_verb_number_match(sentence, reference="root")
-    if match is None:
-        return None
-
-    nsubj_feats = match["nsubj"]["feats"] or {}
-    if nsubj_feats.get("Person") not in {"1", "2"}:
-        return match
-
-    return None
+def match_subj_verb_number_simple_1a(sentence: conllu.TokenList) -> list[dict[str, Token]]:
+    return [
+        match
+        for match in extract_main_verb_number_matches(sentence, reference="root")
+        if (match["nsubj"]["feats"] or {}).get("Person") not in {"1", "2"}
+    ]
 
 
-def match_subj_verb_number_simple_1b(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    match = extract_main_verb_number_match(sentence, reference="root")
-    if match is None:
-        return None
-
-    root_feats = match["root"]["feats"] or {}
-    nsubj_feats = match["nsubj"]["feats"] or {}
-    if nsubj_feats.get("Person") not in {"1", "2"}:
-        return None
-    if root_feats.get("Tense") in {"Pres", "Fut"}:
-        return match
-
-    return None
+def match_subj_verb_number_simple_1b(sentence: conllu.TokenList) -> list[dict[str, Token]]:
+    return [
+        match
+        for match in extract_main_verb_number_matches(sentence, reference="root")
+        if (match["nsubj"]["feats"] or {}).get("Person") in {"1", "2"}
+        and (match["root"]["feats"] or {}).get("Tense") in {"Pres", "Fut"}
+    ]
 
 
-def match_subj_verb_number_simple_2a(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    match = extract_main_verb_number_match(sentence, reference="aux")
-    if match is None:
-        return None
-
-    root_feats = match["root"]["feats"] or {}
-    if root_feats.get("VerbForm") != "Fin":
-        return match
-
-    return None
-
-
-def match_subj_verb_number_simple_2b(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    match = extract_main_verb_number_match(sentence, reference="aux")
-    if match is None:
-        return None
-
-    root_feats = match["root"]["feats"] or {}
-    if root_feats.get("VerbForm") == "Fin":
-        return match
-
-    return None
-
-
-def match_subj_verb_number_simple_3a(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    match = extract_copular_number_match(sentence)
-    if match is None:
-        return None
-
-    cop_feats = match["cop"]["feats"] or {}
-    nsubj_feats = match["nsubj"]["feats"] or {}
-    if nsubj_feats.get("Person") not in {"1", "2"}:
-        return match
-    if cop_feats.get("Tense") in {"Pres", "Fut"}:
-        return match
-
-    return None
-
-
-def match_subj_verb_number_simple_3b(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    match = extract_copular_number_match(sentence)
-    if match is None:
-        return None
-
-    cop_feats = match["cop"]["feats"] or {}
-    nsubj_feats = match["nsubj"]["feats"] or {}
-    if cop_feats.get("Tense") != "Past":
-        return None
-    if nsubj_feats.get("Person") not in {"1", "2"}:
-        return None
-
-    root = sentence.to_tree()
-    for auxclitic in root.children:
-        if auxclitic.token["deprel"] == "aux:clitic":
-            return {
+def match_subj_verb_number_simple_1c(sentence: conllu.TokenList) -> list[dict[str, Token]]:
+    matches = []
+    for root in token_trees(sentence.to_tree()):
+        auxclitic = extract_aux_clitic(root)
+        if auxclitic is None:
+            continue
+        for match in extract_main_verb_number_matches_for_root(root, reference="root"):
+            root_feats = match["root"]["feats"] or {}
+            nsubj_feats = match["nsubj"]["feats"] or {}
+            if nsubj_feats.get("Person") not in {"1", "2"}:
+                continue
+            if root_feats.get("Tense") != "Past" and match["root"]["lemma"] != "powinien":
+                continue
+            matches.append({
                 **match,
-                "auxclitic": auxclitic.token,
-            }
+                "auxclitic": auxclitic,
+            })
 
-    return None
+    return matches
 
 
-def extract_main_verb_number_match(
+def match_subj_verb_number_simple_2a(sentence: conllu.TokenList) -> list[dict[str, Token]]:
+    return [
+        match
+        for match in extract_main_verb_number_matches(sentence, reference="aux")
+        if (match["root"]["feats"] or {}).get("VerbForm") != "Fin"
+    ]
+
+
+def match_subj_verb_number_simple_2b(sentence: conllu.TokenList) -> list[dict[str, Token]]:
+    return [
+        match
+        for match in extract_main_verb_number_matches(sentence, reference="aux")
+        if (match["root"]["feats"] or {}).get("VerbForm") == "Fin"
+    ]
+
+
+def match_subj_verb_number_simple_3a(sentence: conllu.TokenList) -> list[dict[str, Token]]:
+    return [
+        match
+        for match in extract_copular_number_matches(sentence)
+        if (match["nsubj"]["feats"] or {}).get("Person") not in {"1", "2"}
+        or (
+            (match["nsubj"]["feats"] or {}).get("Person") in {"1", "2"}
+            and (match["cop"]["feats"] or {}).get("Tense") in {"Pres", "Fut"}
+        )
+    ]
+
+
+def match_subj_verb_number_simple_3b(sentence: conllu.TokenList) -> list[dict[str, Token]]:
+    matches = []
+    for root in token_trees(sentence.to_tree()):
+        auxclitic = extract_aux_clitic(root)
+        if auxclitic is None:
+            continue
+        for match in extract_copular_number_matches_for_root(root):
+            cop_feats = match["cop"]["feats"] or {}
+            nsubj_feats = match["nsubj"]["feats"] or {}
+            if cop_feats.get("Tense") != "Past":
+                continue
+            if nsubj_feats.get("Person") not in {"1", "2"}:
+                continue
+            matches.append({
+                **match,
+                "auxclitic": auxclitic,
+            })
+
+    return matches
+
+
+def extract_main_verb_number_matches(
         sentence: conllu.TokenList,
         reference: str,
-) -> dict[str, Token] | None:
-    root = sentence.to_tree()
+) -> list[dict[str, Token]]:
+    matches = []
+    for root in token_trees(sentence.to_tree()):
+        matches.extend(extract_main_verb_number_matches_for_root(root, reference))
+
+    return matches
+
+
+def extract_main_verb_number_matches_for_root(
+        root: conllu.TokenTree,
+        reference: str,
+) -> list[dict[str, Token]]:
     root_token = root.token
+    matches = []
 
     if root_token["upos"] != "VERB":
-        return None
-    if root_token["deprel"] != "root":
-        return None
+        return matches
 
     reference_token = root_token
     aux_token = None
     if reference == "aux":
         if root_token["lemma"] == "to":
-            return None
+            return matches
         for aux in root.children:
             if aux.token["deprel"] == "aux":
                 aux_token = aux.token
                 reference_token = aux_token
                 break
         if aux_token is None:
-            return None
+            return matches
 
     reference_feats = reference_token["feats"] or {}
     reference_number = reference_feats.get("Number")
@@ -243,19 +266,25 @@ def extract_main_verb_number_match(
         }
         if aux_token is not None:
             match["aux"] = aux_token
-        return match
+        matches.append(match)
 
-    return None
+    return matches
 
 
-def extract_copular_number_match(sentence: conllu.TokenList) -> dict[str, Token] | None:
-    root = sentence.to_tree()
+def extract_copular_number_matches(sentence: conllu.TokenList) -> list[dict[str, Token]]:
+    matches = []
+    for root in token_trees(sentence.to_tree()):
+        matches.extend(extract_copular_number_matches_for_root(root))
+
+    return matches
+
+
+def extract_copular_number_matches_for_root(root: conllu.TokenTree) -> list[dict[str, Token]]:
     root_token = root.token
+    matches = []
 
-    if root_token["deprel"] != "root":
-        return None
     if root_token["upos"] == "VERB" and root_token["lemma"] != "to":
-        return None
+        return matches
 
     for cop in root.children:
         cop_token = cop.token
@@ -275,18 +304,24 @@ def extract_copular_number_match(sentence: conllu.TokenList) -> dict[str, Token]
                 continue
             if nsubj_feats.get("Case") != "Nom":
                 continue
-            if nsubj_feats.get("Number") != cop_number:
-                continue
             if has_conj_child(nsubj):
                 continue
             if has_attractor_between(nsubj, cop_token, cop_number):
                 continue
 
-            return {
+            matches.append({
                 "root": root_token,
                 "nsubj": nsubj_token,
                 "cop": cop_token,
-            }
+            })
+
+    return matches
+
+
+def extract_aux_clitic(root: conllu.TokenTree) -> Token | None:
+    for child in root.children:
+        if child.token["deprel"] == "aux:clitic":
+            return child.token
 
     return None
 
