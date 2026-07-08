@@ -33,73 +33,54 @@ To create the ungrammatical sentence change the number of:
 ```
 a-node $root := [
   tag = 'VERB',
-  deprel = 'root',
 
   child a-node $nsubj := [
     deprel = 'nsubj',
     member iset [
-      number = $root.iset/number
-    ],
-
-    # no conjunct subject (anywhere)
-    0x child [deprel = 'conj'],
-
-    # attractor between the subject and the verb
-    child a-node $attractor := [
-      tag = 'NOUN',
-
-      # relational noun OR PP attractor
-      deprel in {'nmod', 'nmod:poss', 'nmod:arg'},
-
-      member iset [
-        number != $root.iset/number,
-        number != ''
-      ],
-
-      (
-        # relational noun attractor
-        deprel in {'nmod:poss', 'nmod:arg'}
-
-        or
-
-        # PP attractor
-        (
-          deprel = 'nmod'
-
-          and child a-node $prep := [
-            tag = 'ADP',
-            deprel = 'case',
-
-            # avoid "z" + instrumental
-            (
-              (lemma = 'z' and $attractor.iset/case != 'ins')
-              or
-              (lemma != 'z')
-            )
-          ]
-        )
-      ),
-
-      # attractor intervenes between subject and predicate
-      (
-        ($nsubj.ord < $attractor.ord and $attractor.ord < $root.ord)
-        or
-        ($root.ord < $attractor.ord and $attractor.ord < $nsubj.ord)
-      )
+      number = $root.iset/number,
+      case != 'gen'
     ],
     
-    0x descendant [
-      deprel in {'nmod', 'nmod:poss', 'nmod:arg', 'xcomp', 'nummod', 'conj'},
-      member iset [number = $root.iset/number],
+    0x child [deprel = 'conj'],
+    
+    0x descendant [iset/case = 'ins', child a-node [lemma = 'z'], (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron'])]
+  ],
+  
+  descendant a-node $attractor := [
+    member iset [
+      !number in{$nsubj.iset/number, ''},
+      ($root.iset/number = 'sing' or number != 'ptan')
+    ],
+    (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron']),
+      
+    (
+      ($nsubj.ord < ord and ord < $root.ord)
+      or
+      ($root.ord < ord and ord < $nsubj.ord)
+    )
+  ],
+  
+  0x descendant [
+    (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron']),
 
-      (
-        ($attractor.ord < ord and ord < $root.ord)
-        or
-        ($root.ord < ord and ord < $attractor.ord)
-      )
-    ]
-  ]
-# For generating pairs change number of $root
+    (
+      ($attractor.ord < ord and ord < $root.ord)
+      or
+      ($root.ord < ord and ord < $attractor.ord)
+    )
+  ],
+  
+# For generating pairs
+  (
+    # 3rd person: change the number of $root
+    ($nsubj.iset/person !in{'1', '2'})
+    or
+    # 1st and 2nd person, present and future tense: change the number of $root
+    ($root.iset/tense in{'pres', 'fut'} and $nsubj.iset/person in{'1', '2'})
+    or
+    # 1st and 2nd person, past tense: change the number of $auxclitic and of $root 
+    (($root.iset/tense = 'past' or $root.lemma = 'powinien') and $nsubj.iset/person in{'1', '2'} and child a-node $auxclitic := [deprel = 'aux:clitic'])
+  )
 ]
 ```
  2. Main verb, compound future
@@ -107,12 +88,10 @@ a-node $root := [
 a-node $root := [
   tag = 'VERB',
   lemma != 'to',
-  deprel = 'root',
   
   child a-node $aux :=  [
-    deprel = 'aux'],
+  deprel = 'aux'],
 
-  
   child a-node $nsubj := [
     deprel = 'nsubj',
     member iset [
@@ -120,63 +99,33 @@ a-node $root := [
       case != 'gen'
     ],
     
-    # no conjunct subject (anywhere)
     0x child [deprel = 'conj'],
     
-    # attractor between the subject and the verb
-    child a-node $attractor := [
-      tag = 'NOUN',
-
-      # relational noun OR PP attractor
-      deprel in {'nmod', 'nmod:poss', 'nmod:arg'},
-
-      member iset [
-        number != $aux.iset/number,
-        number != ''
-      ],
-
-      (
-        # relational noun attractor
-        deprel in {'nmod:poss', 'nmod:arg'}
-
-        or
-
-        # PP attractor
-        (
-          deprel = 'nmod'
-
-          and child a-node $prep := [
-            tag = 'ADP',
-            deprel = 'case',
-
-            # avoid "z" + instrumental
-            (
-              (lemma = 'z' and $attractor.iset/case != 'ins')
-              or
-              (lemma != 'z')
-            )
-          ]
-        )
-      ),
-
-      # attractor intervenes between subject and auxiliary
-      (
-        ($nsubj.ord < $attractor.ord and $attractor.ord < $aux.ord)
-        or
-        ($aux.ord < $attractor.ord and $attractor.ord < $nsubj.ord)
-      )
+    0x descendant [iset/case = 'ins', child a-node [lemma = 'z'], (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron'])]
+  ],
+  
+  descendant a-node $attractor := [
+    member iset [
+      !number in{$nsubj.iset/number, ''},
+      ($aux.iset/number = 'sing' or number != 'ptan')
     ],
-    
-    0x descendant [
-      deprel in {'nmod', 'nmod:poss', 'nmod:arg', 'xcomp', 'nummod', 'conj'},
-      member iset [number = $aux.iset/number],
+    (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron']),
+      
+    (
+      ($nsubj.ord < ord and ord < $aux.ord)
+      or
+      ($aux.ord < ord and ord < $nsubj.ord)
+    )
+  ],
+  
+  0x descendant [
+    (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron']),
 
-      (
-        ($attractor.ord < ord and ord < $aux.ord)
-        or
-        ($aux.ord < ord and ord < $attractor.ord)
-      )
-    ]
+    (
+      ($attractor.ord < ord and ord < $aux.ord)
+      or
+      ($aux.ord < ord and ord < $attractor.ord)
+    )
   ],
   
 # For generating pairs
@@ -194,95 +143,70 @@ a-node $root := [
 a-node $root := [
   tag != 'VERB' or 
   lemma = 'to',
-  deprel = 'root',
   
   child a-node $cop :=[ 
     tag = 'AUX',
     lemma !in {'to', 'by'} # exclude bare copular 'to' and avoid duplicate matches with forms such as 'byłby'
     ],
-  
+
   child a-node $nsubj := [
     deprel in {'nsubj', 'nsubj:pass'}, 
     member iset [
       case = 'nom',
       number = $cop.iset/number
     ],
-
-    # no conjunct subject (anywhere)
+    
     0x child [deprel = 'conj'],
     
-    # attractor between the subject and the verb
-    child a-node $attractor := [
-      tag = 'NOUN',
-
-      # relational noun OR PP attractor
-      deprel in {'nmod', 'nmod:poss', 'nmod:arg'},
-
-      member iset [
-        number != $cop.iset/number,
-        number != ''
-      ],
-
-      (
-        # relational noun attractor
-        deprel in {'nmod:poss', 'nmod:arg'}
-
-        or
-
-        # PP attractor
-        (
-          deprel = 'nmod'
-
-          and child a-node $prep := [
-            tag = 'ADP',
-            deprel = 'case',
-
-            # avoid "z" + instrumental
-            (
-              (lemma = 'z' and $attractor.iset/case != 'ins')
-              or
-              (lemma != 'z')
-            )
-          ]
-        )
-      ),
-
-      # attractor intervenes between subject and auxilitary
-      (
-        ($nsubj.ord < $attractor.ord and $attractor.ord < $cop.ord)
-        or
-        ($cop.ord < $attractor.ord and $attractor.ord < $nsubj.ord)
-      )
+    0x descendant [iset/case = 'ins', child a-node [lemma = 'z'], (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron'])]
+  ],
+  
+  descendant a-node $attractor := [
+    member iset [
+      !number in{$nsubj.iset/number, ''},
+      ($cop.iset/number = 'sing' or number != 'ptan')
     ],
-    
-    0x descendant [
-      deprel in {'nmod', 'nmod:poss', 'nmod:arg', 'xcomp', 'nummod', 'conj'},
-      member iset [number != $cop.iset/number],
-      (
-        ($attractor.ord < ord and ord < $cop.ord)
-        or
-        ($cop.ord < ord and ord < $attractor.ord)
-      )
-    ]
-  ]
-# For generating pairs change number of $cop
+    (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron']),
+      
+    (
+      ($nsubj.ord < ord and ord < $cop.ord)
+      or
+      ($cop.ord < ord and ord < $nsubj.ord)
+    )
+  ],
+  
+  0x descendant [
+    (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron']),
+
+    (
+      ($attractor.ord < ord and ord < $cop.ord)
+      or
+      ($cop.ord < ord and ord < $attractor.ord)
+    )
+  ],
+  
+# For generating pairs
+    (
+    # change the number of $cop
+    ($nsubj.iset/person !in{'1', '2'}) or ($nsubj.iset/person in{'1', '2'} and $cop.iset/tense in{'pres', 'fut'})
+    or
+    # 1st and 2nd person, past tense: change the number of $auxclitic and of $cop 
+    ($cop.iset/tense = 'past' and $nsubj.iset/person in{'1', '2'} and child a-node $auxclitic := [deprel = 'aux:clitic'])
+    )
 ]
 ```
 
 ## Notes
 UD 2.18 results:  
 
-1a:  
- LFG: 97 + 11,  
- PDB: 362 + 90
-
-1b:  
- LFG: 1 + 1,  
- PDB: 9 + 2
+1:  
+ LFG: 481,  
+ PDB: 1526
 
 2:  
- LFG: 11 + 1,  
- PDB: 67 + 39
+ LFG: 4,  
+ PDB: 39
 
- 
-(deprel = root + deprel != root)  
+3:  
+ LFG: 34,  
+ PDB: 267
