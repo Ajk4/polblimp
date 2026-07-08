@@ -156,8 +156,8 @@ class TestDatasetResultCounts(unittest.TestCase):
         match_subj_verb_person_numerals_2a: [13, 11],
         match_subj_verb_person_numerals_2b: [14, 10],
         ##
-        match_subj_verb_person_genitive_1a: [54, None],
-        match_subj_verb_person_genitive_1b: [24, None],
+        match_subj_verb_person_genitive_1a: [66, 144],
+        match_subj_verb_person_genitive_1b: [27, 70],
     }
 
     DATASET_FILENAMES: dict[str, tuple[str, ...]] = {
