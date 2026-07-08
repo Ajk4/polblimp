@@ -44,7 +44,7 @@ a-node $root := [
     
     # no attractors between subject and verb
     0x descendant $att := [
-      deprel in {'nmod', 'nmod:poss', 'nmod:arg', 'xcomp', 'conj', 'nummod'},
+      (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron']),
       (
         ($root.iset/number = 'sing' and $att.iset/gender != $root.iset/gender)
         or
@@ -96,7 +96,7 @@ a-node $root := [
 
     # no attractors between subject and verb
     0x descendant $att := [
-      deprel in {'nmod', 'nmod:poss', 'nmod:arg', 'xcomp', 'conj', 'nummod'},
+      (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron']),
       (
         ($cop.iset/number = 'sing' and $att.iset/gender != $cop.iset/gender)
         or
@@ -137,13 +137,14 @@ a-node $root := [
 UD 2.18 results:  
 
 1:  
- LFG: 2264 + 347,  
- PDB: 2550 + 1404
+ LFG: 2597,  
+ PDB: 3869
 
 2:  
- LFG: 380 + 57,  
- PDB: 361 + 322
+ LFG: 433,  
+ PDB: 669
 
- 
-(deprel = root + deprel != root)  
+  
 Removed the 'root' constraint.
+
+Changed the way we search for attractors.
