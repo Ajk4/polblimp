@@ -43,7 +43,7 @@ class TestDatasetOutputSnapshots(unittest.TestCase):
             "subj_verb_person_csubj": "25d54713b0fcf53b0f311dc3a50ed7d1a10bec073133738e2f9832bd11906a8c",
             "subj_verb_person_genitive": "c6d040f7e4553805e32ca5e5244b97bc788ae6f40bd0ffee85b2e75f2d80e842",
             "subj_verb_person_numerals": "7d55ab9ea6eeefd67bc90207c12f995645ffde957ea23c667e1c95c70dfecdad",
-            "subj_verb_person_simple": "43e2a85d2c060bf9dc0fbdd42a156ac0992ba3cbf8d5923172c6e39d69882605",
+            "subj_verb_person_simple": "aa53c737f7c1108958b83051e9935af909ce4ef5f9aad9135e34249c384ecb11",
         },
         "pdb": {
             "subj_adjectival_case": "3c5199fda24205831fb4202ab9d41036e267a1225f58826baaf9b825c4dd019b",
@@ -60,10 +60,10 @@ class TestDatasetOutputSnapshots(unittest.TestCase):
             "subj_verb_number_genitive": "0dd84993d9990780dc0b400e59c2095a3fead2c2d1609904a59f3127e7f5c62c",
             "subj_verb_number_numerals": "656fa4ee3686a436becbf526e5b86efe8b49e903981f1252692a96abc783e565",
             "subj_verb_number_simple": "b70fc939d44524934b3d98c61a8d4f7374f7809a2af0c86e90b71c2c835b15bb",
-            "subj_verb_person_csubj": "74fb7f2e647e651c6ca5aa358d5fd2f7d344fbd05807eee710a9caf238745cd6",
-            "subj_verb_person_genitive": "629397e9adcea9c1b1bcc4482a332412c6d32b84e2811d0c19fe853bb4350dbd",
-            "subj_verb_person_numerals": "29d74f80e636bc99c75380d52c859d5de423b985169f66469bbd0bfecdc7db92",
-            "subj_verb_person_simple": "8d9782a0298293ecf2fb30cd1c1edc940a43258fd7f75d8ec51f00610262aa7b",
+            "subj_verb_person_csubj": "3eabc5701a2c1dcf6071c43c96cc9a7a4dc009e84162ca000da2087d6581d471",
+            "subj_verb_person_genitive": "424619e48c0e0117445370cb692955df54416442e02df1e0cad5806b090a241c",
+            "subj_verb_person_numerals": "52a021780b7bf08c366fea3fc50b8b4aff0ebc565355a4617daef242da14f899",
+            "subj_verb_person_simple": "bbf314895fe20781a9090adf208bca10ae8b89201c7535c02a1b2c6f34e166a9",
         },
     }
 

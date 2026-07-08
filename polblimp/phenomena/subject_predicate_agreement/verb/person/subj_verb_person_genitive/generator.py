@@ -6,8 +6,16 @@ import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import QUANTIFIER_LEMMAS, append_aux_clitic, change_person, run_filter_transform, token_trees
+from phenomena.common import (
+    QUANTIFIER_LEMMAS,
+    run_filter_transform,
+    token_trees,
+)
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.subject_predicate_agreement.verb.person.common import (
+    append_aux_clitic,
+    change_person,
+)
 
 
 def run_subj_verb_person_genitive(
@@ -18,7 +26,7 @@ def run_subj_verb_person_genitive(
     # Main verb
     def transform_1a(sentence) -> bool:
         matches = match_subj_verb_person_genitive_1a(sentence)
-        return change_person(matches[0]["root"], morph_dict)
+        return change_person(matches[0]["root_tree"], morph_dict)
 
     variant_1a = run_filter_transform(
         sentences,
@@ -96,6 +104,7 @@ def extract_genitive_subject_matches(root: conllu.TokenTree) -> list[dict[str, T
 
         matches.append({
             "root": root_token,
+            "root_tree": root,
             "nsubj": nsubj_token,
         })
 

@@ -6,8 +6,11 @@ import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import change_person, run_filter_transform, token_trees
+from phenomena.common import run_filter_transform, token_trees
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.subject_predicate_agreement.verb.person.common import (
+    change_person,
+)
 
 
 def run_subj_verb_person_csubj(
@@ -18,7 +21,7 @@ def run_subj_verb_person_csubj(
     # Main verb
     def transform_1a(sentence) -> bool:
         matches = match_subj_verb_person_csubj_1a(sentence)
-        return change_person(matches["root"], morph_dict)
+        return change_person(matches["root_tree"], morph_dict)
 
     variant_1a = run_filter_transform(
         sentences,
@@ -31,7 +34,7 @@ def run_subj_verb_person_csubj(
     # Copular auxiliary verb
     def transform_2a(sentence) -> bool:
         matches = match_subj_verb_person_csubj_2a(sentence)
-        return change_person(matches["cop"], morph_dict)
+        return change_person(matches["cop_tree"], morph_dict)
 
     variant_2a = run_filter_transform(
         sentences,
@@ -75,6 +78,7 @@ def match_subj_verb_person_csubj_1a_for_root(root: conllu.TokenTree) -> dict[str
             continue
         return {
             "root": root_token,
+            "root_tree": root,
             "csubj": csubj_token,
         }
 
@@ -119,6 +123,7 @@ def match_subj_verb_person_csubj_2a_for_root(root: conllu.TokenTree) -> dict[str
             "root": root_token,
             "csubj": csubj,
             "cop": cop_token,
+            "cop_tree": cop,
         }
 
     return None
@@ -137,4 +142,3 @@ def is_singular_verb_for_csubj(token: Token) -> bool:
     if feats.get("Number") == "Sing":
         return True
     return token["lemma"] == "to" and token["xpos"] == "pred"
-

@@ -16,6 +16,9 @@ from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_simple.g
 from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_csubj.generator import (
     run_subj_verb_person_csubj,
 )
+from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_genitive.generator import (
+    run_subj_verb_person_genitive,
+)
 from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_simple.generator import (
     run_subj_verb_person_simple,
 )
@@ -48,6 +51,18 @@ class TestSentenceText(unittest.TestCase):
                 "expected": "I to byłam prawda.",
             },
             {
+                "dataset": ("pl_lfg-ud-train.conllu", 176),
+                "source": "A pan ma?",
+                "transform": run_subj_verb_person_simple,
+                "expected": "A pan masz?",
+            },
+            {
+                "dataset": ("pl_lfg-ud-train.conllu", 892),
+                "source": "Bożena też nie ma z czego zwrócić pożyczki.",
+                "transform": run_subj_verb_person_simple,
+                "expected": "Bożena też nie masz z czego zwrócić pożyczki.",
+            },
+            {
                 "dataset": ("pl_lfg-ud-train.conllu", 3083),
                 "source": "i to byłby komplet..",
                 "transform": run_subj_verb_person_simple,
@@ -58,6 +73,12 @@ class TestSentenceText(unittest.TestCase):
                 "source": "Ja nie byłem zbyt głodny, więc poprzestałem na sałatce.",
                 "transform": run_subj_verb_number_simple,
                 "expected": "Ja nie byliśmy zbyt głodny, więc poprzestałem na sałatce.",
+            },
+            {
+                "dataset": ("pl_pdb-ud-train.conllu", 5673),
+                "source": "W kratkach z cyframi skarbów nie ma.",
+                "transform": run_subj_verb_person_genitive,
+                "expected": "W kratkach z cyframi skarbów nie jestem.",
             },
             {
                 "dataset": ("pl_pdb-ud-train.conllu", 13969),

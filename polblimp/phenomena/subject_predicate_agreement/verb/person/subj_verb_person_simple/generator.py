@@ -7,15 +7,19 @@ import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import append_aux_clitic, change_person, run_filter_transform, token_trees
+from phenomena.common import run_filter_transform, token_trees
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.subject_predicate_agreement.verb.person.common import (
+    append_aux_clitic,
+    change_person,
+)
 
 def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: MorphDictionary,
                                 limit: Optional[int]) -> pd.DataFrame:
     # Main verb
     def transform_1a(sentence) -> bool:
         matches = match_subj_verb_person_simple_1a(sentence)
-        return change_person(matches[0]["root"], morph_dict)
+        return change_person(matches[0]["root_tree"], morph_dict)
 
     variant_1a = run_filter_transform(
         sentences,
@@ -41,7 +45,7 @@ def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: M
         matches = match_subj_verb_person_simple_1c(sentence)
         if matches[0]["root"]["lemma"] == "powinien":
             return append_aux_clitic(matches[0]["root"], morph_dict)
-        return change_person(matches[0]["root"], morph_dict)
+        return change_person(matches[0]["root_tree"], morph_dict)
 
     variant_1c = run_filter_transform(
         sentences,
@@ -58,7 +62,7 @@ def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: M
             # Person attaches to the conditional particle ("byś"), not the host
             # ("byłeśby" is invalid).
             return change_conditional_person(matches["aux"], matches["auxcnd"], morph_dict)
-        return change_person(matches['aux'], morph_dict)
+        return change_person(matches['aux_tree'], morph_dict)
 
     variant_1d = run_filter_transform(
         sentences,
@@ -71,7 +75,7 @@ def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: M
     # Copular auxiliary verb
     def transform_2a(sentence) -> bool:
         matches = match_subj_verb_person_simple_2a(sentence)
-        return change_person(matches[0]['cop'], morph_dict)
+        return change_person(matches[0]['cop_tree'], morph_dict)
     variant_2a = run_filter_transform(
         sentences,
         lambda s: len(match_subj_verb_person_simple_2a(s)) != 0,
@@ -99,7 +103,7 @@ def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: M
             # Person attaches to the conditional particle ("byś"), not the host
             # ("byłeśby" is invalid).
             return change_conditional_person(matches["cop"], matches["auxcnd"], morph_dict)
-        return change_person(matches['cop'], morph_dict)
+        return change_person(matches['cop_tree'], morph_dict)
 
     variant_2c = run_filter_transform(
         sentences,
@@ -255,10 +259,11 @@ def match_subj_verb_person_simple_1d(sentence: conllu.TokenList) -> list[dict[st
         for match in extract_main_verb_person_subject_matches(root):
             result = {
                 **match,
-                "aux": aux,
+                "aux": aux.token,
+                "aux_tree": aux,
             }
             if auxcnd is not None:
-                result["auxcnd"] = auxcnd
+                result["auxcnd"] = auxcnd.token
             matches.append(result)
 
     return matches
@@ -288,7 +293,7 @@ def match_subj_verb_person_simple_2b(sentence: conllu.TokenList) -> list[dict[st
                 continue
             matches.append({
                 **match,
-                "auxclitic": auxclitic,
+                "auxclitic": auxclitic.token,
             })
 
     return matches
@@ -307,7 +312,7 @@ def match_subj_verb_person_simple_2c(sentence: conllu.TokenList) -> list[dict[st
                 continue
             result = dict(match)
             if auxcnd is not None:
-                result["auxcnd"] = auxcnd
+                result["auxcnd"] = auxcnd.token
             matches.append(result)
 
     return matches
@@ -324,6 +329,7 @@ def extract_main_verb_person_subject_matches(root: conllu.TokenTree) -> list[dic
             continue
         matches.append({
             "root": root.token,
+            "root_tree": root,
             "nsubj": nsubj_token,
         })
 
@@ -362,14 +368,15 @@ def extract_copular_person_matches_for_root(root: conllu.TokenTree) -> list[dict
                 "root": root_token,
                 "nsubj": nsubj_token,
                 "cop": cop_token,
+                "cop_tree": cop,
             })
 
     return matches
 
 
-def extract_child(root: conllu.TokenTree, deprel: str) -> Token | None:
+def extract_child(root: conllu.TokenTree, deprel: str) -> conllu.TokenTree | None:
     for child in root.children:
         if child.token["deprel"] == deprel:
-            return child.token
+            return child
 
     return None

@@ -8,14 +8,16 @@ from conllu import Token
 from phenomena.common import (
     QUANTIFIER_LEMMAS,
     agrees_with_numeral_subject,
-    append_aux_clitic,
-    change_person,
     extract_children,
     is_numeral_or_quantifier,
     run_filter_transform,
     token_trees,
 )
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.subject_predicate_agreement.verb.person.common import (
+    append_aux_clitic,
+    change_person,
+)
 
 
 def run_subj_verb_person_numerals(
@@ -26,7 +28,7 @@ def run_subj_verb_person_numerals(
     # Main verb
     def transform_1a(sentence) -> bool:
         matches = match_subj_verb_person_numerals_1a(sentence)
-        return change_person(matches[0]["root"], morph_dict)
+        return change_person(matches[0]["root_tree"], morph_dict)
 
     variant_1a = run_filter_transform(
         sentences,
@@ -50,7 +52,7 @@ def run_subj_verb_person_numerals(
 
     def transform_1c(sentence) -> bool:
         matches = match_subj_verb_person_numerals_1c(sentence)
-        return change_person(matches[0]["aux"], morph_dict)
+        return change_person(matches[0]["aux_tree"], morph_dict)
 
     variant_1c = run_filter_transform(
         sentences,
@@ -63,7 +65,7 @@ def run_subj_verb_person_numerals(
     # Copular auxiliary verb
     def transform_2a(sentence) -> bool:
         matches = match_subj_verb_person_numerals_2a(sentence)
-        return change_person(matches[0]["cop"], morph_dict)
+        return change_person(matches[0]["cop_tree"], morph_dict)
 
     variant_2a = run_filter_transform(
         sentences,
@@ -116,6 +118,7 @@ def match_subj_verb_person_numerals_1a(sentence: conllu.TokenList) -> list[dict[
                         continue
                     return {
                         "root": root_token,
+                        "root_tree": root,
                         "nsubj": nsubj_token,
                         "num": num_token,
                     }
@@ -164,6 +167,7 @@ def match_subj_verb_person_numerals_1b(sentence: conllu.TokenList) -> list[dict[
                         continue
                     return {
                         "root": root_token,
+                        "root_tree": root,
                         "nsubj": nsubj_token,
                         "num": num_token,
                     }
@@ -222,6 +226,7 @@ def match_subj_verb_person_numerals_1c(sentence: conllu.TokenList) -> list[dict[
                 ):
                     return {
                         "root": root_token,
+                        "root_tree": root,
                         "nsubj": nsubj_token,
                         "num": num_token,
                     }
@@ -251,6 +256,7 @@ def match_subj_verb_person_numerals_1c(sentence: conllu.TokenList) -> list[dict[
             return [{
                 **base_match,
                 "aux": aux_token,
+                "aux_tree": aux,
             }]
 
     return []
@@ -274,39 +280,6 @@ def match_subj_verb_person_numerals_2b(sentence: conllu.TokenList) -> list[dict[
             matches.append(match)
 
     return matches
-
-
-def extract_main_verb_numeral_match(
-        root: conllu.TokenTree,
-        check_root_number: bool,
-) -> dict[str, Token] | None:
-    root_token = root.token
-    root_feats = root_token["feats"] or {}
-    root_number = root_feats.get("Number")
-
-    for nsubj in root.children:
-        nsubj_token = nsubj.token
-        nsubj_feats = nsubj_token["feats"] or {}
-
-        if nsubj_token["upos"] != "NOUN":
-            continue
-        if nsubj_token["deprel"] != "nsubj":
-            continue
-        if check_root_number and not agrees_with_numeral_subject(root_number, nsubj_feats.get("Case")):
-            continue
-
-        nums = extract_children(nsubj, is_numeral_or_quantifier)
-        num = nums[0] if nums else None
-        if num is None:
-            continue
-
-        return {
-            "root": root_token,
-            "nsubj": nsubj_token,
-            "num": num,
-        }
-
-    return None
 
 
 def extract_copular_numeral_matches(sentence: conllu.TokenList) -> list[dict[str, Token]]:
@@ -343,6 +316,7 @@ def extract_copular_numeral_matches(sentence: conllu.TokenList) -> list[dict[str
                         "nsubj": nsubj_token,
                         "num": num,
                         "cop": cop_token,
+                        "cop_tree": cop,
                     })
 
     return matches

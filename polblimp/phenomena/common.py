@@ -7,7 +7,10 @@ from typing import Callable, Optional
 
 import conllu
 import pandas as pd
+from babel.localtime import _win32
 from conllu import Token, TokenList
+from torch import _C
+from torch.onnx._internal.fx import _pass
 from tqdm import tqdm
 
 from phenomena.morph_dictionary import MorphDictionary
@@ -57,11 +60,6 @@ def run_filter_transform(
     return df
 
 
-def change_number_root(sentence: conllu.TokenList, morph_dict: MorphDictionary) -> bool:
-    root = sentence.to_tree().token
-    return change_number(root, morph_dict)
-
-
 def change_aux_clitic_number(host: Token, token: Token, morph_dict: MorphDictionary) -> bool:
     feats = token["feats"] or {}
     target_number = {"Sing": "pl", "Plur": "sg"}.get(feats.get("Number"))
@@ -100,87 +98,6 @@ def change_number(token: Token, morph_dict: MorphDictionary) -> bool:
         return False
 
     return change_morph(token, morph_dict, target_xpos)
-
-
-def change_person_root(sentence: conllu.TokenList, morph_dict: MorphDictionary) -> bool:
-    root = sentence.to_tree().token
-    return change_person(root, morph_dict)
-
-
-def append_aux_clitic(token: Token, morph_dict: MorphDictionary) -> bool:
-    source_xpos = token["xpos"]
-    if not (source_xpos.startswith("praet") or source_xpos.startswith("winien")):
-        print(f"Unknown tag for aux clitic append, tag={source_xpos}, form={token['form']}")
-        return False
-
-    if ":pl:" in source_xpos:
-        target_number = "pl"
-    elif ":sg:" in source_xpos:
-        target_number = "sg"
-    else:
-        print(f"Unknown number for aux clitic append, tag={source_xpos}, form={token['form']}")
-        return False
-
-    target_person = "pri" if random.randint(0, 1) == 0 else "sec"
-    if target_number == "sg" and ":sg:m" in source_xpos:
-        target_variant = "wok"
-    else:
-        target_variant = "nwok"
-
-    host_xpos = source_xpos
-    if host_xpos.endswith((":agl", ":nagl")):
-        host_xpos = host_xpos.rsplit(":", 1)[0]
-
-    host_form = morph_dict.get_form(token["lemma"], host_xpos)
-    if host_form is None:
-        print(f"Missing form, lemma: {token['lemma']}, target_tag: {host_xpos}")
-        return False
-
-    clitic_xpos = f"aglt:{target_number}:{target_person}:imperf:{target_variant}"
-    clitic_form = morph_dict.get_form("być", clitic_xpos)
-    if clitic_form is None:
-        print(f"Missing form, lemma: być, target_tag: {clitic_xpos}")
-        return False
-
-    form = token.get("form", "")
-    if form and form[0].isupper():
-        host_form = host_form[:1].upper() + host_form[1:]
-
-    token["form"] = host_form + clitic_form
-    return True
-
-
-def change_person(token: conllu.Token, morph_dict: MorphDictionary) -> bool:
-    source_xpos = token["xpos"]
-    if ":pri:" in source_xpos:
-        if random.randint(0, 1) == 0:
-            target_xpos = source_xpos.replace(":pri:", ":sec:")
-        else:
-            target_xpos = source_xpos.replace(":pri:", ":ter:")
-    elif ":sec:" in source_xpos:
-        if random.randint(0, 1) == 0:
-            target_xpos = source_xpos.replace(":sec:", ":pri:")
-        else:
-            target_xpos = source_xpos.replace(":sec:", ":ter:")
-    elif ":ter:" in source_xpos:
-        if random.randint(0, 1) == 0:
-            target_xpos = source_xpos.replace(":ter:", ":pri:")
-        else:
-            target_xpos = source_xpos.replace(":ter:", ":sec:")
-    elif source_xpos.startswith("praet"):
-        return append_aux_clitic(token, morph_dict)
-    else:
-        print(f"Unknown tag={source_xpos}, form={token['form']}")
-        return False
-
-    return change_morph(token, morph_dict, target_xpos)
-
-def change_gender_root(
-        sentence: conllu.TokenList,
-        morph_dict: MorphDictionary,
-) -> bool:
-    root = sentence.to_tree().token
-    return change_gender(root, morph_dict)
 
 
 def change_gender(
@@ -315,7 +232,7 @@ def token_trees(tree: conllu.TokenTree) -> list[conllu.TokenTree]:
 
 def is_numeral_or_quantifier(token: Token) -> bool:
     return token["upos"] == "NUM" or (
-        token["deprel"] == "det" and token["lemma"] in QUANTIFIER_LEMMAS
+            token["deprel"] == "det" and token["lemma"] in QUANTIFIER_LEMMAS
     )
 
 
@@ -332,8 +249,8 @@ def extract_children(
 
 def agrees_with_numeral_subject(number: str | None, nsubj_case: str | None) -> bool:
     return (
-        (number == "Sing" and nsubj_case == "Gen")
-        or (number == "Plur" and nsubj_case == "Nom")
+            (number == "Sing" and nsubj_case == "Gen")
+            or (number == "Plur" and nsubj_case == "Nom")
     )
 
 
