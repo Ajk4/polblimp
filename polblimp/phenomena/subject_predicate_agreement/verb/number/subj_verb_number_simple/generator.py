@@ -336,15 +336,13 @@ def has_attractor_between(
     if not isinstance(nsubj_id, int) or not isinstance(target_id, int):
         return False
 
-    attractor_deprels = {"nmod", "nmod:poss", "nmod:arg", "xcomp", "nummod", "conj"}
-
     lower_id = min(nsubj_id, target_id)
     upper_id = max(nsubj_id, target_id)
     attractors = match_descendants(
         nsubj,
         lambda token: (
-            token["deprel"] in attractor_deprels
-            and (token["feats"] or {}).get("Number") != reference_number
+            is_noun_or_pronoun(token)
+            and (token["feats"] or {}).get("Number") not in {reference_number, None}
             and isinstance(token["id"], int)
             and lower_id < token["id"] < upper_id
         ),
@@ -358,3 +356,8 @@ def has_conj_child(nsubj: conllu.TokenTree) -> bool:
             return True
 
     return False
+
+
+def is_noun_or_pronoun(token: Token) -> bool:
+    xpos = token.get("xpos") or ""
+    return "subst" in xpos or "ppron" in xpos

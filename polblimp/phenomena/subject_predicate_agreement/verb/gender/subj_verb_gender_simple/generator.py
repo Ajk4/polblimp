@@ -277,7 +277,6 @@ def has_gender_attractor_between(nsubj: conllu.TokenTree, root_token: Token) -> 
     if not isinstance(nsubj_id, int) or not isinstance(root_id, int):
         return False
 
-    nsubj_feats = nsubj_token["feats"] or {}
     root_feats = root_token["feats"] or {}
     root_number = root_feats.get("Number")
     root_gender = root_feats.get("Gender")
@@ -285,11 +284,10 @@ def has_gender_attractor_between(nsubj: conllu.TokenTree, root_token: Token) -> 
 
     lower_id = min(nsubj_id, root_id)
     upper_id = max(nsubj_id, root_id)
-    attractor_deprels = {"nmod", "nmod:poss", "nmod:arg", "xcomp", "conj", "nummod"}
     attractors = match_descendants(
         nsubj,
         lambda token: (
-            token["deprel"] in attractor_deprels
+            is_noun_or_pronoun(token)
             and isinstance(token["id"], int)
             and lower_id < token["id"] < upper_id
             and (
@@ -304,6 +302,11 @@ def has_gender_attractor_between(nsubj: conllu.TokenTree, root_token: Token) -> 
 def is_masculine_personal(token: Token) -> bool:
     feats = token["feats"] or {}
     return feats.get("SubGender") == "Masc1" or feats.get("Animacy") == "Hum"
+
+
+def is_noun_or_pronoun(token: Token) -> bool:
+    xpos = token.get("xpos") or ""
+    return "subst" in xpos or "ppron" in xpos
 
 
 def get_target_gender(token: Token) -> str | None:
