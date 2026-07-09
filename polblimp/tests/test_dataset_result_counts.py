@@ -46,6 +46,8 @@ from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_attracto
     match_subj_verb_gender_attractor_1b,
     match_subj_verb_gender_attractor_1c,
     match_subj_verb_gender_attractor_2a,
+    match_subj_verb_gender_attractor_2b,
+    match_subj_verb_gender_attractor_2c,
 )
 from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_simple.generator import (
     match_subj_verb_number_simple_1a,
@@ -143,10 +145,12 @@ class TestDatasetResultCounts(unittest.TestCase):
         match_subj_verb_gender_csubj_2a: [1, 9],
         match_subj_verb_gender_numerals_1a: [148, 195],
         match_subj_verb_gender_numerals_2a: [14, 9],
-        match_subj_verb_gender_attractor_1a: [51, 88],
-        match_subj_verb_gender_attractor_1b: [13, 32],
-        match_subj_verb_gender_attractor_1c: [9, 2],
-        match_subj_verb_gender_attractor_2a: [4, 23],
+        match_subj_verb_gender_attractor_1a: [400, 888],
+        match_subj_verb_gender_attractor_1b: [70, 191],
+        match_subj_verb_gender_attractor_1c: [29, 45],
+        match_subj_verb_gender_attractor_2a: [18, 110],
+        match_subj_verb_gender_attractor_2b: [0, 4],
+        match_subj_verb_gender_attractor_2c: [5, 2],
         ##
         match_subj_verb_number_simple_1a: [7240, None], # over 10k for pdb
         match_subj_verb_number_simple_1b: [241, 213],
