@@ -70,6 +70,14 @@ from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_numerals
     match_subj_verb_number_numerals_2a,
     match_subj_verb_number_numerals_2b,
 )
+from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_attractor.generator import (
+    match_subj_verb_number_attractor_1a,
+    match_subj_verb_number_attractor_1b,
+    match_subj_verb_number_attractor_1c,
+    match_subj_verb_number_attractor_2a,
+    match_subj_verb_number_attractor_2b,
+    match_subj_verb_number_attractor_3a,
+)
 from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_csubj.generator import (
     match_subj_verb_person_csubj_1a,
     match_subj_verb_person_csubj_2a,
@@ -150,6 +158,13 @@ class TestDatasetResultCounts(unittest.TestCase):
         match_subj_verb_number_genitive_1a: [93, 214],
         match_subj_verb_number_csubj_1a: [105, 127],
         match_subj_verb_number_csubj_2a: [7, 32],
+        match_subj_verb_number_attractor_1a: [462, 1506],
+        match_subj_verb_number_attractor_1b: [16, 17],
+        match_subj_verb_number_attractor_1c: [3, 3],
+        match_subj_verb_number_attractor_2a: [1, 24],
+        match_subj_verb_number_attractor_2b: [3, 15],
+        match_subj_verb_number_attractor_3a: [34, 267],
+        # match_subj_verb_number_attractor_3b: [0, 0],
         ##
         match_subj_verb_number_numerals_1a: [227, 782],
         match_subj_verb_number_numerals_1b: [1, 4],

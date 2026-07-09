@@ -194,6 +194,7 @@ a-node $root := [
     ($nsubj.iset/person !in{'1', '2'}) or ($nsubj.iset/person in{'1', '2'} and $cop.iset/tense in{'pres', 'fut'})
     or
     # 1st and 2nd person, past tense: change the number of $auxclitic and of $cop 
+    # Have 0 results - implementation skipped
     ($cop.iset/tense = 'past' and $nsubj.iset/person in{'1', '2'} and child a-node $auxclitic := [deprel = 'aux:clitic'])
     )
 ]
