@@ -51,6 +51,9 @@ a-node $root := [
     # i. In present, future simple and past tense, change the number of $root
     ($root.iset/tense in{'pres', 'fut', 'past'}
       and
+        # exclude compound future tense
+        0x child [deprel = 'aux']
+      and
         # check if the sentences are annotated correctly
       (($root.iset/number = 'sing' and $nsubj.iset/case = 'gen')
          or

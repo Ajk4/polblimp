@@ -35,6 +35,9 @@ To create the ungrammatical sentence change the number of:
 a-node $root := [
   tag = 'VERB',
 
+  # exclude compound future tense
+  0x child [deprel = 'aux'],
+
   child a-node $nsubj := [
     deprel = 'nsubj',
     member iset [
@@ -161,8 +164,8 @@ a-node $root := [
 UD 2.18 results:  
 
 1:  
- LFG: 6560 + 1007,  
- PDB: 9032 + 5648
+ LFG: 6527 + 999,  
+ PDB: 8944 + 5556
 
 2:  
  LFG: 68 + 11,  
