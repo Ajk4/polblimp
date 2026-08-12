@@ -7,13 +7,13 @@ import pandas as pd
 from conllu import Token
 
 from phenomena.common import (
-    change_aux_clitic_number,
     change_number,
     match_descendants,
     run_filter_transform,
     token_trees,
 )
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.subject_predicate_agreement.verb.number.common import change_number_with_aux_clitic
 from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_simple.generator import (
     extract_aux_clitic,
     has_conj_child,
@@ -51,10 +51,13 @@ def run_subj_verb_number_attractor(
     )
 
     def transform_1c(sentence) -> bool:
-        matches = match_subj_verb_number_attractor_1c(sentence)
-        return (
-            change_number(matches[0]["root"], morph_dict)
-            and change_aux_clitic_number(matches[0]["root"], matches[0]["auxclitic"], morph_dict)
+        match = match_subj_verb_number_attractor_1c(sentence)[0]
+        return change_number_with_aux_clitic(
+            sentence,
+            match["root"],
+            match["auxclitic"],
+            (match["nsubj"]["feats"] or {})["Person"],
+            morph_dict,
         )
 
     variant_1c = run_filter_transform(

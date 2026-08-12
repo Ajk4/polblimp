@@ -60,29 +60,6 @@ def run_filter_transform(
     return df
 
 
-def change_aux_clitic_number(host: Token, token: Token, morph_dict: MorphDictionary) -> bool:
-    feats = token["feats"] or {}
-    target_number = {"Sing": "pl", "Plur": "sg"}.get(feats.get("Number"))
-    target_person = {"1": "pri", "2": "sec"}.get(feats.get("Person"))
-    if target_number is None or target_person is None:
-        print(f"Unknown aux clitic tag={token['xpos']}, form={token['form']}")
-        return False
-
-    target_variant = "nwok"
-    if target_number == "sg":
-        host_xpos = host["xpos"]
-        # Singular aglt has long/short variants: masculine past hosts take vocalic
-        # forms (był + em/eś), while feminine/neuter hosts take non-vocalic
-        # forms (była/było + m/ś).
-        if host_xpos.startswith("praet:sg:m"):
-            target_variant = "wok"
-        elif not (host_xpos.startswith("praet:sg:f:") or host_xpos.startswith("praet:sg:n")):
-            print(f"Unknown host tag for aux clitic, tag={host['xpos']}, form={host['form']}")
-            return False
-
-    return change_morph(token, morph_dict, f"aglt:{target_number}:{target_person}:imperf:{target_variant}")
-
-
 def remove_token_preserving_spacing(sentence: conllu.TokenList, removed_token: Token) -> bool:
     token_index = next((index for index, token in enumerate(sentence) if token is removed_token), None)
     if token_index is None:

@@ -19,6 +19,9 @@ from phenomena.subject_predicate_agreement.adjective.adjective_only.subj_adjecti
 from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_simple.generator import (
     run_subj_verb_gender_simple,
 )
+from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_attractor.generator import (
+    run_subj_verb_number_attractor,
+)
 from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_simple.generator import (
     run_subj_verb_number_simple,
 )
@@ -333,6 +336,69 @@ PAST_PERSON_CLITIC_CASES = [
 ]
 
 
+NUMBER_CLITIC_CASES = [
+    (
+        run_subj_verb_number_simple,
+        "pl_lfg-ud-test.conllu",
+        684,
+        "Myśmy nikomu nie zagrażali.",
+        "My nikomu nie zagrażałem.",
+    ),
+    (
+        run_subj_verb_number_simple,
+        "pl_lfg-ud-train.conllu",
+        5320,
+        "myśmy tak w butach wleźli.",
+        "my tak w butach wlazłem.",
+    ),
+    (
+        run_subj_verb_number_simple,
+        "pl_pdb-ud-train.conllu",
+        5115,
+        "- Myśmy wtedy wszyscy - powiada pewien znajomy - trochę grzeszyli pychą.",
+        "- My wtedy wszyscy - powiada pewien znajomy - trochę grzeszyłem pychą.",
+    ),
+    (
+        run_subj_verb_number_simple,
+        "pl_pdb-ud-train.conllu",
+        10381,
+        "Zebrałem się na odwagę i wypaliłem: - Bo myśmy właśnie z Baśką postanowili się pobrać "
+        "wkrótce i ja przyjechałem do Warszawy, bo pragniemy zamieszkać w stolicy, ja muszę "
+        "ukończyć studia, a i Baśka by chciała dyplom zrobić.",
+        "Zebrałem się na odwagę i wypaliłem: - Bo my właśnie z Baśką postanowiłem się pobrać "
+        "wkrótce i ja przyjechałem do Warszawy, bo pragniemy zamieszkać w stolicy, ja muszę "
+        "ukończyć studia, a i Baśka by chciała dyplom zrobić.",
+    ),
+    (
+        run_subj_verb_number_simple,
+        "pl_pdb-ud-train.conllu",
+        13443,
+        "Do tej pory było tak, Unię strasznie to wzburzało, że myśmy ich towary tam sprawdzone "
+        "tutaj poddawali znowuż kolejnym sprawdzeniom, że tak powiem, fizycznym, obróbce.",
+        "Do tej pory było tak, Unię strasznie to wzburzało, że my ich towary tam sprawdzone "
+        "tutaj poddawałem znowuż kolejnym sprawdzeniom, że tak powiem, fizycznym, obróbce.",
+    ),
+    (
+        run_subj_verb_number_attractor,
+        "pl_lfg-ud-test.conllu",
+        684,
+        "Myśmy nikomu nie zagrażali.",
+        "My nikomu nie zagrażałem.",
+    ),
+    (
+        run_subj_verb_number_attractor,
+        "pl_pdb-ud-train.conllu",
+        10381,
+        "Zebrałem się na odwagę i wypaliłem: - Bo myśmy właśnie z Baśką postanowili się pobrać "
+        "wkrótce i ja przyjechałem do Warszawy, bo pragniemy zamieszkać w stolicy, ja muszę "
+        "ukończyć studia, a i Baśka by chciała dyplom zrobić.",
+        "Zebrałem się na odwagę i wypaliłem: - Bo my właśnie z Baśką postanowiłem się pobrać "
+        "wkrótce i ja przyjechałem do Warszawy, bo pragniemy zamieszkać w stolicy, ja muszę "
+        "ukończyć studia, a i Baśka by chciała dyplom zrobić.",
+    ),
+]
+
+
 
 
 class TestSentenceText(unittest.TestCase):
@@ -493,6 +559,15 @@ class TestSentenceText(unittest.TestCase):
                 sentence = self._get_sentence({"dataset": (filename, index)})
                 self.assertEqual(source, sentence.metadata["text"])
                 df = run_subj_verb_person_simple([sentence], self.morph_dict, None)
+
+                self.assertIn(expected, df["incorrect"].tolist())
+
+    def test_number_clitic_outputs(self) -> None:
+        for transform, filename, index, source, expected in NUMBER_CLITIC_CASES:
+            with self.subTest(transform=transform.__name__, dataset=filename, index=index):
+                sentence = self._get_sentence({"dataset": (filename, index)})
+                self.assertEqual(source, sentence.metadata["text"])
+                df = transform([sentence], self.morph_dict, None)
 
                 self.assertIn(expected, df["incorrect"].tolist())
 
