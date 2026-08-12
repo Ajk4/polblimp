@@ -1,0 +1,15 @@
+a-node $root := [
+  tag = 'VERB',
+  member iset [
+    number = 'sing',
+    gender = 'neut'
+  ],
+
+  child a-node $nsubj := [
+    deprel = 'nsubj',
+    member iset [case = 'gen'],
+
+    # exclude numerals and quantifiers
+    0x child [tag = 'NUM' or (lemma in {'kilka', 'kilkaset', 'kilkanaście', 'kilkadziesiąt', 'sporo', 'mnóstwo', 'dużo', 'wiele', 'więcej', 'najwięcej', 'większość', 'mało', 'mniej', 'najmniej', 'trochę', 'parę', 'niewiele', 'ile', 'tyle'} and deprel ~ 'det')]
+  ],
+]

@@ -1,0 +1,40 @@
+a-node $root := [
+  tag = 'VERB',
+  lemma != 'to',
+
+  child a-node $aux := [
+    deprel = 'aux'
+  ],
+
+  child a-node $nsubj := [
+    deprel = 'nsubj',
+    member iset [
+      number = $aux.iset/number,
+      case != 'gen'
+    ],
+
+    # no attractors (of different number) between subject and verb
+    0x descendant [
+      (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron']),
+      member iset [number != $aux.iset/number],
+
+      (
+        ($nsubj.ord < ord and ord < $aux.ord)
+        or
+        ($aux.ord < ord and ord < $nsubj.ord)
+      )
+    ],
+
+    # no conjunct subject (anywhere)
+    0x child [deprel = 'conj'],
+  ],
+
+  # For generating pairs
+  (
+    # infinitive: change the number of $aux
+    # $root.iset/verbform != 'fin'
+    # or
+    # finite verb: change the number of $aux and $root
+    $root.iset/verbform = 'fin'
+  )
+]

@@ -1,0 +1,59 @@
+a-node $root := [
+  tag != 'VERB' or
+  lemma = 'to',
+
+  child a-node $cop := [
+    tag = 'AUX',
+    lemma !in {'to', 'by'} # exclude bare copular 'to' and avoid duplicate matches with forms such as 'byłby'
+  ],
+
+  child a-node $nsubj := [
+    deprel in {'nsubj', 'nsubj:pass'},
+    member iset [
+      case = 'nom',
+      gender = $cop.iset/gender
+    ],
+
+    0x child [deprel = 'conj']
+  ],
+
+  descendant a-node $attractor := [
+    (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron']),
+
+    (
+      ($cop.iset/number = 'sing' and $attractor.iset/gender != $cop.iset/gender)
+      or
+      ($cop.iset/number = 'plur' and (($nsubj.conll/feat ~ 'SubGender=Masc1' and $attractor.conll/feat !~ 'SubGender=Masc1') or ($nsubj.conll/feat ~ 'Animacy=Hum' and $attractor.conll/feat !~ 'Animacy=Hum')))
+      or
+      ($cop.iset/number = 'plur' and (($nsubj.conll/feat !~ 'SubGender=Masc1' and $attractor.conll/feat ~ 'SubGender=Masc1') or ($nsubj.conll/feat !~ 'Animacy=Hum' and $attractor.conll/feat ~ 'Animacy=Hum')))
+    ),
+
+    (
+      ($nsubj.ord < ord and ord < $cop.ord)
+      or
+      ($cop.ord < ord and ord < $nsubj.ord)
+    )
+  ],
+
+  0x descendant [
+    (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron']),
+
+    (
+      ($attractor.ord < ord and ord < $cop.ord)
+      or
+      ($cop.ord < ord and ord < $attractor.ord)
+    )
+  ],
+
+  # for generating pairs
+  (
+    # i. singular - change the gender of $cop to that of $attractor
+    # ($cop.iset/number = 'sing')
+    # or
+    # ii. plural, masculine personal - change the subgender (LFG) or the animacy (PDB) of $cop (mp -> nmp)
+    # ($cop.iset/number = 'plur' and ($nsubj.conll/feat ~ 'SubGender=Masc1' or $nsubj.conll/feat ~ 'Animacy=Hum'))
+    # or
+    # iii. plural, non-masculine-personal - change the subgender (LFG) or the animacy (PDB) of $cop (nmp -> mp)
+    ($cop.iset/number = 'plur' and ($nsubj.conll/feat !~ 'SubGender=Masc1' and $nsubj.conll/feat !~ 'Animacy=Hum'))
+  )
+]

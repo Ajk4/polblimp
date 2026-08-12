@@ -1,0 +1,35 @@
+a-node $root := [
+  tag != 'VERB' or lemma = 'to',
+
+  child a-node $nsubj := [
+    deprel in {'nsubj', 'nsubj:pass'},
+
+    child a-node $num := [
+      tag = 'NUM'
+      or
+      (lemma in {'kilka', 'kilkaset', 'kilkanaście', 'kilkadziesiąt', 'sporo', 'mnóstwo', 'dużo', 'wiele', 'więcej', 'najwięcej', 'większość', 'mało', 'mniej', 'najmniej', 'trochę', 'parę', 'niewiele', 'ile', 'tyle'} and deprel = 'det')
+    ],
+  ],
+
+  child a-node $cop := [
+    tag = 'AUX',
+    # exclude bare copular 'to' and avoid duplicate matches with forms such as 'byłby'
+    lemma !in {'to', 'by'},
+  ],
+
+  # check if the sentences are annotated correctly
+  (
+    ($cop.iset/number = 'sing' and $nsubj.iset/case = 'gen')
+    or
+    ($cop.iset/number = 'plur' and $nsubj.iset/case = 'nom')
+  ),
+
+  # For generating pairs
+  (
+    # i. In present and future tense, change the person of $cop
+    # ($cop.iset/tense in{'pres', 'fut'})
+    # or
+    # ii. In past tense, a suffix must be added to $cop
+    ($cop.iset/tense = 'past')
+  )
+]

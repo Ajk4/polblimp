@@ -1,0 +1,55 @@
+a-node $root := [
+  tag != 'VERB' or
+  lemma = 'to',
+
+  child a-node $cop := [
+    tag = 'AUX',
+    lemma !in {'to', 'by'} # exclude bare copular 'to' and avoid duplicate matches with forms such as 'byłby'
+  ],
+
+  child a-node $nsubj := [
+    deprel in {'nsubj', 'nsubj:pass'},
+    member iset [
+      case = 'nom',
+      number = $cop.iset/number
+    ],
+
+    0x child [deprel = 'conj'],
+
+    0x descendant [iset/case = 'ins', child a-node [lemma = 'z'], (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron'])]
+  ],
+
+  descendant a-node $attractor := [
+    member iset [
+      !number in{$nsubj.iset/number, ''},
+      ($cop.iset/number = 'sing' or number != 'ptan')
+    ],
+    (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron']),
+
+    (
+      ($nsubj.ord < ord and ord < $cop.ord)
+      or
+      ($cop.ord < ord and ord < $nsubj.ord)
+    )
+  ],
+
+  0x descendant [
+    (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron']),
+
+    (
+      ($attractor.ord < ord and ord < $cop.ord)
+      or
+      ($cop.ord < ord and ord < $attractor.ord)
+    )
+  ],
+
+  # For generating pairs
+  (
+    # change the number of $cop
+    ($nsubj.iset/person !in{'1', '2'}) or ($nsubj.iset/person in{'1', '2'} and $cop.iset/tense in{'pres', 'fut'})
+    # or
+    # 1st and 2nd person, past tense: change the number of $auxclitic and of $cop
+    # Have 0 results - implementation skipped
+    # ($cop.iset/tense = 'past' and $nsubj.iset/person in{'1', '2'} and child a-node $auxclitic := [deprel = 'aux:clitic'])
+  )
+]

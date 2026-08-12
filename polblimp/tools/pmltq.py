@@ -6,9 +6,9 @@ from __future__ import annotations
 #
 # Examples:
 # python polblimp/tools/pmltq.py \
-#   polblimp/phenomena/subject_predicate_agreement/verb/number/subj_verb_number_simple/*.pmltq
+#   polblimp/phenomena/subject_predicate_agreement/verb/number/subj_verb_number_simple/queries/*.pmltq
 # python polblimp/tools/pmltq.py \
-#   polblimp/phenomena/subject_predicate_agreement/verb/number/subj_verb_number_simple/subj_verb_number_simple_1a.pmltq \
+#   polblimp/phenomena/subject_predicate_agreement/verb/number/subj_verb_number_simple/queries/1a.pmltq \
 #   --treebank lfg
 
 import argparse

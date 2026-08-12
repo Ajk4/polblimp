@@ -1,0 +1,18 @@
+a-node $root := [
+  tag = 'ADJ',
+  deprel = 'root',
+
+  child a-node $nsubj := [
+    deprel in {'nsubj', 'nsubj:pass'},
+    member iset [
+      case = 'nom',
+      person !in{'1', '2'} # pronouns (ja, ty, my, wy) do not carry gender
+    ],
+  ],
+
+  child a-node $cop :=[
+    tag = 'AUX',
+    # exclude bare copular 'to' and avoid duplicate matches with forms such as 'byłby'
+    lemma !in {'to', 'by'},
+  ]
+]

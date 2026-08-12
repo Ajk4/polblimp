@@ -1,0 +1,20 @@
+a-node $root := [
+  tag = 'VERB',
+
+  child a-node $nsubj := [
+    deprel = 'nsubj',
+    member iset [case = 'gen'],
+
+    # exclude numerals and quantifiers
+    0x child [tag = 'NUM' or (lemma in {'kilka', 'kilkaset', 'kilkanaście', 'kilkadziesiąt', 'sporo', 'mnóstwo', 'dużo', 'wiele', 'więcej', 'najwięcej', 'większość', 'mało', 'mniej', 'najmniej', 'trochę', 'parę', 'niewiele', 'ile', 'tyle'} and deprel ~ 'det')]
+  ],
+
+  # For generating pairs
+  (
+    # i. In present and future tense, change the person of $root
+    ($root.iset/tense in{'pres', 'fut'} and $root.iset/person = '3')
+    # or
+    # ii. In past tense (or lemma 'powinien'), a suffix must be added to $root
+    # ($root.iset/tense = 'past' or $root.lemma = 'powinien')
+  )
+]

@@ -1,0 +1,53 @@
+a-node $root := [
+  tag = 'VERB',
+
+  child a-node $nsubj := [
+    deprel = 'nsubj',
+    member iset [
+      gender = $root.iset/gender,
+      case != 'gen'
+    ],
+
+    0x child [deprel = 'conj']
+  ],
+
+  descendant a-node $attractor := [
+    (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron']),
+
+    (
+      ($root.iset/number = 'sing' and $attractor.iset/gender != $root.iset/gender)
+      or
+      ($root.iset/number = 'plur' and (($nsubj.conll/feat ~ 'SubGender=Masc1' and $attractor.conll/feat !~ 'SubGender=Masc1') or ($nsubj.conll/feat ~ 'Animacy=Hum' and $attractor.conll/feat !~ 'Animacy=Hum')))
+      or
+      ($root.iset/number = 'plur' and (($nsubj.conll/feat !~ 'SubGender=Masc1' and $attractor.conll/feat ~ 'SubGender=Masc1') or ($nsubj.conll/feat !~ 'Animacy=Hum' and $attractor.conll/feat ~ 'Animacy=Hum')))
+    ),
+
+    (
+      ($nsubj.ord < ord and ord < $root.ord)
+      or
+      ($root.ord < ord and ord < $nsubj.ord)
+    )
+  ],
+
+  0x descendant [
+    (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron']),
+
+    (
+      ($attractor.ord < ord and ord < $root.ord)
+      or
+      ($root.ord < ord and ord < $attractor.ord)
+    )
+  ],
+
+  # for generating pairs
+  (
+    # i. singular - change the gender of $root to that of $attractor
+    # ($root.iset/number = 'sing')
+    # or
+    # ii. plural, masculine personal - change the subgender (LFG) or the animacy (PDB) of $root (mp -> nmp)
+    # ($root.iset/number = 'plur' and ($nsubj.conll/feat ~ 'SubGender=Masc1' or $nsubj.conll/feat ~ 'Animacy=Hum'))
+    # or
+    # iii. plural, non-masculine-personal - change the subgender (LFG) or the animacy (PDB) of $root (nmp -> mp)
+    ($root.iset/number = 'plur' and ($nsubj.conll/feat !~ 'SubGender=Masc1' and $nsubj.conll/feat !~ 'Animacy=Hum'))
+  )
+]

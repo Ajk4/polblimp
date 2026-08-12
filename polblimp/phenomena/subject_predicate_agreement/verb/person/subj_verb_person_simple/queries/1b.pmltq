@@ -1,0 +1,23 @@
+a-node $root := [
+  tag = 'VERB',
+
+  child a-node $nsubj := [
+    deprel = 'nsubj',
+    member iset [case != 'gen'] # subject in genitive is covered by a different paradigm
+  ],
+
+  # For generating pairs
+  (
+    # i) In present and future tense, change the person of $root
+    # ($root.iset/tense in{'pres', 'fut'} and $root.iset/person in{'1', '2', '3'})
+    # or
+    # ii) In past tense (or lemma 'powinien'), 1st and 2nd person, change the person of $auxclitic or remove this node
+    (($root.iset/tense = 'past' or $root.lemma = 'powinien') and child a-node $auxclitic := [deprel = 'aux:clitic'] and $nsubj.iset/person in{'1', '2'})
+    # or
+    # iii) In past tense (or lemma 'powinien'), 3rd person, a suffix must be added to $root
+    # (($root.iset/tense = 'past' or $root.lemma = 'powinien') and $nsubj.iset/person !in {'1', '2'} and 0x child [deprel = 'aux'])
+    # or
+    # iv) In future compound, change the person of $aux
+    # (child a-node $aux := [deprel = 'aux'] and $root.lemma != 'to')
+  )
+]

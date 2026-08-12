@@ -1,0 +1,55 @@
+a-node $root := [
+  tag = 'VERB',
+
+  child a-node $nsubj := [
+    tag = 'NOUN',
+    deprel = 'nsubj',
+
+    child a-node $num := [
+      tag = 'NUM'
+      or
+      (lemma in {'kilka', 'kilkaset', 'kilkanaście', 'kilkadziesiąt', 'sporo', 'mnóstwo', 'dużo', 'wiele', 'więcej', 'najwięcej', 'większość', 'mało', 'mniej', 'najmniej', 'trochę', 'parę', 'niewiele', 'ile', 'tyle'} and deprel ~ 'det')
+    ],
+  ],
+
+  # For generating pairs
+  (
+    # i. In present, future simple and past tense, change the number of $root
+    # ($root.iset/tense in{'pres', 'fut', 'past'}
+    #   and
+    #     # exclude compound future tense
+    #     0x child [deprel = 'aux']
+    #   and
+    #     # check if the sentences are annotated correctly
+    #     (($root.iset/number = 'sing' and $nsubj.iset/case = 'gen')
+    #       or
+    #      ($root.iset/number = 'plur' and $nsubj.iset/case = 'nom'))
+    # )
+
+    # or
+
+    # ii. In compound future tense, main verb in infinitive: change the number of $aux
+    ($root.lemma != 'to' and $root.iset/verbform != 'fin'
+      and child a-node $aux1 := [
+        deprel = 'aux',
+        # check if the sentences are annotated correctly (number of $aux1)
+        ((iset/number = 'sing' and $nsubj.iset/case = 'gen')
+          or
+         (iset/number = 'plur' and $nsubj.iset/case = 'nom'))
+      ]
+    )
+
+    # or
+
+    # iii. In compound future tense, finite main verb: change the number of $aux and $root
+    # ($root.lemma != 'to' and $root.iset/verbform = 'fin'
+    #   and child a-node $aux2 := [
+    #     deprel = 'aux',
+    #     # check if the sentences are annotated correctly (number of $aux2)
+    #     ((iset/number = 'sing' and $nsubj.iset/case = 'gen')
+    #       or
+    #      (iset/number = 'plur' and $nsubj.iset/case = 'nom'))
+    #   ]
+    # )
+  )
+]

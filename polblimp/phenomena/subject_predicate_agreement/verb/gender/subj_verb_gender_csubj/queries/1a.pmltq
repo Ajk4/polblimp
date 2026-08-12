@@ -1,0 +1,14 @@
+a-node $root := [
+  tag = 'VERB',
+  member iset [
+    number = 'sing',
+    gender = 'neut'
+  ],
+
+  child a-node $csubj := [
+    tag = 'VERB',
+    deprel ~ 'subj',
+    # exclude sentences with lemma 'kto' - incorrect annotations
+    0x child [lemma = 'kto']
+  ]
+]

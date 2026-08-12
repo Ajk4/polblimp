@@ -1,0 +1,14 @@
+a-node $root := [
+  tag = 'ADJ',
+  deprel = 'root',
+
+  child a-node $nsubj := [
+    deprel in {'nsubj', 'nsubj:pass'},
+  ],
+
+  child a-node $cop :=[
+    tag = 'AUX',
+    # exclude bare copular 'to' and avoid duplicate matches with forms such as 'byłby'
+    lemma !in {'to', 'by'},
+  ]
+]

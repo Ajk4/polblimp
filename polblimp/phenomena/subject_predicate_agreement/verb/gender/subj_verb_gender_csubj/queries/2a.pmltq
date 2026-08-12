@@ -1,0 +1,20 @@
+a-node $root := [
+  tag != 'VERB',
+
+  child a-node $csubj := [
+    tag = 'VERB',
+    deprel ~ 'subj',
+    # exclude sentences with lemma 'kto' - incorrect annotations
+    0x child [lemma = 'kto']
+  ],
+
+  child a-node $cop := [
+    tag = 'AUX',
+    # exclude bare copular 'to' and avoid duplicate matches with forms such as 'byłby'
+    lemma !in {'to', 'by'},
+    member iset [
+      number = 'sing',
+      gender = 'neut'
+    ]
+  ]
+]

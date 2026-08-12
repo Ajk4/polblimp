@@ -1,0 +1,39 @@
+a-node $root := [
+  tag != 'VERB' or
+  lemma = 'to',
+
+  child a-node $cop := [
+    tag = 'AUX',
+    lemma !in {'to', 'by', 'niech'}, # exclude bare copular 'to', particles, and duplicate matches with forms such as 'byłby'
+    # exclude infinitives such as 'być' and 'zostać'; their form has no singular/plural distinction
+    member iset [number in {'sing', 'plur'}]
+  ],
+
+  child a-node $nsubj := [
+    deprel in {'nsubj', 'nsubj:pass'},
+    member iset [case = 'nom'],
+
+    # no attractors (of different number) between subject and verb
+    0x descendant [
+      (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron']),
+      member iset [number != $cop.iset/number],
+      (
+        ($nsubj.ord < ord and ord < $cop.ord)
+        or
+        ($cop.ord < ord and ord < $nsubj.ord)
+      )
+    ],
+
+    # no conjunct subject (anywhere)
+    0x child [deprel = 'conj'],
+  ],
+
+  # For generating pairs
+  (
+    # change the number of $cop
+    (($nsubj.iset/person !in{'1', '2'}) or ($nsubj.iset/person in{'1', '2'} and $cop.iset/tense in{'pres', 'fut'}))
+    # or
+    # 1st and 2nd person, past tense: change the number of $auxclitic and of $cop
+    # ($cop.iset/tense = 'past' and $nsubj.iset/person in{'1', '2'} and child a-node $auxclitic := [deprel = 'aux:clitic'])
+  )
+]

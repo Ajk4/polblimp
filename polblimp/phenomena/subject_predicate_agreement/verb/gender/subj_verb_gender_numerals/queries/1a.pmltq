@@ -1,0 +1,23 @@
+a-node $root := [
+  tag = 'VERB',
+
+  member iset [
+    gender in {'masc', 'fem', 'neut'}
+  ],
+
+  child a-node $nsubj := [
+    tag = 'NOUN',
+    deprel = 'nsubj',
+
+    child a-node $num := [
+      tag = 'NUM'
+      or
+      (lemma in {'kilka', 'kilkaset', 'kilkanaście', 'kilkadziesiąt', 'sporo', 'mnóstwo', 'dużo', 'wiele', 'więcej', 'najwięcej', 'większość', 'mało', 'mniej', 'najmniej', 'trochę', 'parę', 'niewiele', 'ile', 'tyle'} and deprel ~ 'det')
+    ],
+  ],
+
+  # check for gender (if the sentences are annotated correctly)
+  ($root.iset/number = 'sing' and $nsubj.iset/case = 'gen')
+  or
+  ($root.iset/number = 'plur' and $nsubj.iset/case = 'nom')
+]

@@ -1,0 +1,25 @@
+a-node $root := [
+  tag != 'VERB' or lemma = 'to',
+
+  child a-node $nsubj := [
+    deprel in {'nsubj', 'nsubj:pass'},
+    member iset [case != 'gen'],
+  ],
+
+  child a-node $cop := [
+    tag = 'AUX',
+    lemma !in {'to', 'by'},
+  ],
+
+  # For generating pairs
+  (
+    # i) In present and future tense, change the person of $cop
+    # ($cop.iset/tense in{'pres', 'fut'})
+    # or
+    # ii) In past tense, 1st and 2nd person, change the person of $auxclitic or remove this node
+    # ($cop.iset/tense = 'past' and child a-node $auxclitic := [deprel = 'aux:clitic'] and $nsubj.iset/person in{'1', '2'})
+    # or
+    # iii) In past tense, 3rd person, a suffix must be added to $cop
+    (($cop.iset/tense = 'past') and $nsubj.iset/person !in{'1', '2'})
+  )
+]
