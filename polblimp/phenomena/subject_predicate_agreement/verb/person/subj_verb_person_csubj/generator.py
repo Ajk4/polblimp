@@ -107,6 +107,8 @@ def match_subj_verb_person_csubj_2a_for_root(root: conllu.TokenTree) -> dict[str
             continue
         if "subj" not in child_token["deprel"]:
             continue
+        if has_kto_child(child):
+            continue
         csubj = child_token
         break
 
@@ -117,7 +119,7 @@ def match_subj_verb_person_csubj_2a_for_root(root: conllu.TokenTree) -> dict[str
         cop_token = cop.token
         if cop_token["upos"] != "AUX":
             continue
-        if cop_token["lemma"] in {"to", "by"}:
+        if cop_token["lemma"] in {"to", "by", "niech"}:
             continue
         return {
             "root": root_token,

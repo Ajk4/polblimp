@@ -52,7 +52,7 @@ a-node $root := [
   child a-node $cop :=[ 
     tag = 'AUX',
     # exclude bare copular 'to' and avoid duplicate matches with forms such as 'byłby'
-    lemma !in {'to', 'by'},
+    lemma !in {'to', 'by', 'niech'},
   ]
 ]
 ```

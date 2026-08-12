@@ -102,6 +102,32 @@ class TestSentenceText(unittest.TestCase):
                 "expected": "i to byłbyś komplet..",
             },
             {
+                "dataset": ("pl_pdb-ud-train.conllu", 2173),
+                "source": "Potem polski papież zostałby w Watykanie kanonizowany.",
+                "transform": run_subj_verb_person_simple,
+                "expected": "Potem polski papież zostałbyś w Watykanie kanonizowany.",
+            },
+            {
+                "dataset": ("pl_pdb-ud-train.conllu", 2799),
+                "source": "Taribal byłby oddał taniej.",
+                "transform": run_subj_verb_person_simple,
+                "expected": "Taribal byłbyś oddał taniej.",
+            },
+            {
+                "dataset": ("pl_pdb-ud-train.conllu", 12194),
+                "source": (
+                    "Jednak podczas telewizyjnego programu wyborczego przed wyborami 4 czerwca 1989 roku, "
+                    "zapytany przez prowadzącego, czy napisał \"Balladę o Janku Wiśniewskim\", Dowgiałło "
+                    "odpowiada enigmatycznie: \"Co miało być anonimowe, niech będzie anonimowe\"."
+                ),
+                "transform": run_subj_verb_person_csubj,
+                "expected": (
+                    "Jednak podczas telewizyjnego programu wyborczego przed wyborami 4 czerwca 1989 roku, "
+                    "zapytany przez prowadzącego, czy napisał \"Balladę o Janku Wiśniewskim\", Dowgiałło "
+                    "odpowiada enigmatycznie: \"Co miało być anonimowe, niech będę anonimowe\"."
+                ),
+            },
+            {
                 "dataset": ("pl_pdb-ud-train.conllu", 7189),
                 "source": "Ja nie byłem zbyt głodny, więc poprzestałem na sałatce.",
                 "transform": run_subj_verb_number_simple,

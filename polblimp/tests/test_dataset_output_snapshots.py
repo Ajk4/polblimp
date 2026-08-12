@@ -62,10 +62,10 @@ class TestDatasetOutputSnapshots(unittest.TestCase):
             "subj_verb_number_genitive": "0dd84993d9990780dc0b400e59c2095a3fead2c2d1609904a59f3127e7f5c62c",
             "subj_verb_number_numerals": "cc3a09a6e3c514f4c82276c13566a8433f53f5eb2a875464c998f4ca9070e857",
             "subj_verb_number_simple": "2e7cb97c703ec7919d473b8bcd5da80322ef6c393515db3edffb26409994c7a5",
-            "subj_verb_person_csubj": "3eabc5701a2c1dcf6071c43c96cc9a7a4dc009e84162ca000da2087d6581d471",
+            "subj_verb_person_csubj": "cd6134c388eebabb8609303f58dbce2f00800e2770e4f57cc1ac00eb2f474f89",
             "subj_verb_person_genitive": "424619e48c0e0117445370cb692955df54416442e02df1e0cad5806b090a241c",
             "subj_verb_person_numerals": "52a021780b7bf08c366fea3fc50b8b4aff0ebc565355a4617daef242da14f899",
-            "subj_verb_person_simple": "bbf314895fe20781a9090adf208bca10ae8b89201c7535c02a1b2c6f34e166a9",
+            "subj_verb_person_simple": "746ada97249a1bbc7eec4c2826c4a137708ce66aca4b7518058ba1b44be2a4fc",
         },
     }
 

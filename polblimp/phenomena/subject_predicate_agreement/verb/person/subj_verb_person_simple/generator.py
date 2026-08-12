@@ -163,10 +163,7 @@ def change_conditional_person(aux: Token, auxcnd: Token, morph_dict: MorphDictio
         return False
 
     target_person = "pri" if random.randint(0, 1) == 0 else "sec"
-    by_form = morph_dict.get_form(auxcnd["lemma"], auxcnd["xpos"])
-    if by_form is None:
-        print(f"Missing form, lemma: {auxcnd['lemma']}, target_tag: {auxcnd['xpos']}")
-        return False
+    by_form = auxcnd["form"]
 
     clitic_xpos = f"aglt:{target_number}:{target_person}:imperf:nwok"
     clitic_form = morph_dict.get_form("być", clitic_xpos)
