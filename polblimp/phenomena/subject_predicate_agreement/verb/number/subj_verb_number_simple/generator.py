@@ -301,7 +301,9 @@ def extract_copular_number_matches_for_root(root: conllu.TokenTree) -> list[dict
 
         if cop_token["upos"] != "AUX":
             continue
-        if cop_token["lemma"] in {"to", "by"}:
+        if cop_token["lemma"] in {"to", "by", "niech"}:
+            continue
+        if cop_number is None:
             continue
 
         for nsubj in root.children:

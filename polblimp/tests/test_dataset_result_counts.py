@@ -157,7 +157,7 @@ class TestDatasetResultCounts(unittest.TestCase):
         match_subj_verb_number_simple_1c: [99, 63],
         match_subj_verb_number_simple_2a: [35, 100],
         match_subj_verb_number_simple_2b: [44, 187],
-        match_subj_verb_number_simple_3a: [1169, 2361],
+        match_subj_verb_number_simple_3a: [1169, 2356],
         match_subj_verb_number_simple_3b: [4, 5],
         match_subj_verb_number_genitive_1a: [93, 214],
         match_subj_verb_number_csubj_1a: [105, 127],

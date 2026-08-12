@@ -127,7 +127,9 @@ a-node $root := [
   
   child a-node $cop :=[ 
     tag = 'AUX',
-    lemma !in {'to', 'by'} # exclude bare copular 'to' and avoid duplicate matches with forms such as 'byłby'
+    lemma !in {'to', 'by', 'niech'}, # exclude bare copular 'to', particles, and duplicate matches with forms such as 'byłby'
+    # exclude infinitives such as 'być' and 'zostać'; their form has no singular/plural distinction
+    member iset [number in {'sing', 'plur'}]
     ],
   
   child a-node $nsubj := [
