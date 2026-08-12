@@ -15,20 +15,31 @@ def run_subj_verb_gender_simple(
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    def transform(matches: dict[str, Token], target_name: str) -> bool:
-        target = matches[target_name]
+    def match_for_generation(
+            matches: list[dict[str, Token]],
+            target_name: str,
+    ) -> list[dict[str, Token]]:
+        return [
+            match
+            for match in matches
+            if (match[target_name]["feats"] or {}).get("Gender") is not None
+            and get_target_gender(match[target_name]) is not None
+        ]
+
+    def transform(matches: list[dict[str, Token]], target_name: str) -> bool:
+        match = matches[0]
+        target = match[target_name]
         target_gender = get_target_gender(target)
-        if target_gender is None:
-            return False
+        assert target_gender is not None
         return change_gender(target, morph_dict, target_gender=target_gender)
 
     # Main verb, singular
     def transform_1a(sentence) -> bool:
-        return transform(match_subj_verb_gender_simple_1a(sentence)[0], "root")
+        return transform(match_for_generation(match_subj_verb_gender_simple_1a(sentence), "root"), "root")
 
     variant_1a = run_filter_transform(
         sentences,
-        lambda s: len(match_subj_verb_gender_simple_1a(s)) != 0,
+        lambda s: len(match_for_generation(match_subj_verb_gender_simple_1a(s), "root")) != 0,
         transform_1a,
         limit=limit,
         progress_desc="subj_verb_gender_simple__1a",
@@ -36,18 +47,19 @@ def run_subj_verb_gender_simple(
 
     # Main verb, plural masculine-personal
     def transform_1b(sentence) -> bool:
-        match = match_subj_verb_gender_simple_1b(sentence)[0]
+        matches = match_for_generation(match_subj_verb_gender_simple_1b(sentence), "root")
+        match = matches[0]
         root = match["root"]
         incorrectly_tagged_sentence = (sentence.metadata or {}).get("sent_id") == "train-s13970"
         if incorrectly_tagged_sentence:
             # pl_pdb train-s13970 has "zauważyły" tagged as masculine-personal
             # "praet:pl:m1:perf"; force the visible masculine-personal target.
             return change_morph(root, morph_dict, "praet:pl:m1.p1:perf")
-        return transform(match, "root")
+        return transform(matches, "root")
 
     variant_1b = run_filter_transform(
         sentences,
-        lambda s: len(match_subj_verb_gender_simple_1b(s)) != 0,
+        lambda s: len(match_for_generation(match_subj_verb_gender_simple_1b(s), "root")) != 0,
         transform_1b,
         limit=limit,
         progress_desc="subj_verb_gender_simple__1b",
@@ -55,11 +67,11 @@ def run_subj_verb_gender_simple(
 
     # Main verb, plural non-masculine-personal
     def transform_1c(sentence) -> bool:
-        return transform(match_subj_verb_gender_simple_1c(sentence)[0], "root")
+        return transform(match_for_generation(match_subj_verb_gender_simple_1c(sentence), "root"), "root")
 
     variant_1c = run_filter_transform(
         sentences,
-        lambda s: len(match_subj_verb_gender_simple_1c(s)) != 0,
+        lambda s: len(match_for_generation(match_subj_verb_gender_simple_1c(s), "root")) != 0,
         transform_1c,
         limit=limit,
         progress_desc="subj_verb_gender_simple__1c",
@@ -67,11 +79,11 @@ def run_subj_verb_gender_simple(
 
     # Copular verb, singular
     def transform_2a(sentence) -> bool:
-        return transform(match_subj_verb_gender_simple_2a(sentence)[0], "cop")
+        return transform(match_for_generation(match_subj_verb_gender_simple_2a(sentence), "cop"), "cop")
 
     variant_2a = run_filter_transform(
         sentences,
-        lambda s: len(match_subj_verb_gender_simple_2a(s)) != 0,
+        lambda s: len(match_for_generation(match_subj_verb_gender_simple_2a(s), "cop")) != 0,
         transform_2a,
         limit=limit,
         progress_desc="subj_verb_gender_simple__2a",
@@ -79,11 +91,11 @@ def run_subj_verb_gender_simple(
 
     # Copular verb, plural masculine-personal
     def transform_2b(sentence) -> bool:
-        return transform(match_subj_verb_gender_simple_2b(sentence)[0], "cop")
+        return transform(match_for_generation(match_subj_verb_gender_simple_2b(sentence), "cop"), "cop")
 
     variant_2b = run_filter_transform(
         sentences,
-        lambda s: len(match_subj_verb_gender_simple_2b(s)) != 0,
+        lambda s: len(match_for_generation(match_subj_verb_gender_simple_2b(s), "cop")) != 0,
         transform_2b,
         limit=limit,
         progress_desc="subj_verb_gender_simple__2b",
@@ -91,11 +103,11 @@ def run_subj_verb_gender_simple(
 
     # Copular verb, plural non-masculine-personal
     def transform_2c(sentence) -> bool:
-        return transform(match_subj_verb_gender_simple_2c(sentence)[0], "cop")
+        return transform(match_for_generation(match_subj_verb_gender_simple_2c(sentence), "cop"), "cop")
 
     variant_2c = run_filter_transform(
         sentences,
-        lambda s: len(match_subj_verb_gender_simple_2c(s)) != 0,
+        lambda s: len(match_for_generation(match_subj_verb_gender_simple_2c(s), "cop")) != 0,
         transform_2c,
         limit=limit,
         progress_desc="subj_verb_gender_simple__2c",

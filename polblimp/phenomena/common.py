@@ -124,6 +124,8 @@ def _select_target_gender(source_xpos: str) -> str | None:
     if source_xpos in {'praet:sg:m1:imperf', 'praet:sg:m2:imperf', 'praet:sg:m3:imperf'}:
         return "Neut"
     if ":n:" in source_xpos:
+        if ":pl:" in source_xpos:
+            return "Masc"
         return "Masc" if random.randint(0, 1) == 0 else "Fem"
     if ":f" in source_xpos:
         return "Masc"

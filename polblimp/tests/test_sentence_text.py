@@ -7,6 +7,9 @@ import conllu
 
 from phenomena.common import load_sentences
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.subject_predicate_agreement.adjective.adjective_only.subj_adjectival_gender.generator import (
+    run_subj_adjectival_gender,
+)
 from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_simple.generator import (
     run_subj_verb_gender_simple,
 )
@@ -32,6 +35,12 @@ class TestSentenceText(unittest.TestCase):
 
     def test_generated_sentence_outputs(self) -> None:
         cases = [
+            {
+                "dataset": ("pl_lfg-ud-train.conllu", 2393),
+                "source": "Drzwi były zamknięte.",
+                "transform": run_subj_adjectival_gender,
+                "expected": "Drzwi były zamknięci.",
+            },
             {
                 "dataset": ("pl_lfg-ud-test.conllu", 1574),
                 "source": "Wydawało mi się, że prowadzę z drzewem bezgłośny dialog.",

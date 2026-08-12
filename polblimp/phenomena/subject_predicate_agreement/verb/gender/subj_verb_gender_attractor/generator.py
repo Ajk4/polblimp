@@ -19,20 +19,31 @@ def run_subj_verb_gender_attractor(
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
+    def match_for_generation(
+            matches: list[dict[str, Token]],
+            target_name: str,
+    ) -> list[dict[str, Token]]:
+        return [
+            match
+            for match in matches
+            if (match[target_name]["feats"] or {}).get("Gender") is not None
+            and get_target_gender(match[target_name], match["attractor"]) is not None
+        ]
+
     def transform(matches: list[dict[str, Token]], target_name: str) -> bool:
-        target = matches[0][target_name]
-        target_gender = get_target_gender(target, matches[0]["attractor"])
-        if target_gender is None:
-            return False
+        match = matches[0]
+        target = match[target_name]
+        target_gender = get_target_gender(target, match["attractor"])
+        assert target_gender is not None
         return change_gender(target, morph_dict, target_gender=target_gender)
 
     # Main verb, singular
     def transform_1a(sentence: conllu.TokenList) -> bool:
-        return transform(match_subj_verb_gender_attractor_1a(sentence), "root")
+        return transform(match_for_generation(match_subj_verb_gender_attractor_1a(sentence), "root"), "root")
 
     variant_1a = run_filter_transform(
         sentences,
-        lambda s: len(match_subj_verb_gender_attractor_1a(s)) != 0,
+        lambda s: len(match_for_generation(match_subj_verb_gender_attractor_1a(s), "root")) != 0,
         transform_1a,
         limit=limit,
         progress_desc="subj_verb_gender_attractor__1a",
@@ -40,11 +51,11 @@ def run_subj_verb_gender_attractor(
 
     # Main verb, plural masculine-personal
     def transform_1b(sentence: conllu.TokenList) -> bool:
-        return transform(match_subj_verb_gender_attractor_1b(sentence), "root")
+        return transform(match_for_generation(match_subj_verb_gender_attractor_1b(sentence), "root"), "root")
 
     variant_1b = run_filter_transform(
         sentences,
-        lambda s: len(match_subj_verb_gender_attractor_1b(s)) != 0,
+        lambda s: len(match_for_generation(match_subj_verb_gender_attractor_1b(s), "root")) != 0,
         transform_1b,
         limit=limit,
         progress_desc="subj_verb_gender_attractor__1b",
@@ -52,11 +63,11 @@ def run_subj_verb_gender_attractor(
 
     # Main verb, plural non-masculine-personal
     def transform_1c(sentence: conllu.TokenList) -> bool:
-        return transform(match_subj_verb_gender_attractor_1c(sentence), "root")
+        return transform(match_for_generation(match_subj_verb_gender_attractor_1c(sentence), "root"), "root")
 
     variant_1c = run_filter_transform(
         sentences,
-        lambda s: len(match_subj_verb_gender_attractor_1c(s)) != 0,
+        lambda s: len(match_for_generation(match_subj_verb_gender_attractor_1c(s), "root")) != 0,
         transform_1c,
         limit=limit,
         progress_desc="subj_verb_gender_attractor__1c",
@@ -64,11 +75,11 @@ def run_subj_verb_gender_attractor(
 
     # Copular verb, singular
     def transform_2a(sentence: conllu.TokenList) -> bool:
-        return transform(match_subj_verb_gender_attractor_2a(sentence), "cop")
+        return transform(match_for_generation(match_subj_verb_gender_attractor_2a(sentence), "cop"), "cop")
 
     variant_2a = run_filter_transform(
         sentences,
-        lambda s: len(match_subj_verb_gender_attractor_2a(s)) != 0,
+        lambda s: len(match_for_generation(match_subj_verb_gender_attractor_2a(s), "cop")) != 0,
         transform_2a,
         limit=limit,
         progress_desc="subj_verb_gender_attractor__2a",
@@ -76,11 +87,11 @@ def run_subj_verb_gender_attractor(
 
     # Copular verb, plural masculine-personal
     def transform_2b(sentence: conllu.TokenList) -> bool:
-        return transform(match_subj_verb_gender_attractor_2b(sentence), "cop")
+        return transform(match_for_generation(match_subj_verb_gender_attractor_2b(sentence), "cop"), "cop")
 
     variant_2b = run_filter_transform(
         sentences,
-        lambda s: len(match_subj_verb_gender_attractor_2b(s)) != 0,
+        lambda s: len(match_for_generation(match_subj_verb_gender_attractor_2b(s), "cop")) != 0,
         transform_2b,
         limit=limit,
         progress_desc="subj_verb_gender_attractor__2b",
@@ -88,11 +99,11 @@ def run_subj_verb_gender_attractor(
 
     # Copular verb, plural non-masculine-personal
     def transform_2c(sentence: conllu.TokenList) -> bool:
-        return transform(match_subj_verb_gender_attractor_2c(sentence), "cop")
+        return transform(match_for_generation(match_subj_verb_gender_attractor_2c(sentence), "cop"), "cop")
 
     variant_2c = run_filter_transform(
         sentences,
-        lambda s: len(match_subj_verb_gender_attractor_2c(s)) != 0,
+        lambda s: len(match_for_generation(match_subj_verb_gender_attractor_2c(s), "cop")) != 0,
         transform_2c,
         limit=limit,
         progress_desc="subj_verb_gender_attractor__2c",
