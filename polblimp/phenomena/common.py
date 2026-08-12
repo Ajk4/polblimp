@@ -83,6 +83,68 @@ def change_aux_clitic_number(host: Token, token: Token, morph_dict: MorphDiction
     return change_morph(token, morph_dict, f"aglt:{target_number}:{target_person}:imperf:{target_variant}")
 
 
+def remove_token_preserving_spacing(sentence: conllu.TokenList, removed_token: Token) -> bool:
+    token_index = next((index for index, token in enumerate(sentence) if token is removed_token), None)
+    if token_index is None:
+        return False
+
+    multiword = next(
+        (
+            token
+            for token in sentence
+            if (
+                isinstance(token["id"], tuple)
+                and len(token["id"]) == 3
+                and token["id"][1] == "-"
+                and token["id"][0] <= removed_token["id"] <= token["id"][2]
+            )
+        ),
+        None,
+    )
+
+    if multiword is not None:
+        start, _, end = multiword["id"]
+        remaining_components = [
+            token
+            for token in sentence
+            if isinstance(token["id"], int)
+            and start <= token["id"] <= end
+            and token is not removed_token
+        ]
+        for token in remaining_components[:-1]:
+            _set_space_after(token, True)
+        _set_space_after(
+            remaining_components[-1],
+            (multiword.get("misc") or {}).get("SpaceAfter") == "No",
+        )
+    else:
+        previous_token = next(
+            (token for token in reversed(sentence[:token_index]) if isinstance(token["id"], int)),
+            None,
+        )
+        if previous_token is not None:
+            _set_space_after(
+                previous_token,
+                (removed_token.get("misc") or {}).get("SpaceAfter") == "No",
+            )
+
+    sentence[:] = [
+        token
+        for token in sentence
+        if token is not removed_token and token is not multiword
+    ]
+    return True
+
+
+def _set_space_after(token: Token, no_space: bool) -> None:
+    misc = dict(token.get("misc") or {})
+    if no_space:
+        misc["SpaceAfter"] = "No"
+    else:
+        misc.pop("SpaceAfter", None)
+    token["misc"] = misc or None
+
+
 def change_number(token: Token, morph_dict: MorphDictionary) -> bool:
     source_xpos = token["xpos"]
     if "pl" in source_xpos:

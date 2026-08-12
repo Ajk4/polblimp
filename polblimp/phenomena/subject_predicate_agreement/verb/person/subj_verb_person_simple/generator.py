@@ -7,10 +7,11 @@ import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import run_filter_transform, token_trees
+from phenomena.common import remove_token_preserving_spacing, run_filter_transform, token_trees
 from phenomena.morph_dictionary import MorphDictionary
 from phenomena.subject_predicate_agreement.verb.person.common import (
     append_aux_clitic,
+    change_aux_clitic_person,
     change_person,
 )
 
@@ -30,8 +31,9 @@ def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: M
     )
 
     def transform_1b(sentence) -> bool:
-        matches = match_subj_verb_person_simple_1b(sentence)
-        return remove_aux_clitic(sentence, matches[0]["auxclitic"])
+        match = match_subj_verb_person_simple_1b(sentence)[0]
+        source_person = (match["nsubj"]["feats"] or {})["Person"]
+        return change_or_remove_aux_clitic(sentence, match["auxclitic"], source_person, morph_dict)
 
     variant_1b = run_filter_transform(
         sentences,
@@ -87,8 +89,9 @@ def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: M
     )
 
     def transform_2b(sentence) -> bool:
-        matches = match_subj_verb_person_simple_2b(sentence)
-        return remove_aux_clitic(sentence, matches[0]["auxclitic"])
+        match = match_subj_verb_person_simple_2b(sentence)[0]
+        source_person = (match["nsubj"]["feats"] or {})["Person"]
+        return change_or_remove_aux_clitic(sentence, match["auxclitic"], source_person, morph_dict)
 
     variant_2b = run_filter_transform(
         sentences,
@@ -121,37 +124,15 @@ def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: M
 
     return df
 
-def remove_aux_clitic(sentence: conllu.TokenList, auxclitic: Token) -> bool:
-    clitic_index = None
-    for index, token in enumerate(sentence):
-        if token is auxclitic:
-            clitic_index = index
-            break
-
-    if clitic_index is None:
-        return False
-
-    clitic_misc = auxclitic.get("misc") or {}
-
-    previous_token = None
-    for token in reversed(sentence[:clitic_index]):
-        if isinstance(token["id"], int):
-            previous_token = token
-            break
-
-    if previous_token is not None:
-        previous_misc = {
-            key: value
-            for key, value in (previous_token.get("misc") or {}).items()
-            if key != "SpaceAfter"
-        }
-        if clitic_misc.get("SpaceAfter") == "No":
-            previous_misc["SpaceAfter"] = "No"
-        previous_token["misc"] = previous_misc or None
-
-    del sentence[clitic_index]
-
-    return True
+def change_or_remove_aux_clitic(
+        sentence: conllu.TokenList,
+        auxclitic: Token,
+        source_person: str,
+        morph_dict: MorphDictionary,
+) -> bool:
+    if random.randint(0, 1) == 0:
+        return change_aux_clitic_person(auxclitic, source_person, morph_dict)
+    return remove_token_preserving_spacing(sentence, auxclitic)
 
 
 def change_conditional_person(aux: Token, auxcnd: Token, morph_dict: MorphDictionary) -> bool:
@@ -215,7 +196,7 @@ def match_subj_verb_person_simple_1b(sentence: conllu.TokenList) -> list[dict[st
                 continue
             matches.append({
                 **match,
-                "auxclitic": auxclitic,
+                "auxclitic": auxclitic.token,
             })
 
     return matches

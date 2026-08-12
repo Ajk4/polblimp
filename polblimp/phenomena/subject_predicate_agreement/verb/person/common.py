@@ -57,6 +57,23 @@ def append_aux_clitic(token: Token, morph_dict: MorphDictionary) -> bool:
     return True
 
 
+def change_aux_clitic_person(
+        token: Token,
+        source_person: str,
+        morph_dict: MorphDictionary,
+) -> bool:
+    source_xpos = token["xpos"]
+    target_person = {"1": "sec", "2": "pri"}.get(source_person)
+    if target_person is None or not source_xpos.startswith("aglt:"):
+        print(f"Unknown aux clitic person, tag={source_xpos}, form={token['form']}")
+        return False
+
+    tag_parts = source_xpos.split(":")
+    tag_parts[2] = target_person
+    target_xpos = ":".join(tag_parts)
+    return change_morph(token, morph_dict, target_xpos)
+
+
 def change_person(
         root: conllu.TokenTree,
         morph_dict: MorphDictionary,

@@ -271,6 +271,68 @@ PAST_PERSON_STEM_CASES = [
 ]
 
 
+PAST_PERSON_CLITIC_CASES = [
+    (
+        "pl_pdb-ud-dev.conllu",
+        857,
+        "- Rozumiem, pani poseł, ale ja na przykład, jeżeli starałbym się o wpis na listę doradców "
+        "podatkowych, to na podstawie tego przepisu - oświadczam to przed Wysoką Izbą - na pewno "
+        "nie byłbym wpisany, bo naprawdę nie jestem osobą nieskazitelnego charakteru.",
+        "- Rozumiem, pani poseł, ale ja na przykład, jeżeli starałbym się o wpis na listę doradców "
+        "podatkowych, to na podstawie tego przepisu - oświadczam to przed Wysoką Izbą - na pewno "
+        "nie byłby wpisany, bo naprawdę nie jestem osobą nieskazitelnego charakteru.",
+    ),
+    (
+        "pl_pdb-ud-dev.conllu",
+        1091,
+        "Tak jakby – zgodził się niechętnie Wiktor, a ja byłem skłonny postawić każde pieniądze, "
+        "że niewypowiedziana część zdania brzmiała: “Zawsze możemy go zgnoić później”.",
+        "Tak jakby – zgodził się niechętnie Wiktor, a ja był skłonny postawić każde pieniądze, "
+        "że niewypowiedziana część zdania brzmiała: “Zawsze możemy go zgnoić później”.",
+    ),
+    (
+        "pl_pdb-ud-train.conllu",
+        6735,
+        "- Gdybym ja był prezydentem, to powiedziałbym tak: gen. Jaruzelski był sybirakiem i dostał "
+        "krzyż za to, że był sybirakiem - mówił wczoraj Andrzej Lepper.",
+        "- Gdybyś ja był prezydentem, to powiedziałbym tak: gen. Jaruzelski był sybirakiem i dostał "
+        "krzyż za to, że był sybirakiem - mówił wczoraj Andrzej Lepper.",
+    ),
+    (
+        "pl_pdb-ud-train.conllu",
+        7189,
+        "Ja nie byłem zbyt głodny, więc poprzestałem na sałatce.",
+        "Ja nie był zbyt głodny, więc poprzestałem na sałatce.",
+    ),
+    (
+        "pl_pdb-ud-train.conllu",
+        14809,
+        "Ja też taka byłam, kiedy mnie tu deportowali.",
+        "Ja też taka była, kiedy mnie tu deportowali.",
+    ),
+    (
+        "pl_pdb-ud-test.conllu",
+        926,
+        "- To nie potrwa długo, kochanie - uspokajał cię, patrząc pytająco, bo nie był pewien, czy "
+        "zechcesz zostać sama z Feliksem, a ty przyzwalająco skinęłaś głową i Feliks opadł na "
+        "krzesło, chociaż wiedział, że powinien wyjść razem z Maurycym.",
+        "- To nie potrwa długo, kochanie - uspokajał cię, patrząc pytająco, bo nie był pewien, czy "
+        "zechcesz zostać sama z Feliksem, a ty przyzwalająco skinęłam głową i Feliks opadł na "
+        "krzesło, chociaż wiedział, że powinien wyjść razem z Maurycym.",
+    ),
+    (
+        "pl_pdb-ud-train.conllu",
+        10381,
+        "Zebrałem się na odwagę i wypaliłem: - Bo myśmy właśnie z Baśką postanowili się pobrać "
+        "wkrótce i ja przyjechałem do Warszawy, bo pragniemy zamieszkać w stolicy, ja muszę "
+        "ukończyć studia, a i Baśka by chciała dyplom zrobić.",
+        "Zebrałem się na odwagę i wypaliłem: - Bo myście właśnie z Baśką postanowili się pobrać "
+        "wkrótce i ja przyjechałem do Warszawy, bo pragniemy zamieszkać w stolicy, ja muszę "
+        "ukończyć studia, a i Baśka by chciała dyplom zrobić.",
+    ),
+]
+
+
 
 
 class TestSentenceText(unittest.TestCase):
@@ -418,6 +480,15 @@ class TestSentenceText(unittest.TestCase):
 
     def test_past_person_stem_outputs(self) -> None:
         for filename, index, source, expected in PAST_PERSON_STEM_CASES:
+            with self.subTest(dataset=filename, index=index):
+                sentence = self._get_sentence({"dataset": (filename, index)})
+                self.assertEqual(source, sentence.metadata["text"])
+                df = run_subj_verb_person_simple([sentence], self.morph_dict, None)
+
+                self.assertIn(expected, df["incorrect"].tolist())
+
+    def test_past_person_clitic_outputs(self) -> None:
+        for filename, index, source, expected in PAST_PERSON_CLITIC_CASES:
             with self.subTest(dataset=filename, index=index):
                 sentence = self._get_sentence({"dataset": (filename, index)})
                 self.assertEqual(source, sentence.metadata["text"])

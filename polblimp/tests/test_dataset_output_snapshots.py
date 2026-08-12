@@ -44,7 +44,7 @@ class TestDatasetOutputSnapshots(unittest.TestCase):
             "subj_verb_person_csubj": "25d54713b0fcf53b0f311dc3a50ed7d1a10bec073133738e2f9832bd11906a8c",
             "subj_verb_person_genitive": "c6d040f7e4553805e32ca5e5244b97bc788ae6f40bd0ffee85b2e75f2d80e842",
             "subj_verb_person_numerals": "7d55ab9ea6eeefd67bc90207c12f995645ffde957ea23c667e1c95c70dfecdad",
-            "subj_verb_person_simple": "b0f1565476690f8ba345fa74ca90fbb43722b9ee91736e6c8e28ebf215a5a641",
+            "subj_verb_person_simple": "5cd86119857739308fc02f2ae9b666676f855d9de79e574b34fcecd50736a048",
         },
         "pdb": {
             "subj_adjectival_case": "0e27b5132d314456607386e6f0c82157d276c8467f54fed14a9324ae788e34db",
@@ -65,7 +65,7 @@ class TestDatasetOutputSnapshots(unittest.TestCase):
             "subj_verb_person_csubj": "cd6134c388eebabb8609303f58dbce2f00800e2770e4f57cc1ac00eb2f474f89",
             "subj_verb_person_genitive": "424619e48c0e0117445370cb692955df54416442e02df1e0cad5806b090a241c",
             "subj_verb_person_numerals": "52a021780b7bf08c366fea3fc50b8b4aff0ebc565355a4617daef242da14f899",
-            "subj_verb_person_simple": "015fbcdbd7b3b04f8cc093ca27ac3cf92edb9181f5409495cc0cd07a6e9c12db",
+            "subj_verb_person_simple": "095765715ceee627c949a51a94f34e85951202d5a66b3d7bf0e086dc6617883d",
         },
     }
 
