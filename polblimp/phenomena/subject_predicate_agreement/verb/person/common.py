@@ -5,7 +5,7 @@ import random
 import conllu
 from conllu import Token
 
-from phenomena.common import change_morph
+from phenomena.common import change_morph, preserve_case
 from phenomena.morph_dictionary import MorphDictionary
 
 
@@ -49,11 +49,7 @@ def append_aux_clitic(token: Token, morph_dict: MorphDictionary) -> bool:
         print(f"Missing form, lemma: być, target_tag: {clitic_xpos}")
         return False
 
-    form = token.get("form", "")
-    if form and form[0].isupper():
-        host_form = host_form[:1].upper() + host_form[1:]
-
-    token["form"] = host_form + clitic_form
+    token["form"] = preserve_case(token.get("form", ""), host_form + clitic_form)
     return True
 
 
@@ -127,7 +123,7 @@ def _change_existence_miec_person(token: conllu.Token, morph_dict: MorphDictiona
         print(f"Missing form, lemma: być, target_tag: {target_xpos}")
         return False
 
-    token["form"] = target_form
+    token["form"] = preserve_case(token.get("form", ""), target_form)
     token["xpos"] = target_xpos
     return True
 

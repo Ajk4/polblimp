@@ -3,7 +3,7 @@ from __future__ import annotations
 import conllu
 from conllu import Token
 
-from phenomena.common import change_morph, change_number, remove_token_preserving_spacing
+from phenomena.common import change_morph, change_number, preserve_case, remove_token_preserving_spacing
 from phenomena.morph_dictionary import MorphDictionary
 
 
@@ -14,6 +14,7 @@ def change_number_with_aux_clitic(
         source_person: str,
         morph_dict: MorphDictionary,
 ) -> bool:
+    source_host_form = host["form"]
     if not change_number(host, morph_dict):
         return False
 
@@ -23,11 +24,9 @@ def change_number_with_aux_clitic(
     if ":sg:m" in host["xpos"]:
         agglutinative_form = morph_dict.get_form(host["lemma"], f"{host['xpos']}:agl")
         if agglutinative_form is not None:
-            if host["form"] and host["form"][0].isupper():
-                agglutinative_form = agglutinative_form[:1].upper() + agglutinative_form[1:]
-            host["form"] = agglutinative_form
+            host["form"] = preserve_case(source_host_form, agglutinative_form)
 
-    host["form"] += auxclitic["form"]
+    host["form"] = preserve_case(source_host_form, host["form"] + auxclitic["form"])
     return remove_token_preserving_spacing(sentence, auxclitic)
 
 

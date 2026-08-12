@@ -361,6 +361,16 @@ def sentence_text(sentence: conllu.TokenList) -> str:
     return "".join(out).rstrip()
 
 
+def preserve_case(source: str, target: str) -> str:
+    if source.isupper():
+        return target.upper()
+    if source.islower():
+        return target.lower()
+    if source and source[0].isupper():
+        return target[:1].upper() + target[1:]
+    return target
+
+
 def change_morph(
         token: conllu.Token,
         morph_dict: MorphDictionary,
@@ -376,9 +386,9 @@ def change_morph(
         print(f"Missing form, lemma: {lemma}, target_tag: {target_tag}")
         return False
 
-    form = token.get("form", "")
-    if form and form[0].isupper():
-        target_form = target_form[:1].upper() + target_form[1:]
+    target_form = preserve_case(token.get("form", ""), target_form)
+    if target_form == token.get("form"):
+        return False
 
     token["form"] = target_form
     token["xpos"] = target_tag

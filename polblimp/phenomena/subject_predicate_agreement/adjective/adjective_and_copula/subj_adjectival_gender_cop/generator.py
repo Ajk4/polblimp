@@ -37,15 +37,9 @@ def run_subj_adjectival_gender_cop(
         target_gender = get_target_gender(matches["root"])
         assert target_gender is not None
 
-        root_form = matches["root"]["form"]
-        cop_form = matches["cop"]["form"]
-        changed = (
+        return (
             change_gender(matches["root"], morph_dict, target_gender=target_gender)
             and change_gender(matches["cop"], morph_dict, target_gender=target_gender)
-        )
-        return changed and (
-            matches["root"]["form"] != root_form
-            or matches["cop"]["form"] != cop_form
         )
 
     return run_filter_transform(

@@ -7,7 +7,7 @@ import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import remove_token_preserving_spacing, run_filter_transform, token_trees
+from phenomena.common import preserve_case, remove_token_preserving_spacing, run_filter_transform, token_trees
 from phenomena.morph_dictionary import MorphDictionary
 from phenomena.subject_predicate_agreement.verb.person.common import (
     append_aux_clitic,
@@ -154,11 +154,7 @@ def change_conditional_person(aux: Token, auxcnd: Token, morph_dict: MorphDictio
         print(f"Missing form, lemma: być, target_tag: {clitic_xpos}")
         return False
 
-    form = auxcnd.get("form", "")
-    if form and form[0].isupper():
-        by_form = by_form[:1].upper() + by_form[1:]
-
-    auxcnd["form"] = by_form + clitic_form
+    auxcnd["form"] = preserve_case(by_form, by_form + clitic_form)
     return True
 
 

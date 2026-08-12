@@ -399,6 +399,33 @@ NUMBER_CLITIC_CASES = [
 ]
 
 
+UPPERCASE_CASES = [
+    (
+        run_subj_verb_number_simple,
+        "pl_lfg-ud-train.conllu",
+        3414,
+        "JAK ONE TO ROBIĄ?",
+        "JAK ONE TO ROBI?",
+    ),
+    (
+        run_subj_verb_number_simple,
+        "pl_lfg-ud-train.conllu",
+        6043,
+        "NIE JEST TO PRAWDĄ.",
+        "NIE SĄ TO PRAWDĄ.",
+    ),
+    (
+        run_subj_verb_person_simple,
+        "pl_pdb-ud-dev.conllu",
+        1383,
+        "GDYBY NIE BYŁO WAGINY, PENIS BYŁBY GENERAŁEM W STANIE SPOCZYNKU i świat nie miałby "
+        "problemu z grzechem i \"tymi rzeczami\".",
+        "GDYBY NIE BYŁO WAGINY, PENIS BYŁBYŚ GENERAŁEM W STANIE SPOCZYNKU i świat nie miałby "
+        "problemu z grzechem i \"tymi rzeczami\".",
+    ),
+]
+
+
 
 
 class TestSentenceText(unittest.TestCase):
@@ -564,6 +591,15 @@ class TestSentenceText(unittest.TestCase):
 
     def test_number_clitic_outputs(self) -> None:
         for transform, filename, index, source, expected in NUMBER_CLITIC_CASES:
+            with self.subTest(transform=transform.__name__, dataset=filename, index=index):
+                sentence = self._get_sentence({"dataset": (filename, index)})
+                self.assertEqual(source, sentence.metadata["text"])
+                df = transform([sentence], self.morph_dict, None)
+
+                self.assertIn(expected, df["incorrect"].tolist())
+
+    def test_uppercase_outputs(self) -> None:
+        for transform, filename, index, source, expected in UPPERCASE_CASES:
             with self.subTest(transform=transform.__name__, dataset=filename, index=index):
                 sentence = self._get_sentence({"dataset": (filename, index)})
                 self.assertEqual(source, sentence.metadata["text"])
