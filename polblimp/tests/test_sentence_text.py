@@ -207,6 +207,70 @@ CONDITIONAL_PERSON_CASES = [('pl_lfg-ud-dev.conllu', 211, 'Czy teraz pan ekspert
  ('pl_pdb-ud-train.conllu', 17378, 'Oznacza to, że nowy system recyklingu statków stałbyś się skuteczny około 2015 r.')]
 
 
+PAST_PERSON_STEM_CASES = [
+    (
+        "pl_lfg-ud-dev.conllu",
+        549,
+        "Któż z marynarzy w dawnych czasach mógł sobie na to pozwolić.",
+        "Któż z marynarzy w dawnych czasach mogłeś sobie na to pozwolić.",
+    ),
+    (
+        "pl_lfg-ud-test.conllu",
+        85,
+        "Alfons Piotrowski poniósł śmierć nie odzyskawszy przytomności.",
+        "Alfons Piotrowski poniosłem śmierć nie odzyskawszy przytomności.",
+    ),
+    (
+        "pl_lfg-ud-test.conllu",
+        527,
+        "Kelner przyniósł jej zamówione capuccino.",
+        "Kelner przyniosłem jej zamówione capuccino.",
+    ),
+    (
+        "pl_lfg-ud-test.conllu",
+        645,
+        "Mnich uniósł oczy.",
+        "Mnich uniosłeś oczy.",
+    ),
+    (
+        "pl_lfg-ud-train.conllu",
+        250,
+        "- A więc Leszek Balcerowicz odniósł już zwycięstwo?",
+        "- A więc Leszek Balcerowicz odniosłeś już zwycięstwo?",
+    ),
+    (
+        "pl_lfg-ud-train.conllu",
+        1066,
+        "Ból rósł.",
+        "Ból rosłem.",
+    ),
+    (
+        "pl_lfg-ud-train.conllu",
+        3376,
+        "- Jajo przywiózł do nas osobiście dyrektor płockiego zoo.",
+        "- Jajo przywiozłem do nas osobiście dyrektor płockiego zoo.",
+    ),
+    (
+        "pl_lfg-ud-train.conllu",
+        5593,
+        "Na środku kolejnego ronda wyrósł murek z roślinami na szczycie.",
+        "Na środku kolejnego ronda wyrosłem murek z roślinami na szczycie.",
+    ),
+    (
+        "pl_lfg-ud-train.conllu",
+        13465,
+        "Znów pomógł mu aspirant.",
+        "Znów pomogłem mu aspirant.",
+    ),
+    (
+        "pl_pdb-ud-test.conllu",
+        1854,
+        "Howard odwiózł go do obozu, a żołnierzy załadowano na ciężarówki.",
+        "Howard odwiozłeś go do obozu, a żołnierzy załadowano na ciężarówki.",
+    ),
+]
+
+
 
 
 class TestSentenceText(unittest.TestCase):
@@ -348,6 +412,15 @@ class TestSentenceText(unittest.TestCase):
         for filename, index, expected in CONDITIONAL_PERSON_CASES:
             with self.subTest(dataset=filename, index=index):
                 sentence = self._get_sentence({"dataset": (filename, index)})
+                df = run_subj_verb_person_simple([sentence], self.morph_dict, None)
+
+                self.assertIn(expected, df["incorrect"].tolist())
+
+    def test_past_person_stem_outputs(self) -> None:
+        for filename, index, source, expected in PAST_PERSON_STEM_CASES:
+            with self.subTest(dataset=filename, index=index):
+                sentence = self._get_sentence({"dataset": (filename, index)})
+                self.assertEqual(source, sentence.metadata["text"])
                 df = run_subj_verb_person_simple([sentence], self.morph_dict, None)
 
                 self.assertIn(expected, df["incorrect"].tolist())

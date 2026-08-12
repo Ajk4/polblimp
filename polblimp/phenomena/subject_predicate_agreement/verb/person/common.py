@@ -33,7 +33,12 @@ def append_aux_clitic(token: Token, morph_dict: MorphDictionary) -> bool:
     if host_xpos.endswith((":agl", ":nagl")):
         host_xpos = host_xpos.rsplit(":", 1)[0]
 
-    host_form = morph_dict.get_form(token["lemma"], host_xpos)
+    if target_variant == "wok":
+        host_form = morph_dict.get_form(token["lemma"], f"{host_xpos}:agl")
+    else:
+        host_form = None
+    if host_form is None:
+        host_form = morph_dict.get_form(token["lemma"], host_xpos)
     if host_form is None:
         print(f"Missing form, lemma: {token['lemma']}, target_tag: {host_xpos}")
         return False
