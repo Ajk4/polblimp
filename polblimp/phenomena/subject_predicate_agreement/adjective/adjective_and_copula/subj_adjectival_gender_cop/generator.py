@@ -15,13 +15,27 @@ def run_subj_adjectival_gender_cop(
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
+    def match_for_generation(sentence: conllu.TokenList) -> dict[str, Token] | None:
+        match = match_subj_adjectival_gender_cop(sentence)
+        if match is None:
+            return None
+
+        root_feats = match["root"]["feats"] or {}
+        cop_feats = match["cop"]["feats"] or {}
+        if root_feats.get("Gender") is None or cop_feats.get("Gender") is None:
+            return None
+        if root_feats.get("Number") == "Sing" and root_feats.get("Gender") != cop_feats.get("Gender"):
+            return None
+        if get_target_gender(match["root"]) is None:
+            return None
+        return match
+
     def transform(sentence: conllu.TokenList) -> bool:
-        matches = match_subj_adjectival_gender_cop(sentence)
+        matches = match_for_generation(sentence)
         assert matches is not None, "Matched sentences are supposed to be filtered first"
 
         target_gender = get_target_gender(matches["root"])
-        if target_gender is None:
-            return False
+        assert target_gender is not None
 
         root_form = matches["root"]["form"]
         cop_form = matches["cop"]["form"]
@@ -36,7 +50,7 @@ def run_subj_adjectival_gender_cop(
 
     return run_filter_transform(
         sentences,
-        lambda s: match_subj_adjectival_gender_cop(s) is not None,
+        lambda s: match_for_generation(s) is not None,
         transform,
         limit=limit,
         progress_desc="subj_adjectival_gender_cop",
@@ -88,7 +102,11 @@ def match_subj_adjectival_gender_cop(sentence: conllu.TokenList) -> dict[str, To
 
 
 def get_target_gender(token: Token) -> str | None:
-    gender = (token["feats"] or {}).get("Gender")
+    feats = token["feats"] or {}
+    gender = feats.get("Gender")
+    if feats.get("Number") == "Plur":
+        masculine_personal = feats.get("SubGender") == "Masc1" or feats.get("Animacy") == "Hum"
+        return "Fem" if masculine_personal else "Masc"
     if gender == "Masc":
         return "Fem"
     if gender in {"Fem", "Neut"}:

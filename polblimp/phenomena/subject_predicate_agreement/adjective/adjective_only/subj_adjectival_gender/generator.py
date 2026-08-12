@@ -17,56 +17,45 @@ def run_subj_adjectival_gender(
 ) -> pd.DataFrame:
     def transform(sentence: conllu.TokenList) -> bool:
         matches = match_subj_adjectival_gender(sentence)
-        assert matches is not None, "Matched sentences are supposed to be filtered first"
-        root_form = matches["root"]["form"]
-        changed = change_gender(matches["root"], morph_dict)
-        return changed and matches["root"]["form"] != root_form
+        match = matches[0]
+        return change_gender(match["root"], morph_dict)
 
     return run_filter_transform(
         sentences,
-        lambda s: match_subj_adjectival_gender(s) is not None,
+        lambda s: len(match_subj_adjectival_gender(s)) != 0,
         transform,
         limit=limit,
         progress_desc="subj_adjectival_gender",
     )
 
 
-def match_subj_adjectival_gender(sentence: conllu.TokenList) -> dict[str, Token] | None:
+def match_subj_adjectival_gender(sentence: conllu.TokenList) -> list[dict[str, Token]]:
     root = sentence.to_tree()
     root_token = root.token
 
     if root_token["upos"] != "ADJ":
-        return None
+        return []
     if root_token["deprel"] != "root":
-        return None
+        return []
 
-    nsubj_token = None
-    for child in root.children:
-        child_token = child.token
-        child_feats = child_token["feats"] or {}
-        if child_token["deprel"] not in {"nsubj", "nsubj:pass"}:
-            continue
-        if child_feats.get("Case") != "Nom":
-            continue
-        if child_feats.get("Person") in {"1", "2"}:
-            continue
-        nsubj_token = child_token
-        break
-
-    if nsubj_token is None:
-        return None
-
-    for child in root.children:
-        child_token = child.token
-        if child_token["upos"] != "AUX":
-            continue
-        if child_token.get("lemma") in {"to", "by"}:
-            continue
-
-        return {
+    nsubjs = [
+        child.token
+        for child in root.children
+        if child.token["deprel"] in {"nsubj", "nsubj:pass"}
+        and (child.token["feats"] or {}).get("Case") == "Nom"
+        and (child.token["feats"] or {}).get("Person") not in {"1", "2"}
+    ]
+    cops = [
+        child.token
+        for child in root.children
+        if child.token["upos"] == "AUX" and child.token.get("lemma") not in {"to", "by"}
+    ]
+    return [
+        {
             "root": root_token,
             "nsubj": nsubj_token,
-            "cop": child_token,
+            "cop": cop_token,
         }
-
-    return None
+        for nsubj_token in nsubjs
+        for cop_token in cops
+    ]

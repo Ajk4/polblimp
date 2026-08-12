@@ -18,27 +18,34 @@ def run_subj_adjectival_case(
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    def transform(sentence: conllu.TokenList) -> bool:
+    def match_for_generation(sentence: conllu.TokenList) -> dict[str, Token] | None:
         matches = match_subj_adjectival_case(sentence)
+        if not matches:
+            return None
+        match = matches[0]
+        if (match["root"]["feats"] or {}).get("Case") not in {"Nom", "Gen"}:
+            return None
+        return match
+
+    def transform(sentence: conllu.TokenList) -> bool:
+        matches = match_for_generation(sentence)
         assert matches is not None, "Matched sentences are supposed to be filtered first"
 
         target_xpos = get_target_case_xpos(matches["root"])
         if target_xpos is None:
             return False
-        root_form = matches["root"]["form"]
-        changed = change_morph(matches["root"], morph_dict, target_xpos)
-        return changed and matches["root"]["form"] != root_form
+        return change_morph(matches["root"], morph_dict, target_xpos)
 
     return run_filter_transform(
         sentences,
-        lambda s: match_subj_adjectival_case(s) is not None,
+        lambda s: match_for_generation(s) is not None,
         transform,
         limit=limit,
         progress_desc="subj_adjectival_case",
     )
 
 
-def match_subj_adjectival_case(sentence: conllu.TokenList) -> dict[str, Token] | None:
+def match_subj_adjectival_case(sentence: conllu.TokenList) -> list[dict[str, Token]]:
     return match_subj_adjectival_number(sentence)
 
 

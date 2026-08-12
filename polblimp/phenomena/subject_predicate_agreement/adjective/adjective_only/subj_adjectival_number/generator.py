@@ -20,19 +20,17 @@ def run_subj_adjectival_number(
 ) -> pd.DataFrame:
     def transform(sentence: conllu.TokenList) -> bool:
         matches = match_subj_adjectival_number(sentence)
-        assert matches is not None, "Matched sentences are supposed to be filtered first"
-        root_form = matches["root"]["form"]
-        changed = change_number(matches["root"], morph_dict)
-        return changed and matches["root"]["form"] != root_form
+        match = matches[0]
+        return change_number(match["root"], morph_dict)
 
     return run_filter_transform(
         sentences,
-        lambda s: match_subj_adjectival_number(s) is not None,
+        lambda s: len(match_subj_adjectival_number(s)) != 0,
         transform,
         limit=limit,
         progress_desc="subj_adjectival_number",
     )
 
 
-def match_subj_adjectival_number(sentence: conllu.TokenList) -> dict[str, Token] | None:
+def match_subj_adjectival_number(sentence: conllu.TokenList) -> list[dict[str, Token]]:
     return match_subj_adjectival_number_cop(sentence)

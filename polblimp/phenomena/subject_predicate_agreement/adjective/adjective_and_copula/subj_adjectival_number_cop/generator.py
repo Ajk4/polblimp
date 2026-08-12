@@ -17,52 +17,46 @@ def run_subj_adjectival_number_cop(
 ) -> pd.DataFrame:
     def transform(sentence: conllu.TokenList) -> bool:
         matches = match_subj_adjectival_number_cop(sentence)
-        assert matches is not None, "Matched sentences are supposed to be filtered first"
+        match = matches[0]
         return (
-            change_number(matches["root"], morph_dict)
-            and change_number(matches["cop"], morph_dict)
+            change_number(match["root"], morph_dict)
+            and change_number(match["cop"], morph_dict)
         )
 
     return run_filter_transform(
         sentences,
-        lambda s: match_subj_adjectival_number_cop(s) is not None,
+        lambda s: len(match_subj_adjectival_number_cop(s)) != 0,
         transform,
         limit=limit,
         progress_desc="subj_adjectival_number_cop",
     )
 
 
-def match_subj_adjectival_number_cop(sentence: conllu.TokenList) -> dict[str, Token] | None:
+def match_subj_adjectival_number_cop(sentence: conllu.TokenList) -> list[dict[str, Token]]:
     root = sentence.to_tree()
     root_token = root.token
 
     if root_token["upos"] != "ADJ":
-        return None
+        return []
     if root_token["deprel"] != "root":
-        return None
+        return []
 
-    nsubj_token = None
-    for child in root.children:
-        child_token = child.token
-        if child_token["deprel"] not in {"nsubj", "nsubj:pass"}:
-            continue
-        nsubj_token = child_token
-        break
-
-    if nsubj_token is None:
-        return None
-
-    for child in root.children:
-        child_token = child.token
-        if child_token["upos"] != "AUX":
-            continue
-        if child_token.get("lemma") in {"to", "by"}:
-            continue
-
-        return {
+    nsubjs = [
+        child.token
+        for child in root.children
+        if child.token["deprel"] in {"nsubj", "nsubj:pass"}
+    ]
+    cops = [
+        child.token
+        for child in root.children
+        if child.token["upos"] == "AUX" and child.token.get("lemma") not in {"to", "by"}
+    ]
+    return [
+        {
             "root": root_token,
             "nsubj": nsubj_token,
-            "cop": child_token,
+            "cop": cop_token,
         }
-
-    return None
+        for nsubj_token in nsubjs
+        for cop_token in cops
+    ]

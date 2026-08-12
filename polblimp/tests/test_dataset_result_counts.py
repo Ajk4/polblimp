@@ -129,10 +129,10 @@ class TestDatasetResultCounts(unittest.TestCase):
 
     EXPECTED_RESULTS: dict[MatchFunction, ExpectedCounts] = {
         match_subj_adjectival_case: match_subj_adjectival_number_cop,
-        match_subj_adjectival_gender: [503, 1111],
+        match_subj_adjectival_gender: [504, 1112],
         match_subj_adjectival_number: match_subj_adjectival_number_cop,
         match_subj_adjectival_gender_cop: [230, 342],
-        match_subj_adjectival_number_cop: [520, 1125],
+        match_subj_adjectival_number_cop: [523, 1127],
         ##
         match_subj_verb_gender_simple_1a: [1853, 2760],
         match_subj_verb_gender_simple_1b: [307, 474],

@@ -7,6 +7,12 @@ import conllu
 
 from phenomena.common import load_sentences
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.subject_predicate_agreement.adjective.adjective_and_copula.subj_adjectival_gender_cop.generator import (
+    run_subj_adjectival_gender_cop,
+)
+from phenomena.subject_predicate_agreement.adjective.adjective_only.subj_adjectival_case.generator import (
+    run_subj_adjectival_case,
+)
 from phenomena.subject_predicate_agreement.adjective.adjective_only.subj_adjectival_gender.generator import (
     run_subj_adjectival_gender,
 )
@@ -36,10 +42,28 @@ class TestSentenceText(unittest.TestCase):
     def test_generated_sentence_outputs(self) -> None:
         cases = [
             {
+                "dataset": ("pl_lfg-ud-dev.conllu", 1061),
+                "source": "- Pozostałe punkty zostały zatwierdzone.",
+                "transform": run_subj_adjectival_gender_cop,
+                "expected": "- Pozostałe punkty zostali zatwierdzeni.",
+            },
+            {
                 "dataset": ("pl_lfg-ud-train.conllu", 2393),
                 "source": "Drzwi były zamknięte.",
                 "transform": run_subj_adjectival_gender,
                 "expected": "Drzwi były zamknięci.",
+            },
+            {
+                "dataset": ("pl_lfg-ud-train.conllu", 10545),
+                "source": "- To bywa męczące.",
+                "transform": run_subj_adjectival_gender,
+                "expected": "- To bywa męczący.",
+            },
+            {
+                "dataset": ("pl_lfg-ud-train.conllu", 10545),
+                "source": "- To bywa męczące.",
+                "transform": run_subj_adjectival_case,
+                "expected": "- To bywa męczącego.",
             },
             {
                 "dataset": ("pl_lfg-ud-test.conllu", 1574),

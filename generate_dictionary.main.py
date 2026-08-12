@@ -21,7 +21,7 @@ with tqdm(gzip.open(path, "rt", encoding="utf-8", errors="replace")) as f:
             continue
         form, lemma, tag = cols[0], cols[1], cols[2]
 
-        unwanted_prefixes = {"adv:", "depr:", "ppron12", "prep:", "pact:", "ger:", "imps:"}
+        unwanted_prefixes = {"adv:", "depr:", "ppron12", "prep:", "ger:", "imps:"}
 
         # reduce dict by removing unneeded entries
         if tag in {"interj", "burk", "comp", "conj"} or any(tag.startswith(p) for p in unwanted_prefixes):
