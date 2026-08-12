@@ -22,6 +22,9 @@ from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_simple.g
 from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_attractor.generator import (
     run_subj_verb_number_attractor,
 )
+from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_numerals.generator import (
+    run_subj_verb_number_numerals,
+)
 from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_simple.generator import (
     run_subj_verb_number_simple,
 )
@@ -426,6 +429,46 @@ UPPERCASE_CASES = [
 ]
 
 
+NUMBER_NUMERALS_INFINITIVE_CASES = [
+    (
+        "pl_lfg-ud-train.conllu",
+        5618,
+        "Nad wszystkim czuwać będzie trzech lekarzy i personel pielęgniarski.",
+        "Nad wszystkim czuwać będą trzech lekarzy i personel pielęgniarski.",
+    ),
+    (
+        "pl_pdb-ud-dev.conllu",
+        1344,
+        "Nad bezpieczeństwem i utrzymaniem porządku czuwać będzie 45 tys. funkcjonariuszy i 32 "
+        "tys. pomocników.",
+        "Nad bezpieczeństwem i utrzymaniem porządku czuwać będą 45 tys. funkcjonariuszy i 32 "
+        "tys. pomocników.",
+    ),
+    (
+        "pl_pdb-ud-test.conllu",
+        843,
+        "Imprezę obsługiwać będzie 11 tys. dziennikarzy i pracowników technicznych.",
+        "Imprezę obsługiwać będą 11 tys. dziennikarzy i pracowników technicznych.",
+    ),
+    (
+        "pl_pdb-ud-train.conllu",
+        6353,
+        "Wyciągał jedynie wnioski z obszaru i potencjału państwa rosyjskiego twierdząc, że dwa "
+        "mocarstwa, Rosja i Ameryka, określać będą przyszłość świata.",
+        "Wyciągał jedynie wnioski z obszaru i potencjału państwa rosyjskiego twierdząc, że dwa "
+        "mocarstwa, Rosja i Ameryka, określać będzie przyszłość świata.",
+    ),
+    (
+        "pl_pdb-ud-train.conllu",
+        16224,
+        "Wielu obywateli będzie to postrzegać jako kolejny przykład, że elita UE robi dokładnie "
+        "to, na co ma ochotę.",
+        "Wielu obywateli będą to postrzegać jako kolejny przykład, że elita UE robi dokładnie "
+        "to, na co ma ochotę.",
+    ),
+]
+
+
 
 
 class TestSentenceText(unittest.TestCase):
@@ -604,6 +647,15 @@ class TestSentenceText(unittest.TestCase):
                 sentence = self._get_sentence({"dataset": (filename, index)})
                 self.assertEqual(source, sentence.metadata["text"])
                 df = transform([sentence], self.morph_dict, None)
+
+                self.assertIn(expected, df["incorrect"].tolist())
+
+    def test_number_numerals_infinitive_outputs(self) -> None:
+        for filename, index, source, expected in NUMBER_NUMERALS_INFINITIVE_CASES:
+            with self.subTest(dataset=filename, index=index):
+                sentence = self._get_sentence({"dataset": (filename, index)})
+                self.assertEqual(source, sentence.metadata["text"])
+                df = run_subj_verb_number_numerals([sentence], self.morph_dict, None)
 
                 self.assertIn(expected, df["incorrect"].tolist())
 

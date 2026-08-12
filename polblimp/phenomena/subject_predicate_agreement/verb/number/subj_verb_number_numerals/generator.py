@@ -37,7 +37,7 @@ def run_subj_verb_number_numerals(
 
     def transform_1b(sentence) -> bool:
         matches = match_subj_verb_number_numerals_1b(sentence)
-        return change_number(matches["root"], morph_dict)
+        return change_number(matches["aux"], morph_dict)
 
     variant_1b = run_filter_transform(
         sentences,
