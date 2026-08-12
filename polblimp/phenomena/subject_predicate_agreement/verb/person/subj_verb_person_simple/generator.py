@@ -42,10 +42,12 @@ def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: M
     )
 
     def transform_1c(sentence) -> bool:
-        matches = match_subj_verb_person_simple_1c(sentence)
-        if matches[0]["root"]["lemma"] == "powinien":
-            return append_aux_clitic(matches[0]["root"], morph_dict)
-        return change_person(matches[0]["root_tree"], morph_dict)
+        match = match_subj_verb_person_simple_1c(sentence)[0]
+        if "auxcnd" in match:
+            return change_conditional_person(match["root"], match["auxcnd"], morph_dict)
+        if match["root"]["lemma"] == "powinien":
+            return append_aux_clitic(match["root"], morph_dict)
+        return change_person(match["root_tree"], morph_dict)
 
     variant_1c = run_filter_transform(
         sentences,
@@ -231,9 +233,12 @@ def match_subj_verb_person_simple_1c(sentence: conllu.TokenList) -> list[dict[st
         if extract_child(root, "aux") is not None:
             continue
 
+        auxcnd = extract_child(root, "aux:cnd")
         for match in extract_main_verb_person_subject_matches(root):
             if (match["nsubj"]["feats"] or {}).get("Person") in {"1", "2"}:
                 continue
+            if auxcnd is not None:
+                match["auxcnd"] = auxcnd.token
             matches.append(match)
 
     return matches
