@@ -1,0 +1,54 @@
+a-node $root := [
+  tag = 'VERB',
+
+  # exclude compound future tense
+  0x child [deprel = 'aux'],
+
+  child a-node $nsubj := [
+    deprel = 'nsubj',
+    member iset [
+      number = $root.iset/number,
+      case != 'gen'
+    ],
+
+    0x child [deprel = 'conj'],
+
+    0x descendant [iset/case = 'ins', child a-node [lemma = 'z'], (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron'])]
+  ],
+
+  descendant a-node $attractor := [
+    member iset [
+      !number in{$nsubj.iset/number, ''},
+      ($root.iset/number = 'sing' or number != 'ptan')
+    ],
+    (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron']),
+
+    (
+      ($nsubj.ord < ord and ord < $root.ord)
+      or
+      ($root.ord < ord and ord < $nsubj.ord)
+    )
+  ],
+
+  0x descendant [
+    (member conll [pos ~ 'subst'] or member conll [pos ~ 'ppron']),
+
+    (
+      ($attractor.ord < ord and ord < $root.ord)
+      or
+      ($root.ord < ord and ord < $attractor.ord)
+    )
+  ],
+
+# For generating pairs
+  (
+    # 3rd person: change the number of $root
+    # ($nsubj.iset/person !in{'1', '2'})
+    # or
+    # 1st and 2nd person, present and future tense: change the number of $root
+    ($root.iset/tense in{'pres', 'fut'} and $nsubj.iset/person in{'1', '2'})
+    # or
+    # 1st and 2nd person, past tense: change the number of $auxclitic and of $root
+    # (($root.iset/tense = 'past' or $root.lemma = 'powinien') and $nsubj.iset/person in{'1', '2'} and child a-node $auxclitic := [deprel = 'aux:clitic'])
+  )
+]

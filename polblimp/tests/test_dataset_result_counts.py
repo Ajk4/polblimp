@@ -152,7 +152,7 @@ class TestDatasetResultCounts(unittest.TestCase):
         match_subj_verb_gender_attractor_2b: [0, 4],
         match_subj_verb_gender_attractor_2c: [5, 2],
         ##
-        match_subj_verb_number_simple_1a: [7228, None], # over 10k for pdb
+        match_subj_verb_number_simple_1a: [7187, 14225],
         match_subj_verb_number_simple_1b: [241, 213],
         match_subj_verb_number_simple_1c: [99, 63],
         match_subj_verb_number_simple_2a: [35, 100],
@@ -162,7 +162,7 @@ class TestDatasetResultCounts(unittest.TestCase):
         match_subj_verb_number_genitive_1a: [93, 214],
         match_subj_verb_number_csubj_1a: [105, 127],
         match_subj_verb_number_csubj_2a: [7, 32],
-        match_subj_verb_number_attractor_1a: [462, 1506],
+        match_subj_verb_number_attractor_1a: [459, 1487],
         match_subj_verb_number_attractor_1b: [16, 17],
         match_subj_verb_number_attractor_1c: [3, 3],
         match_subj_verb_number_attractor_2a: [1, 24],
@@ -170,7 +170,7 @@ class TestDatasetResultCounts(unittest.TestCase):
         match_subj_verb_number_attractor_3a: [34, 267],
         # match_subj_verb_number_attractor_3b: [0, 0],
         ##
-        match_subj_verb_number_numerals_1a: [227, 782],
+        match_subj_verb_number_numerals_1a: [225, 780],
         match_subj_verb_number_numerals_1b: [1, 4],
         match_subj_verb_number_numerals_1c: [2, 2],
         match_subj_verb_number_numerals_2a: [27, 23],

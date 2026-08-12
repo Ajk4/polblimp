@@ -196,6 +196,8 @@ def extract_main_verb_attractor_matches_for_root(
 
     if root_token["upos"] != "VERB":
         return matches
+    if reference == "root" and any(child.token["deprel"] == "aux" for child in root.children):
+        return matches
 
     reference_token = root_token
     aux_token = None

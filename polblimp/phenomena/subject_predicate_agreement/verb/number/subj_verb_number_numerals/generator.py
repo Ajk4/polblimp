@@ -92,6 +92,8 @@ def match_subj_verb_number_numerals_1a(sentence: conllu.TokenList) -> list[dict[
 
         if root_token["upos"] != "VERB":
             continue
+        if any(child.token["deprel"] == "aux" for child in root.children):
+            continue
         if root_feats.get("Tense") not in {"Pres", "Fut", "Past"}:
             continue
 
