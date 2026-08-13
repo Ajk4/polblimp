@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -24,50 +25,9 @@ class TestDatasetOutputSnapshots(unittest.TestCase):
         ),
     }
 
-    EXPECTED_HASHES: dict[str, dict[str, str]] = {
-        "lfg": {
-            "subj_adjectival_case": "5d69b76821ae3e45d41fd9cc479533cbcf5d84058ab0457fc9cccb16d5946bc7",
-            "subj_adjectival_gender": "b20a342d599e55d2d0a913eee44c3e3e0a04dc4c8c4b9ec407e1e97618bad87e",
-            "subj_adjectival_gender_cop": "32f6eb773e95667b8bd57ce7d13509ff35702c65c1dc5ef4e0a2b951bda73786",
-            "subj_adjectival_number": "bbbef31f1847a4deee56b1e165515f6d0b5e45280d06087032e93a7a0b7e0132",
-            "subj_adjectival_number_cop": "7f5ec762bbebd0c3e5aaaec668477fe3e1dc8f2f244afe23f295122285d85c7e",
-            "subj_verb_gender_attractor": "bc8be509a24b14658e4c27e0e68b70e33e203df0965f0437651fc1f8ba77afc4",
-            "subj_verb_gender_csubj": "eb8a4144ad469e9a6c79672473a90893646ee2dc4b180b68f4aec0f3df6447cb",
-            "subj_verb_gender_genitive": "6819172ae67b0db99c697e3c0af2d08a787db5b88829bcd4878b6272fa97d4d8",
-            "subj_verb_gender_numerals": "7925218d92d29434a4a42dcf2185f8a954696844c98f8c2f5e5c754e22845f36",
-            "subj_verb_gender_simple": "c6dcebdfac22e7f7b23a6b4615179acf1ab88a331e0a20d5c89547f0018fa198",
-            "subj_verb_number_csubj": "19b51a84c28f9f96005a04b01f579ef442777b7ffa3aeb19a07d91cf78555eab",
-            "subj_verb_number_attractor": "55c23bc52becdcca66b3f0ec2e9895fd8010a8b27520bea63b2bcdb838eb3ffb",
-            "subj_verb_number_genitive": "6f663d2e27fc0f96e35a66517d8e4569b833074b6ef03029cc0ecc9b4211db46",
-            "subj_verb_number_numerals": "29ef109393b26d6bd4762e02af48cfe280d1509b7a792e5b413accdc30c03ea7",
-            "subj_verb_number_simple": "a939128b89d0c45484561dac77691044e852b4f59a3ea48a3d8a493d5dc07c35",
-            "subj_verb_person_csubj": "25d54713b0fcf53b0f311dc3a50ed7d1a10bec073133738e2f9832bd11906a8c",
-            "subj_verb_person_genitive": "c6d040f7e4553805e32ca5e5244b97bc788ae6f40bd0ffee85b2e75f2d80e842",
-            "subj_verb_person_numerals": "7d55ab9ea6eeefd67bc90207c12f995645ffde957ea23c667e1c95c70dfecdad",
-            "subj_verb_person_simple": "75f679640ecc117977c7e6dfaf939a48ca36b05e3898d8129c6b1453e7fd72bb",
-        },
-        "pdb": {
-            "subj_adjectival_case": "0e27b5132d314456607386e6f0c82157d276c8467f54fed14a9324ae788e34db",
-            "subj_adjectival_gender": "94d01f8fb8918ab2dc2881d0ea2d5ad7f7135a9b73068d289ed82d3dda9038df",
-            "subj_adjectival_gender_cop": "b17bf0e54937134fa9746f897435aa67cfefc8fdb9688082edbfcd2e01ff6cd1",
-            "subj_adjectival_number": "9d6e67acd11a4525f7c6ef74179e0639d61232f8941ea7a5d8c63b0225435676",
-            "subj_adjectival_number_cop": "464790325ac5f12d8be02df46b4e771ef6ae0148095bd3bd23bf5c8643ff414e",
-            "subj_verb_gender_attractor": "6d4d1736f6508914c04bf3d1648560b9f52459af913b3b267e5ab8591d40618b",
-            "subj_verb_gender_csubj": "35d45ae16fdd209ca36732fe5e9a53a2575751520c9e482ed913e0f9f8065a87",
-            "subj_verb_gender_genitive": "bc8481a8b054ea85ec05a43458ca6390d7f426f42a3c5e3dc1b1a845241a8cfd",
-            "subj_verb_gender_numerals": "1073163d1e227b33da6ab4b8ffdf600ff77e9dc9698745f77acbeafcf516ed8a",
-            "subj_verb_gender_simple": "7f465f4d404150019da8c74a4183bd28ade51f3d2a7868cc7bde44325cb46ff1",
-            "subj_verb_number_csubj": "57ddbe9d20899a5fbd83abf9e5a12981a34bad394bf19cbcc17f0997817ea092",
-            "subj_verb_number_attractor": "5c44b8ab42548719514835436db4d78125cf147130566a60926b8a9dbc57f7ee",
-            "subj_verb_number_genitive": "56e19bf4341319425532e0b8dc6c749d331ba57a8aa6087aff21942d537b1c89",
-            "subj_verb_number_numerals": "c10f26458d923c0634dbd648c0ca7ddfdfebaaad1ed576afd0388dfd757ba93d",
-            "subj_verb_number_simple": "f4bb097b42156a16b6767cfc1880960a9a1d975e4ec2f101758fa243ecef4982",
-            "subj_verb_person_csubj": "bccca02384221601bf650bcb0cbf32735bf6f2773ef1e6b04e26e7567caebe51",
-            "subj_verb_person_genitive": "625bfebdcfd7da82f594858ee9473e2d3baf2cb0af2f4546ceec61363aa15053",
-            "subj_verb_person_numerals": "52a021780b7bf08c366fea3fc50b8b4aff0ebc565355a4617daef242da14f899",
-            "subj_verb_person_simple": "1f6d1429b30d48b83be47c686f91ad4a27ed627c629d86792ebf0f4a6c2d2eea",
-        },
-    }
+    EXPECTED_HASHES: dict[str, dict[str, str]] = json.loads(
+        Path(__file__).with_name("dataset_output_snapshots.json").read_text()
+    )
 
     def test_generated_outputs_match_snapshots(self) -> None:
         repo_root = Path(__file__).resolve().parents[1]

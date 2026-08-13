@@ -1,0 +1,222 @@
+{
+  "match_subj_adjectival_case": "match_subj_adjectival_number_cop",
+  "match_subj_adjectival_gender": [
+    504,
+    1112
+  ],
+  "match_subj_adjectival_number": "match_subj_adjectival_number_cop",
+  "match_subj_adjectival_gender_cop": [
+    230,
+    342
+  ],
+  "match_subj_adjectival_number_cop": [
+    523,
+    1127
+  ],
+  "match_subj_verb_gender_simple_1a": [
+    1853,
+    2760
+  ],
+  "match_subj_verb_gender_simple_1b": [
+    307,
+    474
+  ],
+  "match_subj_verb_gender_simple_1c": [
+    437,
+    635
+  ],
+  "match_subj_verb_gender_simple_2a": [
+    348,
+    516
+  ],
+  "match_subj_verb_gender_simple_2b": [
+    23,
+    28
+  ],
+  "match_subj_verb_gender_simple_2c": [
+    62,
+    125
+  ],
+  "match_subj_verb_gender_genitive_1a": [
+    27,
+    69
+  ],
+  "match_subj_verb_gender_csubj_1a": [
+    48,
+    48
+  ],
+  "match_subj_verb_gender_csubj_2a": [
+    1,
+    9
+  ],
+  "match_subj_verb_gender_numerals_1a": [
+    148,
+    195
+  ],
+  "match_subj_verb_gender_numerals_2a": [
+    14,
+    9
+  ],
+  "match_subj_verb_gender_attractor_1a": [
+    400,
+    888
+  ],
+  "match_subj_verb_gender_attractor_1b": [
+    70,
+    191
+  ],
+  "match_subj_verb_gender_attractor_1c": [
+    29,
+    45
+  ],
+  "match_subj_verb_gender_attractor_2a": [
+    18,
+    110
+  ],
+  "match_subj_verb_gender_attractor_2b": [
+    0,
+    4
+  ],
+  "match_subj_verb_gender_attractor_2c": [
+    5,
+    2
+  ],
+  "match_subj_verb_number_simple_1a": [
+    7187,
+    14225
+  ],
+  "match_subj_verb_number_simple_1b": [
+    241,
+    213
+  ],
+  "match_subj_verb_number_simple_1c": [
+    99,
+    63
+  ],
+  "match_subj_verb_number_simple_2a": [
+    35,
+    100
+  ],
+  "match_subj_verb_number_simple_2b": [
+    44,
+    187
+  ],
+  "match_subj_verb_number_simple_3a": [
+    1169,
+    2356
+  ],
+  "match_subj_verb_number_simple_3b": [
+    4,
+    5
+  ],
+  "match_subj_verb_number_genitive_1a": [
+    93,
+    214
+  ],
+  "match_subj_verb_number_csubj_1a": [
+    105,
+    127
+  ],
+  "match_subj_verb_number_csubj_2a": [
+    7,
+    31
+  ],
+  "match_subj_verb_number_attractor_1a": [
+    459,
+    1487
+  ],
+  "match_subj_verb_number_attractor_1b": [
+    16,
+    17
+  ],
+  "match_subj_verb_number_attractor_1c": [
+    3,
+    3
+  ],
+  "match_subj_verb_number_attractor_2a": [
+    1,
+    24
+  ],
+  "match_subj_verb_number_attractor_2b": [
+    3,
+    15
+  ],
+  "match_subj_verb_number_attractor_3a": [
+    34,
+    267
+  ],
+  "match_subj_verb_number_numerals_1a": [
+    225,
+    780
+  ],
+  "match_subj_verb_number_numerals_1b": [
+    1,
+    4
+  ],
+  "match_subj_verb_number_numerals_1c": [
+    2,
+    2
+  ],
+  "match_subj_verb_number_numerals_2a": [
+    27,
+    23
+  ],
+  "match_subj_verb_person_csubj_1a": "match_subj_verb_number_csubj_1a",
+  "match_subj_verb_person_csubj_2a": "match_subj_verb_number_csubj_2a",
+  "match_subj_verb_person_simple_1a": [
+    3465,
+    9545
+  ],
+  "match_subj_verb_person_simple_1b": [
+    100,
+    63
+  ],
+  "match_subj_verb_person_simple_1c": [
+    4436,
+    7214
+  ],
+  "match_subj_verb_person_simple_1d": [
+    84,
+    356
+  ],
+  "match_subj_verb_person_simple_2a": [
+    768,
+    2013
+  ],
+  "match_subj_verb_person_simple_2b": [
+    4,
+    5
+  ],
+  "match_subj_verb_person_simple_2c": [
+    462,
+    842
+  ],
+  "match_subj_verb_person_numerals_1a": [
+    79,
+    587
+  ],
+  "match_subj_verb_person_numerals_1b": [
+    146,
+    193
+  ],
+  "match_subj_verb_person_numerals_1c": [
+    3,
+    6
+  ],
+  "match_subj_verb_person_numerals_2a": [
+    13,
+    11
+  ],
+  "match_subj_verb_person_numerals_2b": [
+    14,
+    10
+  ],
+  "match_subj_verb_person_genitive_1a": [
+    66,
+    144
+  ],
+  "match_subj_verb_person_genitive_1b": [
+    27,
+    70
+  ]
+}

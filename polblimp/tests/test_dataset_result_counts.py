@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import unittest
 from collections.abc import Callable
 from pathlib import Path
@@ -70,7 +71,6 @@ from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_numerals
     match_subj_verb_number_numerals_1b,
     match_subj_verb_number_numerals_1c,
     match_subj_verb_number_numerals_2a,
-    match_subj_verb_number_numerals_2b,
 )
 from phenomena.subject_predicate_agreement.verb.number.subj_verb_number_attractor.generator import (
     match_subj_verb_number_attractor_1a,
@@ -107,8 +107,71 @@ from phenomena.subject_predicate_agreement.verb.person.subj_verb_person_numerals
 
 
 MatchFunction = Callable[[conllu.TokenList], object | None]
-ExpectedCount = int | MatchFunction | None
+ExpectedCount = int | str | None
 ExpectedCounts = ExpectedCount | list[ExpectedCount]
+MATCHERS = {
+    matcher.__name__: matcher
+    for matcher in (
+        match_subj_adjectival_case,
+        match_subj_adjectival_gender,
+        match_subj_adjectival_number,
+        match_subj_adjectival_gender_cop,
+        match_subj_adjectival_number_cop,
+        match_subj_verb_gender_simple_1a,
+        match_subj_verb_gender_simple_1b,
+        match_subj_verb_gender_simple_1c,
+        match_subj_verb_gender_simple_2a,
+        match_subj_verb_gender_simple_2b,
+        match_subj_verb_gender_simple_2c,
+        match_subj_verb_gender_genitive_1a,
+        match_subj_verb_gender_csubj_1a,
+        match_subj_verb_gender_csubj_2a,
+        match_subj_verb_gender_numerals_1a,
+        match_subj_verb_gender_numerals_2a,
+        match_subj_verb_gender_attractor_1a,
+        match_subj_verb_gender_attractor_1b,
+        match_subj_verb_gender_attractor_1c,
+        match_subj_verb_gender_attractor_2a,
+        match_subj_verb_gender_attractor_2b,
+        match_subj_verb_gender_attractor_2c,
+        match_subj_verb_number_simple_1a,
+        match_subj_verb_number_simple_1b,
+        match_subj_verb_number_simple_1c,
+        match_subj_verb_number_simple_2a,
+        match_subj_verb_number_simple_2b,
+        match_subj_verb_number_simple_3a,
+        match_subj_verb_number_simple_3b,
+        match_subj_verb_number_genitive_1a,
+        match_subj_verb_number_csubj_1a,
+        match_subj_verb_number_csubj_2a,
+        match_subj_verb_number_attractor_1a,
+        match_subj_verb_number_attractor_1b,
+        match_subj_verb_number_attractor_1c,
+        match_subj_verb_number_attractor_2a,
+        match_subj_verb_number_attractor_2b,
+        match_subj_verb_number_attractor_3a,
+        match_subj_verb_number_numerals_1a,
+        match_subj_verb_number_numerals_1b,
+        match_subj_verb_number_numerals_1c,
+        match_subj_verb_number_numerals_2a,
+        match_subj_verb_person_csubj_1a,
+        match_subj_verb_person_csubj_2a,
+        match_subj_verb_person_simple_1a,
+        match_subj_verb_person_simple_1b,
+        match_subj_verb_person_simple_1c,
+        match_subj_verb_person_simple_1d,
+        match_subj_verb_person_simple_2a,
+        match_subj_verb_person_simple_2b,
+        match_subj_verb_person_simple_2c,
+        match_subj_verb_person_numerals_1a,
+        match_subj_verb_person_numerals_1b,
+        match_subj_verb_person_numerals_1c,
+        match_subj_verb_person_numerals_2a,
+        match_subj_verb_person_numerals_2b,
+        match_subj_verb_person_genitive_1a,
+        match_subj_verb_person_genitive_1b,
+    )
+}
 
 
 class TestDatasetResultCounts(unittest.TestCase):
@@ -127,74 +190,9 @@ class TestDatasetResultCounts(unittest.TestCase):
 
     DATASET_ORDER = ("lfg", "pdb")
 
-    EXPECTED_RESULTS: dict[MatchFunction, ExpectedCounts] = {
-        match_subj_adjectival_case: match_subj_adjectival_number_cop,
-        match_subj_adjectival_gender: [504, 1112],
-        match_subj_adjectival_number: match_subj_adjectival_number_cop,
-        match_subj_adjectival_gender_cop: [230, 342],
-        match_subj_adjectival_number_cop: [523, 1127],
-        ##
-        match_subj_verb_gender_simple_1a: [1853, 2760],
-        match_subj_verb_gender_simple_1b: [307, 474],
-        match_subj_verb_gender_simple_1c: [437, 635],
-        match_subj_verb_gender_simple_2a: [348, 516],
-        match_subj_verb_gender_simple_2b: [23, 28],
-        match_subj_verb_gender_simple_2c: [62, 125],
-        match_subj_verb_gender_genitive_1a: [27, 69],
-        match_subj_verb_gender_csubj_1a: [48, 48],
-        match_subj_verb_gender_csubj_2a: [1, 9],
-        match_subj_verb_gender_numerals_1a: [148, 195],
-        match_subj_verb_gender_numerals_2a: [14, 9],
-        match_subj_verb_gender_attractor_1a: [400, 888],
-        match_subj_verb_gender_attractor_1b: [70, 191],
-        match_subj_verb_gender_attractor_1c: [29, 45],
-        match_subj_verb_gender_attractor_2a: [18, 110],
-        match_subj_verb_gender_attractor_2b: [0, 4],
-        match_subj_verb_gender_attractor_2c: [5, 2],
-        ##
-        match_subj_verb_number_simple_1a: [7187, 14225],
-        match_subj_verb_number_simple_1b: [241, 213],
-        match_subj_verb_number_simple_1c: [99, 63],
-        match_subj_verb_number_simple_2a: [35, 100],
-        match_subj_verb_number_simple_2b: [44, 187],
-        match_subj_verb_number_simple_3a: [1169, 2356],
-        match_subj_verb_number_simple_3b: [4, 5],
-        match_subj_verb_number_genitive_1a: [93, 214],
-        match_subj_verb_number_csubj_1a: [105, 127],
-        match_subj_verb_number_csubj_2a: [7, 31],
-        match_subj_verb_number_attractor_1a: [459, 1487],
-        match_subj_verb_number_attractor_1b: [16, 17],
-        match_subj_verb_number_attractor_1c: [3, 3],
-        match_subj_verb_number_attractor_2a: [1, 24],
-        match_subj_verb_number_attractor_2b: [3, 15],
-        match_subj_verb_number_attractor_3a: [34, 267],
-        # match_subj_verb_number_attractor_3b: [0, 0],
-        ##
-        match_subj_verb_number_numerals_1a: [225, 780],
-        match_subj_verb_number_numerals_1b: [1, 4],
-        match_subj_verb_number_numerals_1c: [2, 2],
-        match_subj_verb_number_numerals_2a: [27, 23],
-        ##
-        match_subj_verb_person_csubj_1a: match_subj_verb_number_csubj_1a,
-        match_subj_verb_person_csubj_2a: match_subj_verb_number_csubj_2a,
-        ##
-        match_subj_verb_person_simple_1a: [3465, 9545],
-        match_subj_verb_person_simple_1b: [100, 63],
-        match_subj_verb_person_simple_1c: [4436, 7214],
-        match_subj_verb_person_simple_1d: [84, 356],
-        match_subj_verb_person_simple_2a: [768, 2013],
-        match_subj_verb_person_simple_2b: [4, 5],
-        match_subj_verb_person_simple_2c: [462, 842],
-        ##
-        match_subj_verb_person_numerals_1a: [79, 587],
-        match_subj_verb_person_numerals_1b: [146, 193],
-        match_subj_verb_person_numerals_1c: [3, 6],
-        match_subj_verb_person_numerals_2a: [13, 11],
-        match_subj_verb_person_numerals_2b: [14, 10],
-        ##
-        match_subj_verb_person_genitive_1a: [66, 144],
-        match_subj_verb_person_genitive_1b: [27, 70],
-    }
+    EXPECTED_RESULTS: dict[str, ExpectedCounts] = json.loads(
+        Path(__file__).with_name("dataset_result_counts.json").read_text()
+    )
 
     DATASET_FILENAMES: dict[str, tuple[str, ...]] = {
         "lfg": (
@@ -227,10 +225,13 @@ class TestDatasetResultCounts(unittest.TestCase):
             cls.sentences_by_dataset[dataset_name] = sentences
 
     def test_expected_result_counts(self) -> None:
+        self.assertEqual(set(self.EXPECTED_RESULTS), set(MATCHERS))
         for dataset_index, dataset_name in enumerate(self.DATASET_ORDER):
             self.assertIn(dataset_name, self.DATASET_FILENAMES)
-            for match_fn, expected_counts in self.EXPECTED_RESULTS.items():
-                with self.subTest(dataset=dataset_name, variant=match_fn.__name__):
+            for match_name, expected_counts in self.EXPECTED_RESULTS.items():
+                self.assertIn(match_name, MATCHERS, f"Unknown matcher in counts file: {match_name}")
+                match_fn = MATCHERS[match_name]
+                with self.subTest(dataset=dataset_name, variant=match_name):
                     expected_count = self.expected_count_for_dataset(expected_counts, dataset_index)
                     if expected_count is None:
                         continue
