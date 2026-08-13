@@ -1,12 +1,12 @@
 import csv
 import gzip
 from collections import defaultdict
+from pathlib import Path
 
 from tqdm import tqdm
 
-# TODO komentarz url
-# TODO argparse
-path = "PoliMorf-0.6.7.tab.gz"
+package_dir = Path(__file__).parent
+path = package_dir / "PoliMorf-0.6.7.tab.gz"
 
 acc = defaultdict(lambda: {})
 all_tags = set()
@@ -35,10 +35,9 @@ with tqdm(gzip.open(path, "rt", encoding="utf-8", errors="replace")) as f:
         acc[lemma][tag] = form
         all_tags.add(tag)
 
-print("All tags", all_tags)
 all_tags = list(sorted(all_tags))
 
-with open("polblimp/dictionary.v4.csv", "w", encoding="utf-8", newline="") as out:
+with (package_dir / "dictionary.v4.csv").open("w", encoding="utf-8", newline="") as out:
     w = csv.writer(out)
     w.writerow(["lemma", *all_tags])
     for lemma, d in acc.items():
