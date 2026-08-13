@@ -21,6 +21,11 @@ with tqdm(gzip.open(path, "rt", encoding="utf-8", errors="replace")) as f:
             continue
         form, lemma, tag = cols[0], cols[1], cols[2]
 
+        # PoliMorf has a typo in the non-masculine-personal past form of "wpaść":
+        # "wpasły" instead of "wpadły".
+        if lemma == "wpaść" and form == "wpasły":
+            form = "wpadły"
+
         unwanted_prefixes = {"adv:", "depr:", "ppron12", "prep:", "ger:", "imps:"}
 
         # reduce dict by removing unneeded entries
