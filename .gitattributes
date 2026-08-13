@@ -1,3 +1,4 @@
 dictionary*csv filter=lfs diff=lfs merge=lfs -text
 PoliMorf-0.6.7.tab.gz filter=lfs diff=lfs merge=lfs -text
 *.conllu filter=lfs diff=lfs merge=lfs -text
+polblimp/output/*.csv filter=lfs diff=lfs merge=lfs -text

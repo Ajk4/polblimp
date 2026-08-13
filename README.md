@@ -1,6 +1,8 @@
 # PolBLiMP
 
-Polish Benchmark of Linguistic Minimal Pairs,
+Polish Benchmark of Linguistic Minimal Pairs.
+
+Minimal pair files are available in the [polblimp/output](polblimp/output) directory.
 
 ## Quick start
 
