@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Optional
 
 import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import run_filter_transform, token_trees
+from phenomena.common import token_trees
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.pmltq import Match, QueryVariant, run_query_transforms
 from phenomena.subject_predicate_agreement.verb.person.common import (
     change_person,
 )
@@ -18,37 +20,21 @@ def run_subj_verb_person_csubj(
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    # Main verb
-    def transform_1a(sentence) -> bool:
-        matches = match_subj_verb_person_csubj_1a(sentence)
-        return change_person(matches["root_tree"], morph_dict)
+    def transform_1a(_sentence: conllu.TokenList, match: Match) -> bool:
+        return change_person(match["root_tree"], morph_dict)
 
-    variant_1a = run_filter_transform(
+    def transform_2a(_sentence: conllu.TokenList, match: Match) -> bool:
+        return change_person(match["cop_tree"], morph_dict)
+
+    return run_query_transforms(
         sentences,
-        lambda s: match_subj_verb_person_csubj_1a(s) is not None,
-        transform_1a,
-        limit=limit,
-        progress_desc="subj_verb_person_csubj__1a",
+        Path(__file__).with_name("queries"),
+        (
+            QueryVariant("1a", ("root",), transform_1a, "subj_verb_person_csubj__1a"),
+            QueryVariant("2a", ("cop",), transform_2a, "subj_verb_person_csubj__2a"),
+        ),
+        limit,
     )
-
-    # Copular auxiliary verb
-    def transform_2a(sentence) -> bool:
-        matches = match_subj_verb_person_csubj_2a(sentence)
-        return change_person(matches["cop_tree"], morph_dict)
-
-    variant_2a = run_filter_transform(
-        sentences,
-        lambda s: match_subj_verb_person_csubj_2a(s) is not None,
-        transform_2a,
-        limit=limit,
-        progress_desc="subj_verb_person_csubj__2a",
-    )
-
-    variants = [variant_1a, variant_2a]
-    df = pd.concat(variants)
-    df.attrs["matched_sentences"] = sum(df.attrs["matched_sentences"] for df in variants)
-
-    return df
 
 
 def match_subj_verb_person_csubj_1a(sentence: conllu.TokenList) -> dict[str, Token] | None:

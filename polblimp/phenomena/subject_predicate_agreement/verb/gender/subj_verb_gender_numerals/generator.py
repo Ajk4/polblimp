@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Optional
 
 import conllu
@@ -13,10 +14,10 @@ from phenomena.common import (
     extract_children,
     is_numeral_or_quantifier,
     match_descendants,
-    run_filter_transform,
     token_trees,
 )
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.pmltq import Match, QueryVariant, run_query_transforms
 
 
 def run_subj_verb_gender_numerals(
@@ -24,37 +25,21 @@ def run_subj_verb_gender_numerals(
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    # Main verb
-    def transform_1a(sentence: conllu.TokenList) -> bool:
-        matches = match_subj_verb_gender_numerals_1a(sentence)
-        return change_numeral_predicate_gender(matches[0]["root"], matches[0]["nsubj"], morph_dict)
+    def transform_1a(_sentence: conllu.TokenList, match: Match) -> bool:
+        return change_numeral_predicate_gender(match["root"], match["nsubj"], morph_dict)
 
-    variant_1a = run_filter_transform(
+    def transform_2a(_sentence: conllu.TokenList, match: Match) -> bool:
+        return change_numeral_predicate_gender(match["cop"], match["nsubj"], morph_dict)
+
+    return run_query_transforms(
         sentences,
-        lambda s: bool(match_subj_verb_gender_numerals_1a(s)),
-        transform_1a,
-        limit=limit,
-        progress_desc="subj_verb_gender_numerals__1a",
+        Path(__file__).with_name("queries"),
+        (
+            QueryVariant("1a", ("root", "nsubj"), transform_1a, "subj_verb_gender_numerals__1a"),
+            QueryVariant("2a", ("cop", "nsubj"), transform_2a, "subj_verb_gender_numerals__2a"),
+        ),
+        limit,
     )
-
-    # Copular auxiliary verb
-    def transform_2a(sentence: conllu.TokenList) -> bool:
-        matches = match_subj_verb_gender_numerals_2a(sentence)
-        return change_numeral_predicate_gender(matches[0]["cop"], matches[0]["nsubj"], morph_dict)
-
-    variant_2a = run_filter_transform(
-        sentences,
-        lambda s: bool(match_subj_verb_gender_numerals_2a(s)),
-        transform_2a,
-        limit=limit,
-        progress_desc="subj_verb_gender_numerals__2a",
-    )
-
-    variants = [variant_1a, variant_2a]
-    df = pd.concat(variants)
-    df.attrs["matched_sentences"] = sum(df.attrs["matched_sentences"] for df in variants)
-
-    return df
 
 
 def match_subj_verb_gender_numerals_1a(sentence: conllu.TokenList) -> list[dict[str, Token]]:

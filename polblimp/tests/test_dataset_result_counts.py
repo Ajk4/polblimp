@@ -39,9 +39,6 @@ from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_csubj.ge
     match_subj_verb_gender_csubj_1a,
     match_subj_verb_gender_csubj_2a,
 )
-from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_genitive.generator import (
-    match_subj_verb_gender_genitive_1a,
-)
 from phenomena.subject_predicate_agreement.verb.gender.subj_verb_gender_attractor.generator import (
     match_subj_verb_gender_attractor_1a,
     match_subj_verb_gender_attractor_1b,
@@ -123,7 +120,6 @@ MATCHERS = {
         match_subj_verb_gender_simple_2a,
         match_subj_verb_gender_simple_2b,
         match_subj_verb_gender_simple_2c,
-        match_subj_verb_gender_genitive_1a,
         match_subj_verb_gender_csubj_1a,
         match_subj_verb_gender_csubj_2a,
         match_subj_verb_gender_numerals_1a,

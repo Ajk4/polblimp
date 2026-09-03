@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Optional
 
 import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import change_gender, change_morph, match_descendants, run_filter_transform, token_trees
+from phenomena.common import change_gender, change_morph, match_descendants, token_trees
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.pmltq import Match, QueryVariant, run_query_transforms
 
 
 def run_subj_verb_gender_simple(
@@ -15,109 +17,43 @@ def run_subj_verb_gender_simple(
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    def match_for_generation(
-            matches: list[dict[str, Token]],
-            target_name: str,
-    ) -> list[dict[str, Token]]:
-        return [
-            match
-            for match in matches
-            if (match[target_name]["feats"] or {}).get("Gender") is not None
-            and get_target_gender(match[target_name]) is not None
-        ]
-
-    def transform(matches: list[dict[str, Token]], target_name: str) -> bool:
-        match = matches[0]
+    def transform(match: Match, target_name: str) -> bool:
         target = match[target_name]
+        if (target["feats"] or {}).get("Gender") is None:
+            return False
         target_gender = get_target_gender(target)
-        assert target_gender is not None
+        if target_gender is None:
+            return False
         return change_gender(target, morph_dict, target_gender=target_gender)
 
-    # Main verb, singular
-    def transform_1a(sentence) -> bool:
-        return transform(match_for_generation(match_subj_verb_gender_simple_1a(sentence), "root"), "root")
+    def transform_root(sentence: conllu.TokenList, match: Match) -> bool:
+        return transform(match, "root")
 
-    variant_1a = run_filter_transform(
-        sentences,
-        lambda s: len(match_for_generation(match_subj_verb_gender_simple_1a(s), "root")) != 0,
-        transform_1a,
-        limit=limit,
-        progress_desc="subj_verb_gender_simple__1a",
-    )
-
-    # Main verb, plural masculine-personal
-    def transform_1b(sentence) -> bool:
-        matches = match_for_generation(match_subj_verb_gender_simple_1b(sentence), "root")
-        match = matches[0]
+    def transform_1b(sentence: conllu.TokenList, match: Match) -> bool:
         root = match["root"]
         incorrectly_tagged_sentence = (sentence.metadata or {}).get("sent_id") == "train-s13970"
         if incorrectly_tagged_sentence:
             # pl_pdb train-s13970 has "zauważyły" tagged as masculine-personal
             # "praet:pl:m1:perf"; force the visible masculine-personal target.
             return change_morph(root, morph_dict, "praet:pl:m1.p1:perf")
-        return transform(matches, "root")
+        return transform(match, "root")
 
-    variant_1b = run_filter_transform(
+    def transform_cop(_sentence: conllu.TokenList, match: Match) -> bool:
+        return transform(match, "cop")
+
+    return run_query_transforms(
         sentences,
-        lambda s: len(match_for_generation(match_subj_verb_gender_simple_1b(s), "root")) != 0,
-        transform_1b,
-        limit=limit,
-        progress_desc="subj_verb_gender_simple__1b",
+        Path(__file__).with_name("queries"),
+        (
+            QueryVariant("1a", ("root",), transform_root, "subj_verb_gender_simple__1a"),
+            QueryVariant("1b", ("root",), transform_1b, "subj_verb_gender_simple__1b"),
+            QueryVariant("1c", ("root",), transform_root, "subj_verb_gender_simple__1c"),
+            QueryVariant("2a", ("cop",), transform_cop, "subj_verb_gender_simple__2a"),
+            QueryVariant("2b", ("cop",), transform_cop, "subj_verb_gender_simple__2b"),
+            QueryVariant("2c", ("cop",), transform_cop, "subj_verb_gender_simple__2c"),
+        ),
+        limit,
     )
-
-    # Main verb, plural non-masculine-personal
-    def transform_1c(sentence) -> bool:
-        return transform(match_for_generation(match_subj_verb_gender_simple_1c(sentence), "root"), "root")
-
-    variant_1c = run_filter_transform(
-        sentences,
-        lambda s: len(match_for_generation(match_subj_verb_gender_simple_1c(s), "root")) != 0,
-        transform_1c,
-        limit=limit,
-        progress_desc="subj_verb_gender_simple__1c",
-    )
-
-    # Copular verb, singular
-    def transform_2a(sentence) -> bool:
-        return transform(match_for_generation(match_subj_verb_gender_simple_2a(sentence), "cop"), "cop")
-
-    variant_2a = run_filter_transform(
-        sentences,
-        lambda s: len(match_for_generation(match_subj_verb_gender_simple_2a(s), "cop")) != 0,
-        transform_2a,
-        limit=limit,
-        progress_desc="subj_verb_gender_simple__2a",
-    )
-
-    # Copular verb, plural masculine-personal
-    def transform_2b(sentence) -> bool:
-        return transform(match_for_generation(match_subj_verb_gender_simple_2b(sentence), "cop"), "cop")
-
-    variant_2b = run_filter_transform(
-        sentences,
-        lambda s: len(match_for_generation(match_subj_verb_gender_simple_2b(s), "cop")) != 0,
-        transform_2b,
-        limit=limit,
-        progress_desc="subj_verb_gender_simple__2b",
-    )
-
-    # Copular verb, plural non-masculine-personal
-    def transform_2c(sentence) -> bool:
-        return transform(match_for_generation(match_subj_verb_gender_simple_2c(sentence), "cop"), "cop")
-
-    variant_2c = run_filter_transform(
-        sentences,
-        lambda s: len(match_for_generation(match_subj_verb_gender_simple_2c(s), "cop")) != 0,
-        transform_2c,
-        limit=limit,
-        progress_desc="subj_verb_gender_simple__2c",
-    )
-
-    variants = [variant_1a, variant_1b, variant_1c, variant_2a, variant_2b, variant_2c]
-    df = pd.concat(variants)
-    df.attrs["matched_sentences"] = sum(df.attrs["matched_sentences"] for df in variants)
-
-    return df
 
 
 def match_subj_verb_gender_simple_1a(sentence: conllu.TokenList) -> list[dict[str, Token]]:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Optional
 
 import conllu
@@ -8,10 +9,10 @@ from conllu import Token
 
 from phenomena.common import (
     QUANTIFIER_LEMMAS,
-    run_filter_transform,
     token_trees,
 )
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.pmltq import Match, QueryVariant, run_query_transforms
 from phenomena.subject_predicate_agreement.verb.person.common import (
     append_aux_clitic,
     change_person,
@@ -23,36 +24,21 @@ def run_subj_verb_person_genitive(
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    # Main verb
-    def transform_1a(sentence) -> bool:
-        matches = match_subj_verb_person_genitive_1a(sentence)
-        return change_person(matches[0]["root_tree"], morph_dict)
+    def transform_1a(_sentence: conllu.TokenList, match: Match) -> bool:
+        return change_person(match["root_tree"], morph_dict)
 
-    variant_1a = run_filter_transform(
+    def transform_1b(_sentence: conllu.TokenList, match: Match) -> bool:
+        return append_aux_clitic(match["root"], morph_dict)
+
+    return run_query_transforms(
         sentences,
-        lambda s: len(match_subj_verb_person_genitive_1a(s)) != 0,
-        transform_1a,
-        limit=limit,
-        progress_desc="subj_verb_person_genitive__1a",
+        Path(__file__).with_name("queries"),
+        (
+            QueryVariant("1a", ("root",), transform_1a, "subj_verb_person_genitive__1a"),
+            QueryVariant("1b", ("root",), transform_1b, "subj_verb_person_genitive__1b"),
+        ),
+        limit,
     )
-
-    def transform_1b(sentence) -> bool:
-        matches = match_subj_verb_person_genitive_1b(sentence)
-        return append_aux_clitic(matches[0]["root"], morph_dict)
-
-    variant_1b = run_filter_transform(
-        sentences,
-        lambda s: len(match_subj_verb_person_genitive_1b(s)) != 0,
-        transform_1b,
-        limit=limit,
-        progress_desc="subj_verb_person_genitive__1b",
-    )
-
-    variants = [variant_1a, variant_1b]
-    df = pd.concat(variants)
-    df.attrs["matched_sentences"] = sum(df.attrs["matched_sentences"] for df in variants)
-
-    return df
 
 
 def match_subj_verb_person_genitive_1a(sentence: conllu.TokenList) -> list[dict[str, Token]]:

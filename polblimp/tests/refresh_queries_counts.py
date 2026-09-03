@@ -34,7 +34,6 @@ QUERY_FILES = {
     "match_subj_verb_gender_simple_2a": "verb/gender/subj_verb_gender_simple/queries/2a.pmltq",
     "match_subj_verb_gender_simple_2b": "verb/gender/subj_verb_gender_simple/queries/2b.pmltq",
     "match_subj_verb_gender_simple_2c": "verb/gender/subj_verb_gender_simple/queries/2c.pmltq",
-    "match_subj_verb_gender_genitive_1a": "verb/gender/subj_verb_gender_genitive/queries/1a.pmltq",
     "match_subj_verb_gender_csubj_1a": "verb/gender/subj_verb_gender_csubj/queries/1a.pmltq",
     "match_subj_verb_gender_csubj_2a": "verb/gender/subj_verb_gender_csubj/queries/2a.pmltq",
     "match_subj_verb_gender_numerals_1a": "verb/gender/subj_verb_gender_numerals/queries/1a.pmltq",

@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Optional
 
 import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import change_morph, run_filter_transform
+from phenomena.common import change_morph
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.pmltq import Match, QueryVariant, run_query_transforms
 from phenomena.subject_predicate_agreement.adjective.adjective_only.subj_adjectival_number.generator import (
     match_subj_adjectival_number,
 )
@@ -18,30 +20,20 @@ def run_subj_adjectival_case(
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    def match_for_generation(sentence: conllu.TokenList) -> dict[str, Token] | None:
-        matches = match_subj_adjectival_case(sentence)
-        if not matches:
-            return None
-        match = matches[0]
+    def transform(_sentence: conllu.TokenList, match: Match) -> bool:
         if (match["root"]["feats"] or {}).get("Case") not in {"Nom", "Gen"}:
-            return None
-        return match
+            return False
 
-    def transform(sentence: conllu.TokenList) -> bool:
-        matches = match_for_generation(sentence)
-        assert matches is not None, "Matched sentences are supposed to be filtered first"
-
-        target_xpos = get_target_case_xpos(matches["root"])
+        target_xpos = get_target_case_xpos(match["root"])
         if target_xpos is None:
             return False
-        return change_morph(matches["root"], morph_dict, target_xpos)
+        return change_morph(match["root"], morph_dict, target_xpos)
 
-    return run_filter_transform(
+    return run_query_transforms(
         sentences,
-        lambda s: match_for_generation(s) is not None,
-        transform,
-        limit=limit,
-        progress_desc="subj_adjectival_case",
+        Path(__file__).with_name("queries"),
+        (QueryVariant("1a", ("root",), transform, "subj_adjectival_case"),),
+        limit,
     )
 
 

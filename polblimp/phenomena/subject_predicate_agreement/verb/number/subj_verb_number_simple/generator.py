@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Optional
 
 import conllu
@@ -9,10 +10,10 @@ from conllu import Token
 from phenomena.common import (
     change_number,
     match_descendants,
-    run_filter_transform,
     token_trees,
 )
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.pmltq import Match, QueryVariant, run_query_transforms
 from phenomena.subject_predicate_agreement.verb.number.common import change_number_with_aux_clitic
 
 
@@ -21,110 +22,56 @@ def run_subj_verb_number_simple(
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    # Main verb
-    def transform_1a(sentence) -> bool:
-        matches = match_subj_verb_number_simple_1a(sentence)
-        return change_number(matches[0]["root"], morph_dict)
+    def transform_root(_sentence: conllu.TokenList, match: Match) -> bool:
+        return change_number(match["root"], morph_dict)
 
-    variant_1a = run_filter_transform(
-        sentences,
-        lambda s: len(match_subj_verb_number_simple_1a(s)) != 0,
-        transform_1a,
-        limit=limit,
-        progress_desc="subj_verb_number_simple__1a",
-    )
-
-    def transform_1b(sentence) -> bool:
-        matches = match_subj_verb_number_simple_1b(sentence)
-        return change_number(matches[0]["root"], morph_dict)
-
-    variant_1b = run_filter_transform(
-        sentences,
-        lambda s: len(match_subj_verb_number_simple_1b(s)) != 0,
-        transform_1b,
-        limit=limit,
-        progress_desc="subj_verb_number_simple__1b",
-    )
-
-    def transform_1c(sentence) -> bool:
-        match = match_subj_verb_number_simple_1c(sentence)[0]
+    def transform_1c(sentence: conllu.TokenList, match: Match) -> bool:
+        auxclitic = extract_aux_clitic(match["root_tree"])
+        assert auxclitic is not None
         return change_number_with_aux_clitic(
             sentence,
             match["root"],
-            match["auxclitic"],
+            auxclitic,
             (match["nsubj"]["feats"] or {})["Person"],
             morph_dict,
         )
 
-    variant_1c = run_filter_transform(
-        sentences,
-        lambda s: len(match_subj_verb_number_simple_1c(s)) != 0,
-        transform_1c,
-        limit=limit,
-        progress_desc="subj_verb_number_simple__1c",
-    )
+    def transform_2a(_sentence: conllu.TokenList, match: Match) -> bool:
+        aux = next(child.token for child in match["root_tree"].children if child.token["deprel"] == "aux")
+        return change_number(aux, morph_dict)
 
-    # Main verb, compound future
-    def transform_2a(sentence) -> bool:
-        matches = match_subj_verb_number_simple_2a(sentence)
-        return change_number(matches[0]["aux"], morph_dict)
+    def transform_2b(_sentence: conllu.TokenList, match: Match) -> bool:
+        aux = next(child.token for child in match["root_tree"].children if child.token["deprel"] == "aux")
+        return change_number(aux, morph_dict) and change_number(match["root"], morph_dict)
 
-    variant_2a = run_filter_transform(
-        sentences,
-        lambda s: len(match_subj_verb_number_simple_2a(s)) != 0,
-        transform_2a,
-        limit=limit,
-        progress_desc="subj_verb_number_simple__2a",
-    )
+    def transform_3a(_sentence: conllu.TokenList, match: Match) -> bool:
+        return change_number(match["cop"], morph_dict)
 
-    def transform_2b(sentence) -> bool:
-        matches = match_subj_verb_number_simple_2b(sentence)
-        return change_number(matches[0]["aux"], morph_dict) and change_number(matches[0]["root"], morph_dict)
-
-    variant_2b = run_filter_transform(
-        sentences,
-        lambda s: len(match_subj_verb_number_simple_2b(s)) != 0,
-        transform_2b,
-        limit=limit,
-        progress_desc="subj_verb_number_simple__2b",
-    )
-
-    # Copular auxiliary verb
-    def transform_3a(sentence) -> bool:
-        matches = match_subj_verb_number_simple_3a(sentence)
-        return change_number(matches[0]["cop"], morph_dict)
-
-    variant_3a = run_filter_transform(
-        sentences,
-        lambda s: len(match_subj_verb_number_simple_3a(s)) != 0,
-        transform_3a,
-        limit=limit,
-        progress_desc="subj_verb_number_simple__3a",
-    )
-
-    def transform_3b(sentence) -> bool:
-        match = match_subj_verb_number_simple_3b(sentence)[0]
+    def transform_3b(sentence: conllu.TokenList, match: Match) -> bool:
+        auxclitic = extract_aux_clitic(match["root_tree"])
+        assert auxclitic is not None
         return change_number_with_aux_clitic(
             sentence,
             match["cop"],
-            match["auxclitic"],
+            auxclitic,
             (match["nsubj"]["feats"] or {})["Person"],
             morph_dict,
         )
 
-    variant_3b = run_filter_transform(
+    return run_query_transforms(
         sentences,
-        lambda s: len(match_subj_verb_number_simple_3b(s)) != 0,
-        transform_3b,
-        limit=limit,
-        progress_desc="subj_verb_number_simple__3b",
+        Path(__file__).with_name("queries"),
+        (
+            QueryVariant("1a", ("root",), transform_root, "subj_verb_number_simple__1a"),
+            QueryVariant("1b", ("root",), transform_root, "subj_verb_number_simple__1b"),
+            QueryVariant("1c", ("root", "nsubj"), transform_1c, "subj_verb_number_simple__1c"),
+            QueryVariant("2a", ("root",), transform_2a, "subj_verb_number_simple__2a"),
+            QueryVariant("2b", ("root",), transform_2b, "subj_verb_number_simple__2b"),
+            QueryVariant("3a", ("cop",), transform_3a, "subj_verb_number_simple__3a"),
+            QueryVariant("3b", ("root", "cop", "nsubj"), transform_3b, "subj_verb_number_simple__3b"),
+        ),
+        limit,
     )
-
-    variants = [variant_1a, variant_1b, variant_1c, variant_2a, variant_2b, variant_3a, variant_3b]
-    df = pd.concat(variants)
-    df.attrs["matched_sentences"] = sum(df.attrs["matched_sentences"] for df in variants)
-
-    return df
 
 
 def match_subj_verb_number_simple_1a(sentence: conllu.TokenList) -> list[dict[str, Token]]:

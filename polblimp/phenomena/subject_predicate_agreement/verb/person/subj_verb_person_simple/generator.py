@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import random
+from pathlib import Path
 from typing import Optional
 
 import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import preserve_case, remove_token_preserving_spacing, run_filter_transform, token_trees
+from phenomena.common import preserve_case, remove_token_preserving_spacing, token_trees
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.pmltq import Match, QueryVariant, run_query_transforms
 from phenomena.subject_predicate_agreement.verb.person.common import (
     append_aux_clitic,
     change_aux_clitic_person,
@@ -17,112 +19,66 @@ from phenomena.subject_predicate_agreement.verb.person.common import (
 
 def run_subj_verb_person_simple(sentences: list[conllu.TokenList], morph_dict: MorphDictionary,
                                 limit: Optional[int]) -> pd.DataFrame:
-    # Main verb
-    def transform_1a(sentence) -> bool:
-        matches = match_subj_verb_person_simple_1a(sentence)
-        return change_person(matches[0]["root_tree"], morph_dict)
+    def transform_1a(_sentence: conllu.TokenList, match: Match) -> bool:
+        return change_person(match["root_tree"], morph_dict)
 
-    variant_1a = run_filter_transform(
-        sentences,
-        lambda s: len(match_subj_verb_person_simple_1a(s)) != 0,
-        transform_1a,
-        limit=limit,
-        progress_desc="subj_verb_person__1a",
-    )
-
-    def transform_1b(sentence) -> bool:
-        match = match_subj_verb_person_simple_1b(sentence)[0]
+    def transform_1b(sentence: conllu.TokenList, match: Match) -> bool:
+        auxclitic = extract_child(match["root_tree"], "aux:clitic")
+        assert auxclitic is not None
         source_person = (match["nsubj"]["feats"] or {})["Person"]
-        return change_or_remove_aux_clitic(sentence, match["auxclitic"], source_person, morph_dict)
+        return change_or_remove_aux_clitic(sentence, auxclitic.token, source_person, morph_dict)
 
-    variant_1b = run_filter_transform(
-        sentences,
-        lambda s: len(match_subj_verb_person_simple_1b(s)) != 0,
-        transform_1b,
-        limit=limit,
-        progress_desc="subj_verb_person__1b",
-    )
-
-    def transform_1c(sentence) -> bool:
-        match = match_subj_verb_person_simple_1c(sentence)[0]
-        if "auxcnd" in match:
-            return change_conditional_person(match["root"], match["auxcnd"], morph_dict)
+    def transform_1c(_sentence: conllu.TokenList, match: Match) -> bool:
+        auxcnd = extract_child(match["root_tree"], "aux:cnd")
+        if auxcnd is not None:
+            return change_conditional_person(match["root"], auxcnd.token, morph_dict)
         if match["root"]["lemma"] == "powinien":
             return append_aux_clitic(match["root"], morph_dict)
         return change_person(match["root_tree"], morph_dict)
 
-    variant_1c = run_filter_transform(
-        sentences,
-        lambda s: len(match_subj_verb_person_simple_1c(s)) != 0,
-        transform_1c,
-        limit=limit,
-        progress_desc="subj_verb_person__1c",
-    )
-
-    def transform_1d(sentence) -> bool:
-        matches = match_subj_verb_person_simple_1d(sentence)[0]
-        if "auxcnd" in matches:
+    def transform_1d(_sentence: conllu.TokenList, match: Match) -> bool:
+        aux = extract_child(match["root_tree"], "aux")
+        assert aux is not None
+        auxcnd = extract_child(match["root_tree"], "aux:cnd")
+        if auxcnd is not None:
             # Conditional is split in UD as past host + "by" (e.g. "był" + "by").
             # Person attaches to the conditional particle ("byś"), not the host
             # ("byłeśby" is invalid).
-            return change_conditional_person(matches["aux"], matches["auxcnd"], morph_dict)
-        return change_person(matches['aux_tree'], morph_dict)
+            return change_conditional_person(aux.token, auxcnd.token, morph_dict)
+        return change_person(aux, morph_dict)
 
-    variant_1d = run_filter_transform(
-        sentences,
-        lambda s: len(match_subj_verb_person_simple_1d(s)) != 0,
-        transform_1d,
-        limit=limit,
-        progress_desc="subj_verb_person__1d",
-    )
+    def transform_2a(_sentence: conllu.TokenList, match: Match) -> bool:
+        return change_person(match["cop_tree"], morph_dict)
 
-    # Copular auxiliary verb
-    def transform_2a(sentence) -> bool:
-        matches = match_subj_verb_person_simple_2a(sentence)
-        return change_person(matches[0]['cop_tree'], morph_dict)
-    variant_2a = run_filter_transform(
-        sentences,
-        lambda s: len(match_subj_verb_person_simple_2a(s)) != 0,
-        transform_2a,
-        limit=limit,
-        progress_desc="subj_verb_person__2a",
-    )
-
-    def transform_2b(sentence) -> bool:
-        match = match_subj_verb_person_simple_2b(sentence)[0]
+    def transform_2b(sentence: conllu.TokenList, match: Match) -> bool:
+        auxclitic = extract_child(match["root_tree"], "aux:clitic")
+        assert auxclitic is not None
         source_person = (match["nsubj"]["feats"] or {})["Person"]
-        return change_or_remove_aux_clitic(sentence, match["auxclitic"], source_person, morph_dict)
+        return change_or_remove_aux_clitic(sentence, auxclitic.token, source_person, morph_dict)
 
-    variant_2b = run_filter_transform(
-        sentences,
-        lambda s: len(match_subj_verb_person_simple_2b(s)) != 0,
-        transform_2b,
-        limit=limit,
-        progress_desc="subj_verb_person__2b",
-    )
-
-    def transform_2c(sentence) -> bool:
-        matches = match_subj_verb_person_simple_2c(sentence)[0]
-        if "auxcnd" in matches:
+    def transform_2c(_sentence: conllu.TokenList, match: Match) -> bool:
+        auxcnd = extract_child(match["root_tree"], "aux:cnd")
+        if auxcnd is not None:
             # Conditional is split in UD as past host + "by" (e.g. "był" + "by").
             # Person attaches to the conditional particle ("byś"), not the host
             # ("byłeśby" is invalid).
-            return change_conditional_person(matches["cop"], matches["auxcnd"], morph_dict)
-        return change_person(matches['cop_tree'], morph_dict)
+            return change_conditional_person(match["cop"], auxcnd.token, morph_dict)
+        return change_person(match["cop_tree"], morph_dict)
 
-    variant_2c = run_filter_transform(
+    return run_query_transforms(
         sentences,
-        lambda s: len(match_subj_verb_person_simple_2c(s)) != 0,
-        transform_2c,
-        limit=limit,
-        progress_desc="subj_verb_person__2c",
+        Path(__file__).with_name("queries"),
+        (
+            QueryVariant("1a", ("root",), transform_1a, "subj_verb_person__1a"),
+            QueryVariant("1b", ("root", "nsubj"), transform_1b, "subj_verb_person__1b"),
+            QueryVariant("1c", ("root",), transform_1c, "subj_verb_person__1c"),
+            QueryVariant("1d", ("root",), transform_1d, "subj_verb_person__1d"),
+            QueryVariant("2a", ("cop",), transform_2a, "subj_verb_person__2a"),
+            QueryVariant("2b", ("root", "nsubj"), transform_2b, "subj_verb_person__2b"),
+            QueryVariant("2c", ("root", "cop"), transform_2c, "subj_verb_person__2c"),
+        ),
+        limit,
     )
-
-    variants = [variant_1a, variant_1b, variant_1c, variant_1d, variant_2a, variant_2b, variant_2c]
-    df = pd.concat(variants)
-    df.attrs["matched_sentences"] = sum(df.attrs["matched_sentences"] for df in variants)
-
-    return df
 
 def change_or_remove_aux_clitic(
         sentence: conllu.TokenList,

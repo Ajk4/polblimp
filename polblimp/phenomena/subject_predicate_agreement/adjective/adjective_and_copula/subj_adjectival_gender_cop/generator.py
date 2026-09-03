@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Optional
 
 import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import change_gender, run_filter_transform
+from phenomena.common import change_gender
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.pmltq import Match, QueryVariant, run_query_transforms
 
 
 def run_subj_adjectival_gender_cop(
@@ -15,39 +17,28 @@ def run_subj_adjectival_gender_cop(
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    def match_for_generation(sentence: conllu.TokenList) -> dict[str, Token] | None:
-        match = match_subj_adjectival_gender_cop(sentence)
-        if match is None:
-            return None
-
+    def transform(_sentence: conllu.TokenList, match: Match) -> bool:
         root_feats = match["root"]["feats"] or {}
         cop_feats = match["cop"]["feats"] or {}
         if root_feats.get("Gender") is None or cop_feats.get("Gender") is None:
-            return None
+            return False
         if root_feats.get("Number") == "Sing" and root_feats.get("Gender") != cop_feats.get("Gender"):
-            return None
-        if get_target_gender(match["root"]) is None:
-            return None
-        return match
+            return False
 
-    def transform(sentence: conllu.TokenList) -> bool:
-        matches = match_for_generation(sentence)
-        assert matches is not None, "Matched sentences are supposed to be filtered first"
-
-        target_gender = get_target_gender(matches["root"])
-        assert target_gender is not None
+        target_gender = get_target_gender(match["root"])
+        if target_gender is None:
+            return False
 
         return (
-            change_gender(matches["root"], morph_dict, target_gender=target_gender)
-            and change_gender(matches["cop"], morph_dict, target_gender=target_gender)
+            change_gender(match["root"], morph_dict, target_gender=target_gender)
+            and change_gender(match["cop"], morph_dict, target_gender=target_gender)
         )
 
-    return run_filter_transform(
+    return run_query_transforms(
         sentences,
-        lambda s: match_for_generation(s) is not None,
-        transform,
-        limit=limit,
-        progress_desc="subj_adjectival_gender_cop",
+        Path(__file__).with_name("queries"),
+        (QueryVariant("1a", ("root", "cop"), transform, "subj_adjectival_gender_cop"),),
+        limit,
     )
 
 

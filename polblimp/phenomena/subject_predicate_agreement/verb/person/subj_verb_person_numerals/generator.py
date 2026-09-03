@@ -1,4 +1,5 @@
 from __future__ import annotations
+from pathlib import Path
 from typing import Optional
 
 import conllu
@@ -10,10 +11,10 @@ from phenomena.common import (
     agrees_with_numeral_subject,
     extract_children,
     is_numeral_or_quantifier,
-    run_filter_transform,
     token_trees,
 )
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.pmltq import Match, QueryVariant, run_query_transforms
 from phenomena.subject_predicate_agreement.verb.person.common import (
     append_aux_clitic,
     change_person,
@@ -25,73 +26,34 @@ def run_subj_verb_person_numerals(
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    # Main verb
-    def transform_1a(sentence) -> bool:
-        matches = match_subj_verb_person_numerals_1a(sentence)
-        return change_person(matches[0]["root_tree"], morph_dict)
+    def transform_1a(_sentence: conllu.TokenList, match: Match) -> bool:
+        return change_person(match["root_tree"], morph_dict)
 
-    variant_1a = run_filter_transform(
+    def transform_1b(_sentence: conllu.TokenList, match: Match) -> bool:
+        return append_aux_clitic(match["root"], morph_dict)
+
+    def transform_1c(_sentence: conllu.TokenList, match: Match) -> bool:
+        aux = next(child for child in match["root_tree"].children if child.token["deprel"] == "aux")
+        return change_person(aux, morph_dict)
+
+    def transform_2a(_sentence: conllu.TokenList, match: Match) -> bool:
+        return change_person(match["cop_tree"], morph_dict)
+
+    def transform_2b(_sentence: conllu.TokenList, match: Match) -> bool:
+        return append_aux_clitic(match["cop"], morph_dict)
+
+    return run_query_transforms(
         sentences,
-        lambda s: bool(match_subj_verb_person_numerals_1a(s)),
-        transform_1a,
-        limit=limit,
-        progress_desc="subj_verb_person_numerals__1a",
+        Path(__file__).with_name("queries"),
+        (
+            QueryVariant("1a", ("root",), transform_1a, "subj_verb_person_numerals__1a"),
+            QueryVariant("1b", ("root",), transform_1b, "subj_verb_person_numerals__1b"),
+            QueryVariant("1c", ("root",), transform_1c, "subj_verb_person_numerals__1c"),
+            QueryVariant("2a", ("cop",), transform_2a, "subj_verb_person_numerals__2a"),
+            QueryVariant("2b", ("cop",), transform_2b, "subj_verb_person_numerals__2b"),
+        ),
+        limit,
     )
-
-    def transform_1b(sentence) -> bool:
-        matches = match_subj_verb_person_numerals_1b(sentence)
-        return append_aux_clitic(matches[0]["root"], morph_dict)
-
-    variant_1b = run_filter_transform(
-        sentences,
-        lambda s: bool(match_subj_verb_person_numerals_1b(s)),
-        transform_1b,
-        limit=limit,
-        progress_desc="subj_verb_person_numerals__1b",
-    )
-
-    def transform_1c(sentence) -> bool:
-        matches = match_subj_verb_person_numerals_1c(sentence)
-        return change_person(matches[0]["aux_tree"], morph_dict)
-
-    variant_1c = run_filter_transform(
-        sentences,
-        lambda s: bool(match_subj_verb_person_numerals_1c(s)),
-        transform_1c,
-        limit=limit,
-        progress_desc="subj_verb_person_numerals__1c",
-    )
-
-    # Copular auxiliary verb
-    def transform_2a(sentence) -> bool:
-        matches = match_subj_verb_person_numerals_2a(sentence)
-        return change_person(matches[0]["cop_tree"], morph_dict)
-
-    variant_2a = run_filter_transform(
-        sentences,
-        lambda s: bool(match_subj_verb_person_numerals_2a(s)),
-        transform_2a,
-        limit=limit,
-        progress_desc="subj_verb_person_numerals__2a",
-    )
-
-    def transform_2b(sentence) -> bool:
-        matches = match_subj_verb_person_numerals_2b(sentence)
-        return append_aux_clitic(matches[0]["cop"], morph_dict)
-
-    variant_2b = run_filter_transform(
-        sentences,
-        lambda s: bool(match_subj_verb_person_numerals_2b(s)),
-        transform_2b,
-        limit=limit,
-        progress_desc="subj_verb_person_numerals__2b",
-    )
-
-    variants = [variant_1a, variant_1b, variant_1c, variant_2a, variant_2b]
-    df = pd.concat(variants)
-    df.attrs["matched_sentences"] = sum(df.attrs["matched_sentences"] for df in variants)
-
-    return df
 
 
 def match_subj_verb_person_numerals_1a(sentence: conllu.TokenList) -> list[dict[str, Token]]:

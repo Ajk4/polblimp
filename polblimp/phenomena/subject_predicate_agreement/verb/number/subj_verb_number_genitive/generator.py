@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Optional
 
 import conllu
 import pandas as pd
 from conllu import Token
 
-from phenomena.common import QUANTIFIER_LEMMAS, change_number, run_filter_transform, token_trees
+from phenomena.common import QUANTIFIER_LEMMAS, change_number, token_trees
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.pmltq import Match, QueryVariant, run_query_transforms
 
 
 def run_subj_verb_number_genitive(
@@ -15,20 +17,15 @@ def run_subj_verb_number_genitive(
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    # Main verb
-    def transform_1a(sentence) -> bool:
-        matches = match_subj_verb_number_genitive_1a(sentence)
-        return change_number(matches[0]["root"], morph_dict)
+    def transform_1a(_sentence: conllu.TokenList, match: Match) -> bool:
+        return change_number(match["root"], morph_dict)
 
-    variant_1a = run_filter_transform(
+    return run_query_transforms(
         sentences,
-        lambda s: len(match_subj_verb_number_genitive_1a(s)) != 0,
-        transform_1a,
-        limit=limit,
-        progress_desc="subj_verb_number_genitive__1a",
+        Path(__file__).with_name("queries"),
+        (QueryVariant("1a", ("root",), transform_1a, "subj_verb_number_genitive__1a"),),
+        limit,
     )
-
-    return variant_1a
 
 
 def match_subj_verb_number_genitive_1a(sentence: conllu.TokenList) -> list[dict[str, Token]]:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Optional
 
 import conllu
@@ -11,10 +12,10 @@ from phenomena.common import (
     agrees_with_numeral_subject,
     change_number,
     extract_children,
-    run_filter_transform,
     token_trees,
 )
 from phenomena.morph_dictionary import MorphDictionary
+from phenomena.pmltq import Match, QueryVariant, run_query_transforms
 
 
 def run_subj_verb_number_numerals(
@@ -22,66 +23,36 @@ def run_subj_verb_number_numerals(
         morph_dict: MorphDictionary,
         limit: Optional[int],
 ) -> pd.DataFrame:
-    # Main verb
-    def transform_1a(sentence) -> bool:
-        matches = match_subj_verb_number_numerals_1a(sentence)
-        return change_number(matches[0]["root"], morph_dict)
+    def transform_1a(_sentence: conllu.TokenList, match: Match) -> bool:
+        return change_number(match["root"], morph_dict)
 
-    variant_1a = run_filter_transform(
-        sentences,
-        lambda s: bool(match_subj_verb_number_numerals_1a(s)),
-        transform_1a,
-        limit=limit,
-        progress_desc="subj_verb_number_numerals__1a",
-    )
+    def transform_1b(_sentence: conllu.TokenList, match: Match) -> bool:
+        aux = next(child.token for child in match["root_tree"].children if child.token["deprel"] == "aux")
+        return change_number(aux, morph_dict)
 
-    def transform_1b(sentence) -> bool:
-        matches = match_subj_verb_number_numerals_1b(sentence)
-        return change_number(matches["aux"], morph_dict)
-
-    variant_1b = run_filter_transform(
-        sentences,
-        lambda s: match_subj_verb_number_numerals_1b(s) is not None,
-        transform_1b,
-        limit=limit,
-        progress_desc="subj_verb_number_numerals__1b",
-    )
-
-    def transform_1c(sentence) -> bool:
-        matches = match_subj_verb_number_numerals_1c(sentence)
-        root_feats = matches["root"]["feats"] or {}
-        if not change_number(matches["aux"], morph_dict):
+    def transform_1c(_sentence: conllu.TokenList, match: Match) -> bool:
+        root_feats = match["root"]["feats"] or {}
+        aux = next(child.token for child in match["root_tree"].children if child.token["deprel"] == "aux")
+        if not change_number(aux, morph_dict):
             return False
         if root_feats.get("VerbForm") == "Fin":
-            return change_number(matches["root"], morph_dict)
+            return change_number(match["root"], morph_dict)
         return True
 
-    variant_1c = run_filter_transform(
+    def transform_2a(_sentence: conllu.TokenList, match: Match) -> bool:
+        return change_number(match["cop"], morph_dict)
+
+    return run_query_transforms(
         sentences,
-        lambda s: match_subj_verb_number_numerals_1c(s) is not None,
-        transform_1c,
-        limit=limit,
-        progress_desc="subj_verb_number_numerals__1c",
+        Path(__file__).with_name("queries"),
+        (
+            QueryVariant("1a", ("root",), transform_1a, "subj_verb_number_numerals__1a"),
+            QueryVariant("1b", ("root",), transform_1b, "subj_verb_number_numerals__1b"),
+            QueryVariant("1c", ("root",), transform_1c, "subj_verb_number_numerals__1c"),
+            QueryVariant("2a", ("cop",), transform_2a, "subj_verb_number_numerals__2a"),
+        ),
+        limit,
     )
-
-    # Copular auxiliary verb
-    def transform_2a(sentence) -> bool:
-        matches = match_subj_verb_number_numerals_2a(sentence)
-        return change_number(matches[0]["cop"], morph_dict)
-
-    variant_2a = run_filter_transform(
-        sentences,
-        lambda s: bool(match_subj_verb_number_numerals_2a(s)),
-        transform_2a,
-        limit=limit,
-        progress_desc="subj_verb_number_numerals__2a",
-    )
-
-    variants = [variant_1a, variant_1b, variant_1c, variant_2a]
-    df = pd.concat(variants)
-    df.attrs["matched_sentences"] = sum(df.attrs["matched_sentences"] for df in variants)
-
-    return df
 
 
 def match_subj_verb_number_numerals_1a(sentence: conllu.TokenList) -> list[dict[str, Token]]:

@@ -18,6 +18,7 @@ pip install -r requirements.txt
 ## Generate data
 
 Run generators from the `polblimp` directory:
+Generation queries the remote PML-TQ service and requires internet access.
 
 ```sh
 cd polblimp
